@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ostéopathe Animalier - Soins naturels pour vos animaux</title>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+    <!-- Firebase App (the core Firebase SDK) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <!-- Firebase Auth -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <!-- Firebase Firestore -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <!-- Firebase Functions -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #4a6b7c;
+            --secondary-color: #8ba6b1;
+            --accent-color: #e6b17e;
+            --text-color: #333;
+            --light-bg: #f8f9fa;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Montserrat', sans-serif;
+            color: var(--text-color);
+            line-height: 1.6;
+        }
+
+        .header {
+            background-color: white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            justify-content: space-between;
+            width: 30px;
+            height: 21px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        .hamburger span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background-color: var(--primary-color);
+            transition: all 0.3s ease;
+        }
+
+        .hamburger.active span:nth-child(1) {
+            transform: rotate(45deg);
+            transform-origin: 0 0;
+        }
+
+        .hamburger.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .hamburger.active span:nth-child(3) {
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .nav-links a {
+            color: var(--text-color);
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--accent-color);
+        }
+
+        .hero {
+            background: linear-gradient(rgba(74, 107, 124, 0.8), rgba(74, 107, 124, 0.8)),
+                        url('https://images.unsplash.com/photo-1517849845537-4d257902454a?ixlib=rb-1.2.1&auto=format&fit=crop&w=1350&q=80');
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: white;
+            margin-top: 0;
+        }
+
+        .hero-content {
+            max-width: 800px;
+            padding: 2rem;
+        }
+
+        .hero h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 3.5rem;
+            margin-bottom: 1rem;
+            font-weight: 600;
+        }
+
+        .hero p {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 1rem 2rem;
+            background-color: var(--accent-color);
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #d49a6a;
+        }
+
+        .section {
+            padding: 5rem 2rem;
+        }
+
+        .section-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .services {
+            background-color: var(--light-bg);
+        }
+
+        .services-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .service-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+
+        .service-card h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .about {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4rem;
+            align-items: center;
+        }
+
+        .about-image {
+            width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .contact {
+            background-color: var(--light-bg);
+        }
+
+        .contact-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+
+        .form-group input,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+        }
+
+        .auth-form {
+            max-width: 400px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .auth-form h3 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 1.5rem;
+            font-size: 1.8rem;
+        }
+
+        .auth-form input {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .auth-form input:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .auth-form button {
+            width: 100%;
+            padding: 0.8rem;
+            margin-bottom: 0.8rem;
+            border: none;
+            border-radius: 5px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .auth-form button.primary {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .auth-form button.primary:hover {
+            background-color: #d49a6a;
+            transform: translateY(-2px);
+        }
+
+        .auth-form button.secondary {
+            background-color: transparent;
+            color: var(--primary-color);
+            border: 2px solid var(--primary-color);
+        }
+
+        .auth-form button.secondary:hover {
+            background-color: var(--primary-color);
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .auth-form button.close {
+            background-color: #f8f9fa;
+            color: var(--text-color);
+            border: 1px solid #ddd;
+        }
+
+        .auth-form button.close:hover {
+            background-color: #e9ecef;
+            transform: translateY(-2px);
+        }
+
+        .error {
+            color: #e74c3c;
+            margin-bottom: 1rem;
+            text-align: center;
+            font-size: 0.9rem;
+        }
+
+        .footer {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+        }
+
+        .footer-section h3 {
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .footer-section ul {
+            list-style: none;
+        }
+
+        .footer-section ul li {
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-section a {
+            color: white;
+            text-decoration: none;
+        }
+
+        .copyright {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+
+        @media (max-width: 768px) {
+            .hamburger {
+                display: flex;
+            }
+
+            .nav-links {
+                position: fixed;
+                top: 0;
+                right: -100%;
+                width: 100%;
+                height: 100vh;
+                background-color: white;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                transition: right 0.3s ease;
+                z-index: 1000;
+            }
+
+            .nav-links.active {
+                right: 0;
+            }
+
+            .nav-links a {
+                font-size: 1.5rem;
+                margin: 1rem 0;
+            }
+
+            .hero {
+                margin-top: 60px;
+            }
+        }
+
+        .appointment-section {
+            background-color: var(--light-bg);
+            padding: 5rem 2rem;
+        }
+
+        .appointment-form {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--primary-color);
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .form-group select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 1rem center;
+            background-size: 1em;
+        }
+
+        .time-slots {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .time-slot {
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .time-slot:hover {
+            background-color: var(--light-bg);
+        }
+
+        .time-slot.selected {
+            background-color: var(--accent-color);
+            color: white;
+            border-color: var(--accent-color);
+        }
+
+        .time-slot.unavailable {
+            background-color: #f8f9fa;
+            color: #999;
+            cursor: not-allowed;
+        }
+
+        .success-message {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 1rem;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        .page-container {
+            min-height: 100vh;
+            padding-top: 80px; /* Pour compenser la hauteur de la navbar fixe */
+        }
+
+        .appointment-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .appointment-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .appointment-header h1 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .appointment-header p {
+            color: var(--text-color);
+            font-size: 1.1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .appointment-steps {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .step {
+            text-align: center;
+            padding: 2rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .step-number {
+            width: 40px;
+            height: 40px;
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-weight: bold;
+        }
+
+        .step h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+        }
+
+        .step p {
+            color: var(--text-color);
+        }
+    </style>
+</head>
+<body>
+    <div id="app">
+        <header class="header">
+            <nav class="nav-container">
+                <a href="#" class="logo">Ostéopathe Animalier</a>
+                <div class="hamburger" @click="toggleMenu" :class="{ active: isMenuOpen }">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </div>
+                <div class="nav-links" :class="{ active: isMenuOpen }">
+                    <a href="#services" @click="closeMenu">Services</a>
+                    <a href="#about" @click="closeMenu">À propos</a>
+                    <a href="#contact" @click="closeMenu">Contact</a>
+                    <a href="#appointment" @click="closeMenu" v-if="isAuthenticated">Prendre RDV</a>
+                    <template v-if="!isAuthenticated">
+                        <a href="#" @click.prevent="showAuth = true; closeMenu()">Connexion</a>
+                    </template>
+                    <template v-else>
+                        <a href="#" @click.prevent="logout(); closeMenu()">Déconnexion</a>
+                    </template>
+                </div>
+            </nav>
+        </header>
+
+        <div class="page-container">
+            <!-- Page d'accueil -->
+            <template v-if="currentPage === 'home'">
+                <section class="hero">
+                    <div class="hero-content">
+                        <h1>Soins naturels pour vos animaux</h1>
+                        <p>Spécialiste en ostéopathie animale, je vous propose des soins adaptés à chaque espèce pour améliorer leur bien-être et leur qualité de vie.</p>
+                        <a href="#appointment" class="btn" v-if="isAuthenticated">Prendre rendez-vous</a>
+                        <a href="#" class="btn" v-else @click.prevent="showAuth = true">Se connecter pour prendre RDV</a>
+                    </div>
+                </section>
+
+                <section id="services" class="section services">
+                    <h2 class="section-title">Nos Services</h2>
+                    <div class="services-grid">
+                        <div class="service-card">
+                            <h3>Consultation Ostéopathique</h3>
+                            <p>Évaluation complète et traitement personnalisé pour soulager les douleurs et améliorer la mobilité de votre animal.</p>
+                        </div>
+                        <div class="service-card">
+                            <h3>Suivi Post-opératoire</h3>
+                            <p>Accompagnement dans la récupération après une intervention chirurgicale pour une meilleure réhabilitation.</p>
+                        </div>
+                        <div class="service-card">
+                            <h3>Prévention</h3>
+                            <p>Consultations préventives pour maintenir la santé et le bien-être de votre animal à long terme.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <section id="about" class="section">
+                    <h2 class="section-title">À Propos</h2>
+                    <div class="about">
+                        <div>
+                            <h3>Votre Ostéopathe Animalier</h3>
+                            <p>Diplômée en ostéopathie animale avec plus de 10 ans d'expérience, je me consacre à améliorer la qualité de vie des animaux à travers des soins naturels et non-invasifs.</p>
+                            <p>Ma pratique s'appuie sur une approche holistique, prenant en compte l'animal dans sa globalité pour identifier et traiter la source des problèmes.</p>
+                        </div>
+                        <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Ostéopathe avec un chien" class="about-image">
+                    </div>
+                </section>
+
+                <section id="contact" class="section contact">
+                    <h2 class="section-title">Contact</h2>
+                    <div class="contact-form">
+                        <form @submit.prevent="sendMessage">
+                            <div class="form-group">
+                                <label for="name">Nom</label>
+                                <input type="text" id="name" v-model="contactForm.name" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="email">Email</label>
+                                <input type="email" id="email" v-model="contactForm.email" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="message">Message</label>
+                                <textarea id="message" v-model="contactForm.message" rows="5" required></textarea>
+                            </div>
+                            <button type="submit" class="btn">Envoyer</button>
+                        </form>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Page de rendez-vous -->
+            <template v-if="currentPage === 'appointment'">
+                <section class="appointment-page">
+                    <div class="appointment-header">
+                        <h1>Prendre un rendez-vous</h1>
+                        <p>Choisissez une date et une heure qui vous conviennent pour votre consultation</p>
+                    </div>
+
+                    <div class="appointment-steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <h3>Choisissez votre créneau</h3>
+                            <p>Sélectionnez la date et l'heure qui vous conviennent le mieux</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <h3>Remplissez les informations</h3>
+                            <p>Précisez les détails concernant votre animal</p>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <h3>Confirmation</h3>
+                            <p>Recevez votre confirmation par email</p>
+                        </div>
+                    </div>
+
+                    <div class="appointment-form">
+                        <div v-if="appointmentSuccess" class="success-message">
+                            Votre rendez-vous a été confirmé ! Un email de confirmation vous a été envoyé.
+                        </div>
+                        <div v-if="appointmentError" class="error-message">
+                            {{ appointmentError }}
+                        </div>
+                        <form @submit.prevent="submitAppointment">
+                            <div class="form-group">
+                                <label for="animalType">Type d'animal</label>
+                                <select id="animalType" v-model="appointmentForm.animalType" required>
+                                    <option value="">Sélectionnez un type d'animal</option>
+                                    <option value="chien">Chien</option>
+                                    <option value="chat">Chat</option>
+                                    <option value="cheval">Cheval</option>
+                                    <option value="autre">Autre</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="animalName">Nom de l'animal</label>
+                                <input type="text" id="animalName" v-model="appointmentForm.animalName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="appointmentDate">Date du rendez-vous</label>
+                                <input type="date" id="appointmentDate" v-model="appointmentForm.date" required
+                                       :min="minDate" :max="maxDate">
+                            </div>
+
+                            <div class="form-group">
+                                <label>Heure du rendez-vous</label>
+                                <div class="time-slots">
+                                    <div v-for="slot in timeSlots" 
+                                         :key="slot"
+                                         class="time-slot"
+                                         :class="{ 
+                                             'selected': appointmentForm.time === slot,
+                                             'unavailable': isTimeSlotUnavailable(slot)
+                                         }"
+                                         @click="!isTimeSlotUnavailable(slot) && (appointmentForm.time = slot)">
+                                        {{ slot }}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="notes">Notes supplémentaires</label>
+                                <textarea id="notes" v-model="appointmentForm.notes" rows="3"></textarea>
+                            </div>
+
+                            <button type="submit" class="btn primary">Confirmer le rendez-vous</button>
+                        </form>
+                    </div>
+                </section>
+            </template>
+        </div>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <div class="footer-section">
+                    <h3>Contact</h3>
+                    <p>Email: contact@osteopathe-animalier.fr</p>
+                    <p>Téléphone: 06 12 34 56 78</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Horaires</h3>
+                    <p>Lundi - Vendredi: 9h - 18h</p>
+                    <p>Samedi: 9h - 12h</p>
+                </div>
+                <div class="footer-section">
+                    <h3>Liens Utiles</h3>
+                    <ul>
+                        <li><a href="#services">Services</a></li>
+                        <li><a href="#about">À propos</a></li>
+                        <li><a href="#contact">Contact</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="copyright">
+                <p>&copy; 2024 Ostéopathe Animalier. Tous droits réservés.</p>
+            </div>
+        </footer>
+
+        <!-- Modal d'authentification -->
+        <div v-if="showAuth" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;">
+            <div class="auth-form">
+                <h3>{{ isLogin ? 'Connexion' : 'Inscription' }}</h3>
+                <input type="email" v-model="email" placeholder="Email">
+                <input type="password" v-model="password" placeholder="Mot de passe">
+                <button class="primary" @click="isLogin ? login() : register()">{{ isLogin ? 'Se connecter' : 'S\'inscrire' }}</button>
+                <button class="secondary" @click="isLogin = !isLogin">{{ isLogin ? 'Créer un compte' : 'Déjà un compte ?' }}</button>
+                <button class="close" @click="showAuth = false">Fermer</button>
+                <p class="error" v-if="error">{{ error }}</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const { createApp } = Vue
+
+        // Configuration Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyB9noXR2BudT0VMELFTvnjthCfTA4pxVgU",
+            authDomain: "osteopatheanimalier-50728.firebaseapp.com",
+            projectId: "osteopatheanimalier-50728",
+            storageBucket: "osteopatheanimalier-50728.firebasestorage.app",
+            messagingSenderId: "9417853053",
+            appId: "1:9417853053:web:ee7ba42a04e8b6f27cc914",
+            measurementId: "G-79QK6LZGNC"
+        };
+
+        // Initialisation de Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+        const functions = firebase.functions();
+
+        createApp({
+            data() {
+                return {
+                    currentPage: 'home',
+                    message: 'Ostéopathe Animalier',
+                    email: '',
+                    password: '',
+                    error: '',
+                    isAuthenticated: false,
+                    userEmail: '',
+                    showAuth: false,
+                    isLogin: true,
+                    isMenuOpen: false,
+                    contactForm: {
+                        name: '',
+                        email: '',
+                        message: ''
+                    },
+                    appointmentForm: {
+                        animalType: '',
+                        animalName: '',
+                        date: '',
+                        time: '',
+                        notes: ''
+                    },
+                    appointmentSuccess: false,
+                    appointmentError: '',
+                    timeSlots: [
+                        '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'
+                    ],
+                    unavailableSlots: []
+                }
+            },
+            computed: {
+                minDate() {
+                    const today = new Date();
+                    return today.toISOString().split('T')[0];
+                },
+                maxDate() {
+                    const max = new Date();
+                    max.setDate(max.getDate() + 30);
+                    return max.toISOString().split('T')[0];
+                }
+            },
+            methods: {
+                toggleMenu() {
+                    this.isMenuOpen = !this.isMenuOpen;
+                },
+                closeMenu() {
+                    this.isMenuOpen = false;
+                },
+                async login() {
+                    try {
+                        const userCredential = await firebase.auth().signInWithEmailAndPassword(this.email, this.password);
+                        this.isAuthenticated = true;
+                        this.userEmail = userCredential.user.email;
+                        this.error = '';
+                        this.showAuth = false;
+                    } catch (error) {
+                        this.error = error.message;
+                    }
+                },
+                async register() {
+                    try {
+                        const userCredential = await firebase.auth().createUserWithEmailAndPassword(this.email, this.password);
+                        this.isAuthenticated = true;
+                        this.userEmail = userCredential.user.email;
+                        this.error = '';
+                        this.showAuth = false;
+                    } catch (error) {
+                        this.error = error.message;
+                    }
+                },
+                async logout() {
+                    try {
+                        await firebase.auth().signOut();
+                        this.isAuthenticated = false;
+                        this.userEmail = '';
+                        this.email = '';
+                        this.password = '';
+                    } catch (error) {
+                        this.error = error.message;
+                    }
+                },
+                sendMessage() {
+                    // Ici, vous pouvez ajouter la logique pour envoyer le message
+                    alert('Message envoyé ! Nous vous contacterons bientôt.');
+                    this.contactForm = {
+                        name: '',
+                        email: '',
+                        message: ''
+                    };
+                },
+                async loadUnavailableSlots() {
+                    if (!this.appointmentForm.date) return;
+                    
+                    try {
+                        const snapshot = await db.collection('appointments')
+                            .where('date', '==', this.appointmentForm.date)
+                            .get();
+                        
+                        this.unavailableSlots = snapshot.docs.map(doc => doc.data().time);
+                    } catch (error) {
+                        console.error('Error loading unavailable slots:', error);
+                    }
+                },
+                isTimeSlotUnavailable(slot) {
+                    return this.unavailableSlots.includes(slot);
+                },
+                async submitAppointment() {
+                    try {
+                        // Vérifier si le créneau est toujours disponible
+                        if (this.isTimeSlotUnavailable(this.appointmentForm.time)) {
+                            this.appointmentError = 'Ce créneau n\'est plus disponible. Veuillez en choisir un autre.';
+                            return;
+                        }
+
+                        // Ajouter le rendez-vous à Firestore
+                        const appointmentData = {
+                            ...this.appointmentForm,
+                            userId: firebase.auth().currentUser.uid,
+                            userEmail: firebase.auth().currentUser.email,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        await db.collection('appointments').add(appointmentData);
+
+                        // Envoyer les emails de confirmation
+                        const sendEmails = functions.httpsCallable('sendAppointmentEmails');
+                        await sendEmails({
+                            appointment: appointmentData,
+                            osteopathEmail: 'Killian.vasse@gmail.com'
+                        });
+
+                        // Réinitialiser le formulaire
+                        this.appointmentForm = {
+                            animalType: '',
+                            animalName: '',
+                            date: '',
+                            time: '',
+                            notes: ''
+                        };
+                        this.appointmentSuccess = true;
+                        this.appointmentError = '';
+                        
+                        // Recharger les créneaux indisponibles
+                        await this.loadUnavailableSlots();
+                    } catch (error) {
+                        console.error('Error submitting appointment:', error);
+                        this.appointmentError = 'Une erreur est survenue lors de la prise de rendez-vous. Veuillez réessayer.';
+                    }
+                },
+                navigateTo(page) {
+                    this.currentPage = page;
+                    window.scrollTo(0, 0);
+                }
+            },
+            mounted() {
+                // Gestion de la navigation par hash
+                const handleHashChange = () => {
+                    const hash = window.location.hash.slice(1);
+                    if (hash === 'appointment' && this.isAuthenticated) {
+                        this.currentPage = 'appointment';
+                    } else {
+                        this.currentPage = 'home';
+                    }
+                };
+
+                window.addEventListener('hashchange', handleHashChange);
+                handleHashChange();
+
+                firebase.auth().onAuthStateChanged((user) => {
+                    if (user) {
+                        this.isAuthenticated = true;
+                        this.userEmail = user.email;
+                    } else {
+                        this.isAuthenticated = false;
+                        this.userEmail = '';
+                    }
+                });
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html> 
