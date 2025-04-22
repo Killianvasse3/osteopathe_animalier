@@ -957,10 +957,24 @@
                 // Gestion de la navigation par hash
                 const handleHashChange = () => {
                     const hash = window.location.hash.slice(1);
-                    if (hash === 'appointment' && this.isAuthenticated) {
+                    
+                    // Si l'utilisateur n'est pas connecté, il ne peut accéder qu'à la page d'accueil et ses sections
+                    if (!this.isAuthenticated && hash === 'appointment') {
+                        window.location.hash = '';
+                        this.currentPage = 'home';
+                        return;
+                    }
+
+                    // Gestion des pages spécifiques
+                    if (hash === 'appointment') {
                         this.currentPage = 'appointment';
                     } else {
                         this.currentPage = 'home';
+                        // Faire défiler jusqu'à la section correspondante
+                        const element = document.getElementById(hash);
+                        if (element) {
+                            element.scrollIntoView({ behavior: 'smooth' });
+                        }
                     }
                 };
 
@@ -974,6 +988,11 @@
                     } else {
                         this.isAuthenticated = false;
                         this.userEmail = '';
+                        // Si l'utilisateur se déconnecte, revenir à la page d'accueil
+                        if (window.location.hash === '#appointment') {
+                            window.location.hash = '';
+                            this.currentPage = 'home';
+                        }
                     }
                 });
             }
