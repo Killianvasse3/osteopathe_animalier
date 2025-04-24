@@ -30,7 +30,7 @@
 <br />
 <div align="center">
   <a href="https://osteopatheanimalier-50728.web.app">
-    <img src="images/logo.png" alt="Logo" width="80" height="80">
+    <img src="vue-app/images/logo_emmy.png" alt="Logo" width="80" height="80">
   </a>
 
   <h3 align="center">Application Ostéopathe Animalier</h3>
