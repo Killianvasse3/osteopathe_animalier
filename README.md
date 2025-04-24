@@ -78,23 +78,15 @@ Cette application web est conçue pour les ostéopathes animaliers, leur permett
 * Envoyer des confirmations automatiques par email
 * Gérer leur agenda professionnel
 
-Fonctionnalités principales :
-* Authentification sécurisée des utilisateurs
-* Gestion des fiches animaux
-* Système de prise de rendez-vous
-* Notifications par email automatiques
-* Interface responsive adaptée mobile/desktop
-
 ### Technologies utilisées
 
-* [Vue.js](https://vuejs.org/)
 * [Firebase](https://firebase.google.com/)
   * Firestore (Base de données)
   * Authentication
   * Hosting
   * Cloud Functions
 * [Node.js](https://nodejs.org/)
-* [Nodemailer](https://nodemailer.com/)
+* HTML5 / CSS3 / JavaScript
 
 ## Démarrage
 
@@ -102,7 +94,7 @@ Pour installer et exécuter ce projet localement, suivez ces étapes.
 
 ### Prérequis
 
-* npm
+* Node.js et npm
   ```sh
   npm install npm@latest -g
   ```
@@ -117,20 +109,16 @@ Pour installer et exécuter ce projet localement, suivez ces étapes.
    ```sh
    git clone https://github.com/votre_nom/osteopathe_animalier.git
    ```
-2. Installez les dépendances NPM dans le dossier vue-app
-   ```sh
-   cd vue-app
-   npm install
-   ```
-3. Installez les dépendances des Cloud Functions
+2. Installez les dépendances des Cloud Functions
    ```sh
    cd functions
    npm install
    ```
-4. Créez un fichier `.env` dans le dossier functions avec vos identifiants Gmail
+3. Créez un fichier `.env` dans le dossier functions avec vos identifiants Firebase
    ```
-   GMAIL_USER=votre_email@gmail.com
-   GMAIL_PASS=votre_mot_de_passe_application
+   FIREBASE_PROJECT_ID=votre_project_id
+   FIREBASE_PRIVATE_KEY=votre_private_key
+   FIREBASE_CLIENT_EMAIL=votre_client_email
    ```
 
 ## Utilisation
@@ -142,10 +130,9 @@ Pour installer et exécuter ce projet localement, suivez ces étapes.
    firebase emulators:start
    ```
 
-2. Lancez l'application Vue.js en mode développement
-   ```sh
-   cd vue-app
-   npm run serve
+2. Accédez à l'application via votre navigateur
+   ```
+   http://localhost:5000
    ```
 
 ### Déploiement
@@ -158,10 +145,10 @@ firebase deploy
 
 ## Feuille de route
 
-- [x] Système d'authentification
-- [x] Gestion des fiches animaux
-- [x] Système de rendez-vous
-- [x] Notifications par email
+- [ ] Système d'authentification
+- [ ] Gestion des fiches animaux
+- [ ] Système de rendez-vous
+- [ ] Notifications par email
 - [ ] Calendrier interactif
 - [ ] Interface d'administration
 - [ ] Système de facturation
