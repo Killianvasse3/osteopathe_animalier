@@ -686,6 +686,104 @@
             gap: 1rem;
             margin-top: 2rem;
         }
+
+        /* Styles pour l'interface admin */
+        .admin-page {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .admin-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+
+        .admin-tabs {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .admin-tab {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            background: var(--light-bg);
+            color: var(--text-color);
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .admin-tab.active {
+            background: var(--primary-color);
+            color: white;
+        }
+
+        .admin-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+        }
+
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 2rem;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid var(--light-bg);
+        }
+
+        .data-table th {
+            background: var(--light-bg);
+            color: var(--primary-color);
+            font-weight: 600;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .btn-edit,
+        .btn-delete {
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-edit {
+            background: var(--green-accent);
+            color: white;
+        }
+
+        .btn-delete {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .search-bar {
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1rem;
+        }
+
+        .search-bar input {
+            flex: 1;
+            padding: 0.8rem;
+            border: 1px solid var(--light-bg);
+            border-radius: 25px;
+            font-family: inherit;
+        }
     </style>
 </head>
 <body>
@@ -708,6 +806,7 @@
                     <template v-if="isAuthenticated">
                         <a href="#appointment" @click="closeMenu">Prendre RDV</a>
                         <a href="#dossier" @click="closeMenu">Dossier Ostéopathique</a>
+                        <a href="#admin" v-if="isAdmin" @click="navigateTo('admin')">Administration</a>
                     </template>
                     <template v-if="!isAuthenticated">
                         <a href="#" @click.prevent="showAuth = true; closeMenu()">Connexion</a>
@@ -933,6 +1032,109 @@
                     </div>
                 </section>
             </template>
+
+            <!-- Page d'administration -->
+            <template v-if="currentPage === 'admin' && isAdmin">
+                <section class="admin-page">
+                    <div class="admin-header">
+                        <h1 class="section-title">Interface Administrateur</h1>
+                        <p>Gestion des dossiers animaux et des rendez-vous</p>
+                    </div>
+
+                    <div class="admin-tabs">
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'animals' }]"
+                            @click="adminActiveTab = 'animals'">
+                            Dossiers Animaux
+                        </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'appointments' }]"
+                            @click="adminActiveTab = 'appointments'">
+                            Rendez-vous
+                        </button>
+                    </div>
+
+                    <!-- Onglet Dossiers Animaux -->
+                    <div v-if="adminActiveTab === 'animals'" class="admin-content">
+                        <div class="search-bar">
+                            <input 
+                                type="text" 
+                                v-model="adminSearch" 
+                                placeholder="Rechercher un animal...">
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Type</th>
+                                    <th>Propriétaire</th>
+                                    <th>Date de naissance</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="animal in filteredAnimals" :key="animal.id">
+                                    <td>{{ animal.name }}</td>
+                                    <td>{{ animal.type }}</td>
+                                    <td>{{ getUserEmail(animal.userId) }}</td>
+                                    <td>{{ formatDate(animal.birthdate) }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-edit" @click="editAnimal(animal)">
+                                                Modifier
+                                            </button>
+                                            <button class="btn-delete" @click="deleteAnimal(animal)">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Onglet Rendez-vous -->
+                    <div v-if="adminActiveTab === 'appointments'" class="admin-content">
+                        <div class="search-bar">
+                            <input 
+                                type="text" 
+                                v-model="adminSearch" 
+                                placeholder="Rechercher un rendez-vous...">
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Heure</th>
+                                    <th>Animal</th>
+                                    <th>Client</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="appointment in filteredAppointments" :key="appointment.id">
+                                    <td>{{ formatDate(appointment.date) }}</td>
+                                    <td>{{ appointment.time }}</td>
+                                    <td>{{ appointment.animalName }}</td>
+                                    <td>{{ getUserEmail(appointment.userId) }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-edit" @click="editAppointment(appointment)">
+                                                Modifier
+                                            </button>
+                                            <button class="btn-delete" @click="deleteAppointment(appointment)">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </section>
+            </template>
         </div>
 
         <footer class="footer">
@@ -1059,7 +1261,13 @@
                         birthdate: '',
                         notes: ''
                     },
-                    unsubscribeAnimals: null
+                    unsubscribeAnimals: null,
+                    isAdmin: false,
+                    adminActiveTab: 'animals',
+                    adminSearch: '',
+                    allAnimals: [],
+                    allAppointments: [],
+                    userEmails: {},
                 }
             },
             computed: {
@@ -1071,6 +1279,23 @@
                     const max = new Date();
                     max.setDate(max.getDate() + 30);
                     return max.toISOString().split('T')[0];
+                },
+                filteredAnimals() {
+                    if (!this.adminSearch) return this.allAnimals;
+                    const search = this.adminSearch.toLowerCase();
+                    return this.allAnimals.filter(animal => 
+                        animal.name.toLowerCase().includes(search) ||
+                        animal.type.toLowerCase().includes(search) ||
+                        this.getUserEmail(animal.userId).toLowerCase().includes(search)
+                    );
+                },
+                filteredAppointments() {
+                    if (!this.adminSearch) return this.allAppointments;
+                    const search = this.adminSearch.toLowerCase();
+                    return this.allAppointments.filter(apt => 
+                        apt.animalName.toLowerCase().includes(search) ||
+                        this.getUserEmail(apt.userId).toLowerCase().includes(search)
+                    );
                 }
             },
             methods: {
@@ -1083,10 +1308,24 @@
                 async login() {
                     try {
                         const userCredential = await firebase.auth().signInWithEmailAndPassword(this.email, this.password);
+                        
+                        // Vérifier si le document utilisateur existe, sinon le créer
+                        const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
+                        if (!userDoc.exists) {
+                            await db.collection('users').doc(userCredential.user.uid).set({
+                                email: userCredential.user.email,
+                                role: userCredential.user.uid === '4tYIuGIeMMMG7Wbv6OXjkeKOURI3' ? 'admin' : 'user',
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+
                         this.isAuthenticated = true;
                         this.userEmail = userCredential.user.email;
                         this.error = '';
                         this.showAuth = false;
+
+                        // Vérifier si l'utilisateur est admin
+                        await this.checkAdminStatus();
                     } catch (error) {
                         this.error = error.message;
                     }
@@ -1094,10 +1333,21 @@
                 async register() {
                     try {
                         const userCredential = await firebase.auth().createUserWithEmailAndPassword(this.email, this.password);
+                        
+                        // Créer un document utilisateur dans Firestore
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            email: userCredential.user.email,
+                            role: userCredential.user.uid === '4tYIuGIeMMMG7Wbv6OXjkeKOURI3' ? 'admin' : 'user',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
                         this.isAuthenticated = true;
                         this.userEmail = userCredential.user.email;
                         this.error = '';
                         this.showAuth = false;
+
+                        // Vérifier si l'utilisateur est admin
+                        await this.checkAdminStatus();
                     } catch (error) {
                         this.error = error.message;
                     }
@@ -1200,8 +1450,11 @@
                     }
                 },
                 navigateTo(page) {
+                    this.closeMenu();
                     this.currentPage = page;
-                    window.scrollTo(0, 0);
+                    if (page === 'admin' && this.isAdmin) {
+                        this.loadAllData();
+                    }
                 },
                 async loadAnimals() {
                     try {
@@ -1354,6 +1607,84 @@
                         </div>
                     `;
                     document.body.appendChild(modal);
+                },
+                async checkAdminStatus() {
+                    if (!firebase.auth().currentUser) return;
+                    try {
+                        const userDoc = await db.collection('users')
+                            .doc(firebase.auth().currentUser.uid)
+                            .get();
+                        this.isAdmin = userDoc.exists && userDoc.data().role === 'admin';
+                    } catch (error) {
+                        console.error('Error checking admin status:', error);
+                        this.isAdmin = false;
+                    }
+                },
+                async loadAllData() {
+                    if (!this.isAdmin) return;
+                    try {
+                        // Charger tous les animaux
+                        const animalsSnapshot = await db.collection('animals').get();
+                        this.allAnimals = animalsSnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+
+                        // Charger tous les rendez-vous
+                        const appointmentsSnapshot = await db.collection('appointments').get();
+                        this.allAppointments = appointmentsSnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+
+                        // Charger les emails des utilisateurs
+                        const userIds = new Set([
+                            ...this.allAnimals.map(a => a.userId),
+                            ...this.allAppointments.map(a => a.userId)
+                        ]);
+                        
+                        for (const userId of userIds) {
+                            const userDoc = await db.collection('users').doc(userId).get();
+                            if (userDoc.exists) {
+                                this.userEmails[userId] = userDoc.data().email;
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error loading admin data:', error);
+                    }
+                },
+                getUserEmail(userId) {
+                    return this.userEmails[userId] || 'Email non trouvé';
+                },
+                async editAnimal(animal) {
+                    // Implémenter la modification
+                    console.log('Édition de l\'animal:', animal);
+                },
+                async deleteAnimal(animal) {
+                    if (!confirm(`Êtes-vous sûr de vouloir supprimer ${animal.name} ?`)) return;
+                    try {
+                        await db.collection('animals').doc(animal.id).delete();
+                        this.allAnimals = this.allAnimals.filter(a => a.id !== animal.id);
+                        alert('Animal supprimé avec succès');
+                    } catch (error) {
+                        console.error('Error deleting animal:', error);
+                        alert('Erreur lors de la suppression');
+                    }
+                },
+                async editAppointment(appointment) {
+                    // Implémenter la modification
+                    console.log('Édition du rendez-vous:', appointment);
+                },
+                async deleteAppointment(appointment) {
+                    if (!confirm(`Êtes-vous sûr de vouloir supprimer ce rendez-vous ?`)) return;
+                    try {
+                        await db.collection('appointments').doc(appointment.id).delete();
+                        this.allAppointments = this.allAppointments.filter(a => a.id !== appointment.id);
+                        alert('Rendez-vous supprimé avec succès');
+                    } catch (error) {
+                        console.error('Error deleting appointment:', error);
+                        alert('Erreur lors de la suppression');
+                    }
                 }
             },
             mounted() {
@@ -1362,52 +1693,67 @@
                     const hash = window.location.hash.slice(1);
                     
                     // Si l'utilisateur n'est pas connecté, il ne peut accéder qu'à la page d'accueil et ses sections
-                    if (!this.isAuthenticated && (hash === 'appointment' || hash === 'dossier')) {
+                    if (!this.isAuthenticated && (hash === 'appointment' || hash === 'dossier' || hash === 'admin')) {
+                        window.location.hash = '';
+                        this.currentPage = 'home';
+                        return;
+                    }
+
+                    // Si l'utilisateur n'est pas admin, il ne peut pas accéder à la page admin
+                    if (hash === 'admin' && !this.isAdmin) {
                         window.location.hash = '';
                         this.currentPage = 'home';
                         return;
                     }
 
                     // Gestion des pages spécifiques
-                    if (hash === 'appointment') {
-                        this.currentPage = 'appointment';
-                    } else if (hash === 'dossier') {
-                        this.currentPage = 'dossier';
-                        this.loadAnimals(); // Recharger les animaux lors du changement de page
-                    } else {
-                        this.currentPage = 'home';
-                        // Faire défiler jusqu'à la section correspondante
-                        const element = document.getElementById(hash);
-                        if (element) {
-                            element.scrollIntoView({ behavior: 'smooth' });
-                        }
+                    switch(hash) {
+                        case 'appointment':
+                            this.currentPage = 'appointment';
+                            break;
+                        case 'dossier':
+                            this.currentPage = 'dossier';
+                            this.loadAnimals();
+                            break;
+                        case 'admin':
+                            if (this.isAdmin) {
+                                this.currentPage = 'admin';
+                                this.loadAllData();
+                            }
+                            break;
+                        default:
+                            this.currentPage = 'home';
+                            // Faire défiler jusqu'à la section correspondante
+                            const element = document.getElementById(hash);
+                            if (element) {
+                                element.scrollIntoView({ behavior: 'smooth' });
+                            }
                     }
                 };
 
                 window.addEventListener('hashchange', handleHashChange);
                 handleHashChange();
 
-                firebase.auth().onAuthStateChanged((user) => {
+                firebase.auth().onAuthStateChanged(async (user) => {
                     if (user) {
                         this.isAuthenticated = true;
                         this.userEmail = user.email;
-                        // Ne charger les animaux que si nous sommes sur la page dossier
+                        await this.checkAdminStatus();
                         if (this.currentPage === 'dossier') {
                             this.loadAnimals();
+                        } else if (this.currentPage === 'admin' && this.isAdmin) {
+                            this.loadAllData();
                         }
                     } else {
-                        // Nettoyer l'abonnement aux mises à jour en temps réel
                         if (this.unsubscribeAnimals) {
                             this.unsubscribeAnimals();
                             this.unsubscribeAnimals = null;
                         }
-                        
                         this.isAuthenticated = false;
+                        this.isAdmin = false;
                         this.userEmail = '';
                         this.animals = [];
-                        
-                        // Si l'utilisateur se déconnecte, revenir à la page d'accueil
-                        if (window.location.hash === '#appointment' || window.location.hash === '#dossier') {
+                        if (window.location.hash === '#appointment' || window.location.hash === '#dossier' || window.location.hash === '#admin') {
                             window.location.hash = '';
                             this.currentPage = 'home';
                         }
