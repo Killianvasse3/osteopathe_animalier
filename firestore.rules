@@ -1,29 +1,45 @@
 rules_version = '2';
+
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Fonction utilitaire pour vérifier si l'utilisateur est authentifié
+    // Fonction pour vérifier si l'utilisateur est authentifié
     function isAuthenticated() {
       return request.auth != null;
     }
-    
-    // Fonction utilitaire pour vérifier si l'utilisateur est le propriétaire du document
+
+    // Fonction pour vérifier si l'utilisateur est le propriétaire du document
     function isOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
-    
-    // Règles pour les rendez-vous
-    match /appointments/{appointmentId} {
-      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
-      allow update, delete: if false; // Les rendez-vous ne peuvent pas être modifiés ou supprimés
+
+    // Collection des utilisateurs
+    match /users/{userId} {
+      allow read: if isOwner(userId);
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isOwner(userId);
+      allow delete: if false; // Les utilisateurs ne peuvent pas supprimer leur compte
     }
-    
-    // Règles pour les animaux
+
+    // Collection des rendez-vous
+    match /appointments/{appointmentId} {
+      allow read: if isOwner(resource.data.userId);
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isOwner(resource.data.userId);
+      allow delete: if isOwner(resource.data.userId);
+    }
+
+    // Collection des services (lecture seule)
+    match /services/{serviceId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Collection des animaux
     match /animals/{animalId} {
-      allow read: if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.userId;
-      allow update: if isAuthenticated() && request.auth.uid == resource.data.userId;
-      allow delete: if isAuthenticated() && request.auth.uid == resource.data.userId;
+      allow read: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid;
+      allow delete: if isAuthenticated() && resource.data.userId == request.auth.uid;
     }
   }
 } 

@@ -1084,12 +1084,30 @@
                 },
                 async logout() {
                     try {
-                        await firebase.auth().signOut();
+                        // Nettoyer l'abonnement aux mises à jour en temps réel avant la déconnexion
+                        if (this.unsubscribeAnimals) {
+                            this.unsubscribeAnimals();
+                            this.unsubscribeAnimals = null;
+                        }
+                        
+                        // Réinitialiser les données avant la déconnexion
+                        this.animals = [];
                         this.isAuthenticated = false;
                         this.userEmail = '';
                         this.email = '';
                         this.password = '';
+                        
+                        // Attendre un court instant pour s'assurer que les données sont nettoyées
+                        await new Promise(resolve => setTimeout(resolve, 100));
+                        
+                        // Effectuer la déconnexion
+                        await firebase.auth().signOut();
+                        
+                        // Rediriger vers la page d'accueil
+                        window.location.hash = '';
+                        this.currentPage = 'home';
                     } catch (error) {
+                        console.error('Error during logout:', error);
                         this.error = error.message;
                     }
                 },
@@ -1167,12 +1185,20 @@
                 },
                 async loadAnimals() {
                     try {
-                        if (!firebase.auth().currentUser) {
+                        // Nettoyer l'ancien écouteur s'il existe
+                        if (this.unsubscribeAnimals) {
+                            this.unsubscribeAnimals();
+                            this.unsubscribeAnimals = null;
+                        }
+
+                        // Vérifier si l'utilisateur est connecté
+                        const user = firebase.auth().currentUser;
+                        if (!user) {
                             this.animals = [];
                             return;
                         }
 
-                        const userId = firebase.auth().currentUser.uid;
+                        const userId = user.uid;
                         console.log('Loading animals for user:', userId);
 
                         // Vérification de la connexion à Firestore
@@ -1184,19 +1210,25 @@
                         const unsubscribe = db.collection('animals')
                             .where('userId', '==', userId)
                             .orderBy('createdAt', 'desc')
-                            .onSnapshot(snapshot => {
-                                console.log('Animals updated:', snapshot.docs.length);
-                                
-                                this.animals = snapshot.docs.map(doc => ({
-                                    id: doc.id,
-                                    ...doc.data()
-                                }));
+                            .onSnapshot(
+                                snapshot => {
+                                    console.log('Animals updated:', snapshot.docs.length);
+                                    
+                                    this.animals = snapshot.docs.map(doc => ({
+                                        id: doc.id,
+                                        ...doc.data()
+                                    }));
 
-                                console.log('Animals loaded:', this.animals);
-                            }, error => {
-                                console.error('Error in real-time update:', error);
-                                alert('Erreur lors de la mise à jour des animaux: ' + error.message);
-                            });
+                                    console.log('Animals loaded:', this.animals);
+                                },
+                                error => {
+                                    // Ne pas afficher l'erreur si l'utilisateur est en train de se déconnecter
+                                    if (this.isAuthenticated) {
+                                        console.error('Error in real-time update:', error);
+                                        alert('Erreur lors de la mise à jour des animaux: ' + error.message);
+                                    }
+                                }
+                            );
 
                         // Stocker la fonction unsubscribe pour le nettoyage
                         this.unsubscribeAnimals = unsubscribe;
@@ -1204,7 +1236,9 @@
                     } catch (error) {
                         console.error('Error loading animals:', error);
                         this.animals = [];
-                        alert('Erreur lors du chargement des animaux: ' + error.message);
+                        if (this.isAuthenticated) {
+                            alert('Erreur lors du chargement des animaux: ' + error.message);
+                        }
                     }
                 },
                 async addAnimal() {
@@ -1337,11 +1371,21 @@
                     if (user) {
                         this.isAuthenticated = true;
                         this.userEmail = user.email;
-                        this.loadAnimals();
+                        // Ne charger les animaux que si nous sommes sur la page dossier
+                        if (this.currentPage === 'dossier') {
+                            this.loadAnimals();
+                        }
                     } else {
+                        // Nettoyer l'abonnement aux mises à jour en temps réel
+                        if (this.unsubscribeAnimals) {
+                            this.unsubscribeAnimals();
+                            this.unsubscribeAnimals = null;
+                        }
+                        
                         this.isAuthenticated = false;
                         this.userEmail = '';
                         this.animals = [];
+                        
                         // Si l'utilisateur se déconnecte, revenir à la page d'accueil
                         if (window.location.hash === '#appointment' || window.location.hash === '#dossier') {
                             window.location.hash = '';
