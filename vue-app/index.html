@@ -52,7 +52,7 @@
         }
 
         .nav-container {
-            max-width: 1200px;
+            max-width: 1400px;
             margin: 0 auto;
             padding: 1rem;
             display: flex;
@@ -62,12 +62,18 @@
 
         .logo {
             font-family: 'Playfair Display', serif;
-            font-size: 1.5rem;
+            font-size: 1.3rem;
             color: var(--primary-color);
             text-decoration: none;
             font-weight: 600;
             display: flex;
             align-items: center;
+            white-space: nowrap;
+        }
+
+        .logo img {
+            height: 45px;
+            margin-right: 8px;
         }
 
         .hamburger {
@@ -104,7 +110,8 @@
 
         .nav-links {
             display: flex;
-            gap: 2rem;
+            gap: 1.5rem;
+            align-items: center;
         }
 
         .nav-links a {
@@ -112,10 +119,20 @@
             text-decoration: none;
             font-weight: 500;
             transition: color 0.3s;
+            white-space: nowrap;
+            font-size: 0.95rem;
+            padding: 0.5rem 0.8rem;
+            border-radius: 15px;
         }
 
         .nav-links a:hover {
             color: var(--accent-color);
+            background-color: var(--light-bg);
+        }
+
+        .nav-links a.active {
+            background-color: var(--primary-color);
+            color: white;
         }
 
         .hero {
@@ -379,6 +396,21 @@
             border-top: 1px solid rgba(255,255,255,0.1);
         }
 
+        @media (max-width: 1200px) {
+            .nav-container {
+                padding: 0.8rem;
+            }
+
+            .nav-links {
+                gap: 1rem;
+            }
+
+            .nav-links a {
+                font-size: 0.9rem;
+                padding: 0.4rem 0.6rem;
+            }
+        }
+
         @media (max-width: 768px) {
             .hamburger {
                 display: flex;
@@ -396,6 +428,7 @@
                 justify-content: center;
                 transition: right 0.3s ease;
                 z-index: 1000;
+                gap: 2rem;
             }
 
             .nav-links.active {
@@ -403,8 +436,8 @@
             }
 
             .nav-links a {
-                font-size: 1.5rem;
-                margin: 1rem 0;
+                font-size: 1.1rem;
+                padding: 0.8rem 1.5rem;
             }
 
             .hero {
