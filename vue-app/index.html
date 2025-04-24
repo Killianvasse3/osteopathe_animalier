@@ -817,6 +817,63 @@
             border-radius: 25px;
             font-family: inherit;
         }
+
+        /* Styles pour le modal d'édition */
+        .edit-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+        }
+
+        .edit-modal-content {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            width: 100%;
+            max-width: 500px;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+        }
+
+        .edit-modal h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            text-align: center;
+        }
+
+        .edit-form-group {
+            margin-bottom: 1rem;
+        }
+
+        .edit-form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
+
+        .edit-form-group input,
+        .edit-form-group select,
+        .edit-form-group textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--light-bg);
+            border-radius: 8px;
+            font-family: inherit;
+        }
+
+        .edit-modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
     </style>
 </head>
 <body>
@@ -1208,6 +1265,77 @@
                 <p class="error" v-if="error">{{ error }}</p>
             </div>
         </div>
+
+        <!-- Modal d'édition pour les animaux -->
+        <div v-if="showEditAnimalModal" class="edit-modal">
+            <div class="edit-modal-content">
+                <h2>Modifier l'animal</h2>
+                <form @submit.prevent="updateAnimal">
+                    <div class="edit-form-group">
+                        <label for="editAnimalName">Nom de l'animal</label>
+                        <input type="text" id="editAnimalName" v-model="editingAnimal.name" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editAnimalType">Type d'animal</label>
+                        <select id="editAnimalType" v-model="editingAnimal.type" required>
+                            <option value="">Sélectionnez un type</option>
+                            <option value="chien">Chien</option>
+                            <option value="chat">Chat</option>
+                            <option value="cheval">Cheval</option>
+                            <option value="autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editAnimalBirthdate">Date de naissance</label>
+                        <input type="date" id="editAnimalBirthdate" v-model="editingAnimal.birthdate" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editAnimalNotes">Notes</label>
+                        <textarea id="editAnimalNotes" v-model="editingAnimal.notes" rows="3"></textarea>
+                    </div>
+                    <div class="edit-modal-actions">
+                        <button type="button" class="btn secondary" @click="showEditAnimalModal = false">Annuler</button>
+                        <button type="submit" class="btn primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Modal d'édition pour les rendez-vous -->
+        <div v-if="showEditAppointmentModal" class="edit-modal">
+            <div class="edit-modal-content">
+                <h2>Modifier le rendez-vous</h2>
+                <form @submit.prevent="updateAppointment">
+                    <div class="edit-form-group">
+                        <label for="editAppointmentDate">Date</label>
+                        <input type="date" id="editAppointmentDate" v-model="editingAppointment.date" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label>Heure</label>
+                        <div class="time-slots">
+                            <div v-for="slot in timeSlots" 
+                                 :key="slot"
+                                 class="time-slot"
+                                 :class="{ 
+                                     'selected': editingAppointment.time === slot,
+                                     'unavailable': isTimeSlotUnavailable(slot) && editingAppointment.time !== slot
+                                 }"
+                                 @click="!isTimeSlotUnavailable(slot) && (editingAppointment.time = slot)">
+                                {{ slot }}
+                            </div>
+                        </div>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editAppointmentNotes">Notes</label>
+                        <textarea id="editAppointmentNotes" v-model="editingAppointment.notes" rows="3"></textarea>
+                    </div>
+                    <div class="edit-modal-actions">
+                        <button type="button" class="btn secondary" @click="showEditAppointmentModal = false">Annuler</button>
+                        <button type="submit" class="btn primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -1301,6 +1429,10 @@
                     allAnimals: [],
                     allAppointments: [],
                     userEmails: {},
+                    showEditAnimalModal: false,
+                    showEditAppointmentModal: false,
+                    editingAnimal: null,
+                    editingAppointment: null,
                 }
             },
             computed: {
@@ -1690,8 +1822,67 @@
                     return this.userEmails[userId] || 'Email non trouvé';
                 },
                 async editAnimal(animal) {
-                    // Implémenter la modification
-                    console.log('Édition de l\'animal:', animal);
+                    this.editingAnimal = { ...animal };
+                    this.showEditAnimalModal = true;
+                },
+                async updateAnimal() {
+                    try {
+                        await db.collection('animals').doc(this.editingAnimal.id).update({
+                            name: this.editingAnimal.name,
+                            type: this.editingAnimal.type,
+                            birthdate: this.editingAnimal.birthdate,
+                            notes: this.editingAnimal.notes,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        // Mettre à jour la liste locale
+                        const index = this.allAnimals.findIndex(a => a.id === this.editingAnimal.id);
+                        if (index !== -1) {
+                            this.allAnimals[index] = { ...this.editingAnimal };
+                        }
+
+                        this.showEditAnimalModal = false;
+                        this.editingAnimal = null;
+                        alert('Animal modifié avec succès');
+                    } catch (error) {
+                        console.error('Error updating animal:', error);
+                        alert('Erreur lors de la modification: ' + error.message);
+                    }
+                },
+                async editAppointment(appointment) {
+                    this.editingAppointment = { ...appointment };
+                    await this.loadUnavailableSlots();
+                    this.showEditAppointmentModal = true;
+                },
+                async updateAppointment() {
+                    try {
+                        // Vérifier si le créneau est toujours disponible
+                        if (this.isTimeSlotUnavailable(this.editingAppointment.time) && 
+                            this.editingAppointment.time !== this.editingAppointment.originalTime) {
+                            alert('Ce créneau n\'est plus disponible');
+                            return;
+                        }
+
+                        await db.collection('appointments').doc(this.editingAppointment.id).update({
+                            date: this.editingAppointment.date,
+                            time: this.editingAppointment.time,
+                            notes: this.editingAppointment.notes,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        // Mettre à jour la liste locale
+                        const index = this.allAppointments.findIndex(a => a.id === this.editingAppointment.id);
+                        if (index !== -1) {
+                            this.allAppointments[index] = { ...this.editingAppointment };
+                        }
+
+                        this.showEditAppointmentModal = false;
+                        this.editingAppointment = null;
+                        alert('Rendez-vous modifié avec succès');
+                    } catch (error) {
+                        console.error('Error updating appointment:', error);
+                        alert('Erreur lors de la modification: ' + error.message);
+                    }
                 },
                 async deleteAnimal(animal) {
                     if (!confirm(`Êtes-vous sûr de vouloir supprimer ${animal.name} ?`)) return;
@@ -1703,10 +1894,6 @@
                         console.error('Error deleting animal:', error);
                         alert('Erreur lors de la suppression');
                     }
-                },
-                async editAppointment(appointment) {
-                    // Implémenter la modification
-                    console.log('Édition du rendez-vous:', appointment);
                 },
                 async deleteAppointment(appointment) {
                     if (!confirm(`Êtes-vous sûr de vouloir supprimer ce rendez-vous ?`)) return;
