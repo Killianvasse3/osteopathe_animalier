@@ -1242,6 +1242,7 @@
                                     <th>Heure</th>
                                     <th>Animal</th>
                                     <th>Client</th>
+                                    <th>Téléphone</th>
                                     <th>Actions</th>
                                 </tr>
                             </thead>
@@ -1251,6 +1252,7 @@
                                     <td>{{ appointment.time }}</td>
                                     <td>{{ appointment.animalName }}</td>
                                     <td>{{ getUserEmail(appointment.userId) }}</td>
+                                    <td>{{ appointment.phone }}</td>
                                     <td>
                                         <div class="action-buttons">
                                             <button class="btn-edit" @click="editAppointment(appointment)">
@@ -1366,6 +1368,14 @@
                                 {{ slot }}
                             </div>
                         </div>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editAppointmentPhone">Numéro de téléphone</label>
+                        <input type="tel" id="editAppointmentPhone" v-model="editingAppointment.phone" 
+                               pattern="[0-9]{10}" 
+                               placeholder="0612345678" 
+                               required>
+                        <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
                     </div>
                     <div class="edit-form-group">
                         <label for="editAppointmentNotes">Notes</label>
@@ -1909,6 +1919,7 @@
                         await db.collection('appointments').doc(this.editingAppointment.id).update({
                             date: this.editingAppointment.date,
                             time: this.editingAppointment.time,
+                            phone: this.editingAppointment.phone,
                             notes: this.editingAppointment.notes,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
