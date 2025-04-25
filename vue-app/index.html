@@ -49,6 +49,7 @@
             width: 100%;
             top: 0;
             z-index: 1000;
+            height: 80px;
         }
 
         .nav-container {
@@ -58,6 +59,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            height: 100%;
         }
 
         .logo {
@@ -135,23 +137,28 @@
             color: white;
         }
 
+        .page-container {
+            min-height: 100vh;
+            padding-top: 80px;
+        }
+
         .hero {
             background: linear-gradient(rgba(75, 108, 193, 0.7), rgba(155, 78, 199, 0.7)),
                         url('images/Photo_cheval.jpg');
             background-size: cover;
             background-position: center;
-            height: 100vh;
+            min-height: calc(100vh - 80px);
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: white;
-            margin-top: 0;
         }
 
         .hero-content {
             max-width: 800px;
             padding: 2rem;
+            margin: 0 auto;
         }
 
         .hero h1 {
@@ -455,8 +462,24 @@
                 padding: 0.8rem 1.5rem;
             }
 
+            .page-container {
+                padding-top: 60px;
+            }
+
             .hero {
-                margin-top: 60px;
+                min-height: calc(100vh - 60px);
+            }
+
+            .hero-content {
+                padding: 1.5rem;
+            }
+
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
             }
         }
 
@@ -559,11 +582,6 @@
             border-radius: 5px;
             margin-bottom: 1rem;
             text-align: center;
-        }
-
-        .page-container {
-            min-height: 100vh;
-            padding-top: 80px; /* Pour compenser la hauteur de la navbar fixe */
         }
 
         .appointment-page {
