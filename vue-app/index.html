@@ -2502,12 +2502,50 @@
                 async deleteAppointment(appointment) {
                     if (!confirm(`Êtes-vous sûr de vouloir supprimer ce rendez-vous ?`)) return;
                     try {
+                        // Trouver le créneau correspondant
+                        const appointmentDate = new Date(appointment.date);
+                        const startOfDay = new Date(appointmentDate);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(appointmentDate);
+                        endOfDay.setHours(23, 59, 59, 999);
+
+                        console.log('DEBUG - Searching for slot to update:', {
+                            date: appointment.date,
+                            time: appointment.time
+                        });
+
+                        // Rechercher le créneau correspondant
+                        const timeSlotSnapshot = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .where('time', '==', appointment.time)
+                            .get();
+
+                        // Supprimer le rendez-vous
                         await db.collection('appointments').doc(appointment.id).delete();
+
+                        // Mettre à jour le créneau si trouvé
+                        if (!timeSlotSnapshot.empty) {
+                            console.log('DEBUG - Found slot to update:', timeSlotSnapshot.docs[0].id);
+                            await db.collection('timeSlots')
+                                .doc(timeSlotSnapshot.docs[0].id)
+                                .update({
+                                    unavailable: false,
+                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                        }
+
+                        // Mettre à jour la liste locale
                         this.allAppointments = this.allAppointments.filter(a => a.id !== appointment.id);
                         alert('Rendez-vous supprimé avec succès');
+
+                        // Recharger les créneaux si on est sur la page admin des créneaux
+                        if (this.adminActiveTab === 'slots') {
+                            await this.loadSlots();
+                        }
                     } catch (error) {
                         console.error('Error deleting appointment:', error);
-                        alert('Erreur lors de la suppression');
+                        alert('Erreur lors de la suppression: ' + error.message);
                     }
                 },
                 previousMonth() {
