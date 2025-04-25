@@ -543,21 +543,23 @@
 
         .time-slot {
             padding: 0.5rem;
-            border: 1px solid #ddd;
+            border: 1px solid var(--primary-color);
             border-radius: 5px;
             text-align: center;
             cursor: pointer;
             transition: all 0.3s;
+            background-color: white;
         }
 
         .time-slot:hover {
             background-color: var(--light-bg);
+            transform: translateY(-2px);
         }
 
         .time-slot.selected {
-            background-color: var(--accent-color);
+            background-color: var(--primary-color);
             color: white;
-            border-color: var(--accent-color);
+            border-color: var(--primary-color);
         }
 
         .time-slot.unavailable {
@@ -907,6 +909,198 @@
             gap: 1rem;
             margin-top: 2rem;
         }
+
+        .slots-management {
+            padding: 2rem;
+        }
+
+        .slots-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .slots-header h2 {
+            margin: 0;
+            color: var(--primary-color);
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .calendar-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            text-transform: capitalize;
+        }
+
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 0.5rem;
+            background: white;
+            padding: 1rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .calendar-weekday {
+            text-align: center;
+            font-weight: 600;
+            color: var(--primary-color);
+            padding: 0.5rem;
+            border-bottom: 2px solid var(--light-bg);
+        }
+
+        .calendar-day {
+            aspect-ratio: 1;
+            padding: 0.5rem;
+            border: 1px solid var(--light-bg);
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .calendar-day:hover {
+            background-color: var(--light-bg);
+        }
+
+        .calendar-day.today {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .calendar-day.other-month {
+            color: #999;
+            background-color: #f8f9fa;
+        }
+
+        .calendar-day.has-slots {
+            border-color: var(--accent-color);
+        }
+
+        .day-slots {
+            font-size: 0.8rem;
+            color: var(--accent-color);
+            margin-top: 0.3rem;
+        }
+
+        .slots-list {
+            margin-top: 2rem;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .slots-list h3 {
+            margin: 0 0 1rem 0;
+            color: var(--primary-color);
+        }
+
+        .slots-actions {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .time-slots-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+        }
+
+        .time-slot-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--light-bg);
+            transition: all 0.3s ease;
+        }
+
+        .time-slot-card.unavailable {
+            background-color: #f8f9fa;
+            border-color: #ddd;
+        }
+
+        .slot-time {
+            font-size: 1.2rem;
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.5rem;
+        }
+
+        .slot-status {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+
+        .slot-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .slot-actions button {
+            flex: 1;
+            padding: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .btn.secondary {
+            background-color: var(--light-bg);
+            color: var(--text-color);
+        }
+
+        .btn.secondary:hover {
+            background-color: #e9ecef;
+        }
+
+        /* Style pour les boutons de navigation du calendrier */
+        .calendar-header button {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: none;
+            background-color: var(--light-bg);
+            color: var(--primary-color);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .calendar-header button:hover {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        /* Ajouter ces styles CSS */
+        .no-slots-message {
+            text-align: center;
+            padding: 1rem;
+            background-color: var(--light-bg);
+            border-radius: 5px;
+            color: var(--text-color);
+            font-style: italic;
+        }
     </style>
 </head>
 <body>
@@ -1072,15 +1266,15 @@
 
                             <div class="form-group">
                                 <label>Heure du rendez-vous</label>
-                                <div class="time-slots">
-                                    <div v-for="slot in timeSlots" 
+                                <div v-if="displayedTimeSlots.length === 0" class="no-slots-message">
+                                    Aucun créneau disponible pour cette date.
+                                </div>
+                                <div v-else class="time-slots">
+                                    <div v-for="slot in displayedTimeSlots" 
                                          :key="slot"
                                          class="time-slot"
-                                         :class="{ 
-                                             'selected': appointmentForm.time === slot,
-                                             'unavailable': isTimeSlotUnavailable(slot)
-                                         }"
-                                         @click="!isTimeSlotUnavailable(slot) && (appointmentForm.time = slot)">
+                                         :class="{ 'selected': appointmentForm.time === slot }"
+                                         @click="appointmentForm.time = slot">
                                         {{ slot }}
                                     </div>
                                 </div>
@@ -1184,6 +1378,11 @@
                             @click="adminActiveTab = 'appointments'">
                             Rendez-vous
                         </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'slots' }]"
+                            @click="adminActiveTab = 'slots'">
+                            Créneaux
+                        </button>
                     </div>
 
                     <!-- Onglet Dossiers Animaux -->
@@ -1266,6 +1465,79 @@
                                 </tr>
                             </tbody>
                         </table>
+                    </div>
+
+                    <!-- Onglet Créneaux -->
+                    <div v-if="adminActiveTab === 'slots'" class="admin-content">
+                        <div class="slots-management">
+                            <div class="slots-header">
+                                <h2>Gestion des créneaux horaires</h2>
+                                <button class="btn primary" @click="showAddSlotModal = true">
+                                    Ajouter un créneau
+                                </button>
+                            </div>
+
+                            <div class="slots-calendar">
+                                <div class="calendar-header">
+                                    <button class="btn secondary" @click="previousMonth">
+                                        <
+                                    </button>
+                                    <h3>{{ currentMonthName }} {{ currentYear }}</h3>
+                                    <button class="btn secondary" @click="nextMonth">
+                                        >
+                                    </button>
+                                </div>
+
+                                <div class="calendar-grid">
+                                    <div class="calendar-weekday" v-for="day in weekDays" :key="day">
+                                        {{ day }}
+                                    </div>
+                                    <div v-for="day in calendarDays" 
+                                         :key="day.date"
+                                         class="calendar-day"
+                                         :class="{ 
+                                             'today': isToday(day.date),
+                                             'other-month': !isCurrentMonth(day.date),
+                                             'has-slots': hasSlots(day.date)
+                                         }"
+                                         @click="selectDate(day.date)">
+                                        {{ day.day }}
+                                        <div class="day-slots" v-if="hasSlots(day.date)">
+                                            {{ getSlotsCount(day.date) }} créneau(s)
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="slots-list" v-if="selectedDate">
+                                <h3>Créneaux du {{ formatDate(selectedDate) }}</h3>
+                                <div class="slots-actions">
+                                    <button class="btn primary" @click="showAddSlotModal = true">
+                                        Ajouter un créneau
+                                    </button>
+                                    <button class="btn secondary" @click="selectedDate = null">
+                                        Fermer
+                                    </button>
+                                </div>
+                                <div class="time-slots-grid">
+                                    <div v-for="slot in getDateSlots(selectedDate)" 
+                                         :key="slot.id"
+                                         class="time-slot-card"
+                                         :class="{ 'unavailable': slot.unavailable }">
+                                        <div class="slot-time">{{ slot.time }}</div>
+                                        <div class="slot-status">{{ slot.unavailable ? 'Indisponible' : 'Disponible' }}</div>
+                                        <div class="slot-actions">
+                                            <button class="btn-edit" @click="toggleSlotAvailability(slot)">
+                                                {{ slot.unavailable ? 'Rendre disponible' : 'Rendre indisponible' }}
+                                            </button>
+                                            <button class="btn-delete" @click="deleteSlot(slot)">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </section>
             </template>
@@ -1388,10 +1660,56 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal d'ajout de créneau -->
+        <div v-if="showAddSlotModal" class="edit-modal">
+            <div class="edit-modal-content">
+                <h2>{{ selectedDate ? 'Ajouter un créneau' : 'Ajouter des créneaux' }}</h2>
+                <form @submit.prevent="addSlots">
+                    <div class="edit-form-group">
+                        <label for="slotTime">Heure</label>
+                        <input type="time" id="slotTime" v-model="newSlot.time" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="slotDuration">Durée (minutes)</label>
+                        <select id="slotDuration" v-model="newSlot.duration" required>
+                            <option value="30">30 minutes</option>
+                            <option value="45">45 minutes</option>
+                            <option value="60">1 heure</option>
+                            <option value="90">1 heure 30</option>
+                            <option value="120">2 heures</option>
+                        </select>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="slotDate">Date de début</label>
+                        <input type="date" id="slotDate" v-model="newSlot.date" required 
+                               :min="minDate">
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="slotRecurrence">Récurrence</label>
+                        <select id="slotRecurrence" v-model="newSlot.recurrence">
+                            <option value="none">Aucune</option>
+                            <option value="daily">Tous les jours</option>
+                            <option value="weekly">Toutes les semaines</option>
+                            <option value="monthly">Tous les mois</option>
+                        </select>
+                    </div>
+                    <div class="edit-form-group" v-if="newSlot.recurrence !== 'none'">
+                        <label for="slotEndDate">Date de fin</label>
+                        <input type="date" id="slotEndDate" v-model="newSlot.endDate" required
+                               :min="newSlot.date">
+                    </div>
+                    <div class="edit-modal-actions">
+                        <button type="button" class="btn secondary" @click="showAddSlotModal = false">Annuler</button>
+                        <button type="submit" class="btn primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
-        const { createApp } = Vue
+        const { createApp, watch } = Vue
 
         // Configuration Firebase
         const firebaseConfig = {
@@ -1466,6 +1784,7 @@
                     timeSlots: [
                         '09:00', '10:00', '11:00', '14:00', '15:00', '16:00', '17:00'
                     ],
+                    availableSlots: [],
                     unavailableSlots: [],
                     animals: [],
                     showAddAnimalModal: false,
@@ -1486,6 +1805,19 @@
                     showEditAppointmentModal: false,
                     editingAnimal: null,
                     editingAppointment: null,
+                    currentMonth: new Date().getMonth(),
+                    currentYear: new Date().getFullYear(),
+                    selectedDate: null,
+                    showAddSlotModal: false,
+                    newSlot: {
+                        time: '',
+                        date: '',
+                        duration: '60',
+                        recurrence: 'none',
+                        endDate: ''
+                    },
+                    weekDays: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
+                    slots: [],
                 }
             },
             computed: {
@@ -1514,6 +1846,61 @@
                         apt.animalName.toLowerCase().includes(search) ||
                         this.getUserEmail(apt.userId).toLowerCase().includes(search)
                     );
+                },
+                currentMonthName() {
+                    return new Date(this.currentYear, this.currentMonth).toLocaleString('fr-FR', { month: 'long' });
+                },
+                calendarDays() {
+                    const firstDay = new Date(this.currentYear, this.currentMonth, 1);
+                    const lastDay = new Date(this.currentYear, this.currentMonth + 1, 0);
+                    const days = [];
+                    
+                    // Ajouter les jours du mois précédent
+                    const prevMonthDays = firstDay.getDay();
+                    const prevMonth = new Date(this.currentYear, this.currentMonth, 0);
+                    for (let i = prevMonthDays - 1; i >= 0; i--) {
+                        days.push({
+                            date: new Date(this.currentYear, this.currentMonth - 1, prevMonth.getDate() - i),
+                            day: prevMonth.getDate() - i,
+                            isCurrentMonth: false
+                        });
+                    }
+                    
+                    // Ajouter les jours du mois courant
+                    for (let i = 1; i <= lastDay.getDate(); i++) {
+                        days.push({
+                            date: new Date(this.currentYear, this.currentMonth, i),
+                            day: i,
+                            isCurrentMonth: true
+                        });
+                    }
+                    
+                    // Ajouter les jours du mois suivant
+                    const nextMonthDays = 42 - days.length; // 6 semaines * 7 jours
+                    for (let i = 1; i <= nextMonthDays; i++) {
+                        days.push({
+                            date: new Date(this.currentYear, this.currentMonth + 1, i),
+                            day: i,
+                            isCurrentMonth: false
+                        });
+                    }
+                    
+                    return days;
+                },
+                displayedTimeSlots() {
+                    if (!this.appointmentForm.date) return [];
+                    return this.availableSlots;
+                }
+            },
+            watch: {
+                'appointmentForm.date': {
+                    immediate: true,
+                    async handler(newDate) {
+                        if (newDate) {
+                            console.log('DEBUG - Date changed to:', newDate);
+                            await this.loadUnavailableSlots();
+                        }
+                    }
                 }
             },
             methods: {
@@ -1615,16 +2002,75 @@
                     };
                 },
                 async loadUnavailableSlots() {
-                    if (!this.appointmentForm.date) return;
+                    if (!this.appointmentForm.date) {
+                        console.log('DEBUG - No date selected');
+                        this.availableSlots = [];
+                        return;
+                    }
                     
                     try {
-                        const snapshot = await db.collection('appointments')
+                        // Créer les dates de début et fin de la journée sélectionnée
+                        const selectedDate = new Date(this.appointmentForm.date);
+                        const startOfDay = new Date(selectedDate);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(selectedDate);
+                        endOfDay.setHours(23, 59, 59, 999);
+
+                        console.log('DEBUG - Loading slots...');
+                        console.log('DEBUG - Selected date:', this.appointmentForm.date);
+                        console.log('DEBUG - Start of day:', startOfDay);
+                        console.log('DEBUG - End of day:', endOfDay);
+
+                        // Charger les créneaux disponibles pour cette date
+                        const availableSlotsSnapshot = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .get();
+
+                        console.log('DEBUG - Query executed');
+                        console.log('DEBUG - Number of slots found:', availableSlotsSnapshot.size);
+
+                        // Si aucun créneau n'est défini pour cette date
+                        if (availableSlotsSnapshot.empty) {
+                            console.log('DEBUG - No slots found for this date');
+                            this.availableSlots = [];
+                            return;
+                        }
+
+                        // Récupérer les créneaux disponibles
+                        let availableSlots = availableSlotsSnapshot.docs
+                            .filter(doc => {
+                                const data = doc.data();
+                                console.log('DEBUG - Filtering slot:', data.time);
+                                console.log('DEBUG - Is unavailable:', data.unavailable);
+                                return !data.unavailable;
+                            })
+                            .map(doc => doc.data().time);
+
+                        console.log('DEBUG - Available slots before filtering:', availableSlots);
+
+                        // Charger les rendez-vous déjà pris
+                        const appointmentsSnapshot = await db.collection('appointments')
                             .where('date', '==', this.appointmentForm.date)
                             .get();
                         
-                        this.unavailableSlots = snapshot.docs.map(doc => doc.data().time);
+                        const bookedSlots = appointmentsSnapshot.docs.map(doc => doc.data().time);
+                        console.log('DEBUG - Booked slots:', bookedSlots);
+
+                        // Trier les créneaux par heure
+                        this.availableSlots = availableSlots
+                            .filter(slot => !bookedSlots.includes(slot))
+                            .sort((a, b) => {
+                                const [aHours, aMinutes] = a.split(':').map(Number);
+                                const [bHours, bMinutes] = b.split(':').map(Number);
+                                return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
+                            });
+
+                        console.log('DEBUG - Final available slots:', this.availableSlots);
+
                     } catch (error) {
-                        console.error('Error loading unavailable slots:', error);
+                        console.error('Error loading available slots:', error);
+                        this.availableSlots = [];
                     }
                 },
                 isTimeSlotUnavailable(slot) {
@@ -1632,13 +2078,38 @@
                 },
                 async submitAppointment() {
                     try {
-                        // Vérifier si le créneau est toujours disponible
-                        if (this.isTimeSlotUnavailable(this.appointmentForm.time)) {
-                            this.appointmentError = 'Ce créneau n\'est plus disponible. Veuillez en choisir un autre.';
+                        // Vérifier si un créneau est sélectionné
+                        if (!this.appointmentForm.time) {
+                            this.appointmentError = 'Veuillez sélectionner un créneau horaire';
                             return;
                         }
 
-                        // Ajouter le rendez-vous à Firestore
+                        // Vérifier si le créneau est toujours disponible
+                        const selectedDate = new Date(this.appointmentForm.date);
+                        const startOfDay = new Date(selectedDate);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(selectedDate);
+                        endOfDay.setHours(23, 59, 59, 999);
+
+                        // D'abord, vérifier si le créneau existe dans les créneaux disponibles
+                        if (!this.availableSlots.includes(this.appointmentForm.time)) {
+                            this.appointmentError = 'Ce créneau n\'est plus disponible';
+                            return;
+                        }
+
+                        // Ensuite, vérifier s'il n'y a pas déjà un rendez-vous à cette date et heure
+                        const existingAppointment = await db.collection('appointments')
+                            .where('date', '==', this.appointmentForm.date)
+                            .where('time', '==', this.appointmentForm.time)
+                            .get();
+
+                        if (!existingAppointment.empty) {
+                            this.appointmentError = 'Ce créneau vient d\'être réservé par quelqu\'un d\'autre';
+                            await this.loadUnavailableSlots(); // Recharger les créneaux
+                            return;
+                        }
+
+                        // Si tout est bon, créer le rendez-vous
                         const appointmentData = {
                             ...this.appointmentForm,
                             userId: firebase.auth().currentUser.uid,
@@ -1660,7 +2131,7 @@
                         this.appointmentSuccess = true;
                         this.appointmentError = '';
                         
-                        // Recharger les créneaux indisponibles
+                        // Recharger les créneaux disponibles
                         await this.loadUnavailableSlots();
                     } catch (error) {
                         console.error('Error submitting appointment:', error);
@@ -1959,6 +2430,157 @@
                         console.error('Error deleting appointment:', error);
                         alert('Erreur lors de la suppression');
                     }
+                },
+                previousMonth() {
+                    if (this.currentMonth === 0) {
+                        this.currentMonth = 11;
+                        this.currentYear--;
+                    } else {
+                        this.currentMonth--;
+                    }
+                },
+                nextMonth() {
+                    if (this.currentMonth === 11) {
+                        this.currentMonth = 0;
+                        this.currentYear++;
+                    } else {
+                        this.currentMonth++;
+                    }
+                },
+                isToday(date) {
+                    const today = new Date();
+                    return date.getDate() === today.getDate() &&
+                           date.getMonth() === today.getMonth() &&
+                           date.getFullYear() === today.getFullYear();
+                },
+                isCurrentMonth(date) {
+                    return date.getMonth() === this.currentMonth &&
+                           date.getFullYear() === this.currentYear;
+                },
+                hasSlots(date) {
+                    return this.slots.some(slot => 
+                        slot.date.toDateString() === date.toDateString()
+                    );
+                },
+                getSlotsCount(date) {
+                    return this.slots.filter(slot => 
+                        slot.date.toDateString() === date.toDateString()
+                    ).length;
+                },
+                selectDate(date) {
+                    if (this.isCurrentMonth(date)) {
+                        this.selectedDate = date;
+                    }
+                },
+                getDateSlots(date) {
+                    return this.slots.filter(slot => 
+                        slot.date.toDateString() === date.toDateString()
+                    );
+                },
+                async addSlots() {
+                    try {
+                        const slotsToAdd = [];
+                        const startDate = new Date(this.newSlot.date);
+                        const endDate = this.newSlot.recurrence !== 'none' ? new Date(this.newSlot.endDate) : startDate;
+                        
+                        if (this.newSlot.recurrence === 'none') {
+                            const slotDate = new Date(startDate);
+                            const [hours, minutes] = this.newSlot.time.split(':');
+                            slotDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                            
+                            slotsToAdd.push({
+                                date: firebase.firestore.Timestamp.fromDate(slotDate),
+                                time: this.newSlot.time,
+                                duration: parseInt(this.newSlot.duration),
+                                unavailable: false
+                            });
+                        } else {
+                            let currentDate = new Date(startDate);
+                            while (currentDate <= endDate) {
+                                const slotDate = new Date(currentDate);
+                                const [hours, minutes] = this.newSlot.time.split(':');
+                                slotDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+                                
+                                slotsToAdd.push({
+                                    date: firebase.firestore.Timestamp.fromDate(slotDate),
+                                    time: this.newSlot.time,
+                                    duration: parseInt(this.newSlot.duration),
+                                    unavailable: false
+                                });
+                                
+                                switch(this.newSlot.recurrence) {
+                                    case 'daily':
+                                        currentDate.setDate(currentDate.getDate() + 1);
+                                        break;
+                                    case 'weekly':
+                                        currentDate.setDate(currentDate.getDate() + 7);
+                                        break;
+                                    case 'monthly':
+                                        currentDate.setMonth(currentDate.getMonth() + 1);
+                                        break;
+                                }
+                            }
+                        }
+                        
+                        for (const slot of slotsToAdd) {
+                            await db.collection('timeSlots').add({
+                                ...slot,
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        }
+                        
+                        this.showAddSlotModal = false;
+                        this.newSlot = {
+                            time: '',
+                            date: '',
+                            duration: '60',
+                            recurrence: 'none',
+                            endDate: ''
+                        };
+                        await this.loadSlots();
+                        alert('Créneaux ajoutés avec succès');
+                    } catch (error) {
+                        console.error('Error adding slots:', error);
+                        alert('Erreur lors de l\'ajout des créneaux: ' + error.message);
+                    }
+                },
+                async toggleSlotAvailability(slot) {
+                    try {
+                        await db.collection('timeSlots').doc(slot.id).update({
+                            unavailable: !slot.unavailable,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        await this.loadSlots();
+                    } catch (error) {
+                        console.error('Error toggling slot availability:', error);
+                        alert('Erreur lors de la modification du créneau: ' + error.message);
+                    }
+                },
+                async deleteSlot(slot) {
+                    if (!confirm('Êtes-vous sûr de vouloir supprimer ce créneau ?')) return;
+                    try {
+                        await db.collection('timeSlots').doc(slot.id).delete();
+                        await this.loadSlots();
+                        alert('Créneau supprimé avec succès');
+                    } catch (error) {
+                        console.error('Error deleting slot:', error);
+                        alert('Erreur lors de la suppression du créneau: ' + error.message);
+                    }
+                },
+                async loadSlots() {
+                    try {
+                        const snapshot = await db.collection('timeSlots')
+                            .orderBy('date')
+                            .get();
+                        
+                        this.slots = snapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data(),
+                            date: doc.data().date.toDate()
+                        }));
+                    } catch (error) {
+                        console.error('Error loading slots:', error);
+                    }
                 }
             },
             mounted() {
@@ -1993,6 +2615,7 @@
                             if (this.isAdmin) {
                                 this.currentPage = 'admin';
                                 this.loadAllData();
+                                this.loadSlots();
                             }
                             break;
                         default:
@@ -2017,6 +2640,7 @@
                             this.loadAnimals();
                         } else if (this.currentPage === 'admin' && this.isAdmin) {
                             this.loadAllData();
+                            this.loadSlots();
                         }
                     } else {
                         if (this.unsubscribeAnimals) {

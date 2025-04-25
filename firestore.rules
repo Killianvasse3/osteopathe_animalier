@@ -45,5 +45,11 @@ service cloud.firestore {
       allow create: if isAuthenticated();
       allow update, delete: if isOwner(resource.data.userId) || isAdmin();
     }
+
+    // Collection des créneaux horaires
+    match /timeSlots/{slotId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
   }
 } 
