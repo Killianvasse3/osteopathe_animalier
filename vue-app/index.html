@@ -242,6 +242,21 @@
             box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         }
 
+        @media (max-width: 768px) {
+            .about {
+                grid-template-columns: 1fr;
+                gap: 2rem;
+            }
+
+            .about-image {
+                order: 2;
+            }
+
+            .about > div {
+                order: 1;
+            }
+        }
+
         .contact {
             background-color: var(--light-bg);
         }
@@ -1474,12 +1489,15 @@
                     try {
                         const userCredential = await firebase.auth().signInWithEmailAndPassword(this.email, this.password);
                         
+                        // Liste des IDs administrateurs
+                        const adminIds = ['4tYIuGIeMMMG7Wbv6OXjkeKOURI3', 'Rdzwjl02KwaNdgbISONjs0rPBQy1'];
+                        
                         // Vérifier si le document utilisateur existe, sinon le créer
                         const userDoc = await db.collection('users').doc(userCredential.user.uid).get();
                         if (!userDoc.exists) {
                             await db.collection('users').doc(userCredential.user.uid).set({
                                 email: userCredential.user.email,
-                                role: userCredential.user.uid === '4tYIuGIeMMMG7Wbv6OXjkeKOURI3' ? 'admin' : 'user',
+                                role: adminIds.includes(userCredential.user.uid) ? 'admin' : 'user',
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
                             });
                         }
@@ -1499,10 +1517,13 @@
                     try {
                         const userCredential = await firebase.auth().createUserWithEmailAndPassword(this.email, this.password);
                         
+                        // Liste des IDs administrateurs
+                        const adminIds = ['4tYIuGIeMMMG7Wbv6OXjkeKOURI3', 'Rdzwjl02KwaNdgbISONjs0rPBQy1'];
+                        
                         // Créer un document utilisateur dans Firestore
                         await db.collection('users').doc(userCredential.user.uid).set({
                             email: userCredential.user.email,
-                            role: userCredential.user.uid === '4tYIuGIeMMMG7Wbv6OXjkeKOURI3' ? 'admin' : 'user',
+                            role: adminIds.includes(userCredential.user.uid) ? 'admin' : 'user',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
 
@@ -1967,7 +1988,6 @@
                     } else {
                         if (this.unsubscribeAnimals) {
                             this.unsubscribeAnimals();
-                            this.unsubscribeAnimals = null;
                         }
                         this.isAuthenticated = false;
                         this.isAdmin = false;
