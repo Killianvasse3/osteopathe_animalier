@@ -2054,10 +2054,25 @@
                             .where('date', '==', this.appointmentForm.date)
                             .get();
                         
-                        const bookedSlots = appointmentsSnapshot.docs.map(doc => doc.data().time);
+                        console.log('DEBUG - Raw appointments data:', appointmentsSnapshot.docs.map(doc => {
+                            const data = doc.data();
+                            return {
+                                id: doc.id,
+                                date: data.date,
+                                time: data.time,
+                                animalName: data.animalName,
+                                createdAt: data.createdAt
+                            };
+                        }));
+                        
+                        // Filtrer les rendez-vous valides (avec un créneau horaire non vide)
+                        const bookedSlots = appointmentsSnapshot.docs
+                            .filter(doc => doc.data().time && doc.data().time.trim() !== '')
+                            .map(doc => doc.data().time);
+                            
                         console.log('DEBUG - Booked slots:', bookedSlots);
 
-                        // Trier les créneaux par heure
+                        // Filtrer les créneaux déjà réservés et trier par heure
                         this.availableSlots = availableSlots
                             .filter(slot => !bookedSlots.includes(slot))
                             .sort((a, b) => {
@@ -2091,13 +2106,7 @@
                         const endOfDay = new Date(selectedDate);
                         endOfDay.setHours(23, 59, 59, 999);
 
-                        // D'abord, vérifier si le créneau existe dans les créneaux disponibles
-                        if (!this.availableSlots.includes(this.appointmentForm.time)) {
-                            this.appointmentError = 'Ce créneau n\'est plus disponible';
-                            return;
-                        }
-
-                        // Ensuite, vérifier s'il n'y a pas déjà un rendez-vous à cette date et heure
+                        // Vérifier s'il n'y a pas déjà un rendez-vous à cette date et heure
                         const existingAppointment = await db.collection('appointments')
                             .where('date', '==', this.appointmentForm.date)
                             .where('time', '==', this.appointmentForm.time)
@@ -2105,11 +2114,28 @@
 
                         if (!existingAppointment.empty) {
                             this.appointmentError = 'Ce créneau vient d\'être réservé par quelqu\'un d\'autre';
-                            await this.loadUnavailableSlots(); // Recharger les créneaux
+                            await this.loadUnavailableSlots();
                             return;
                         }
 
-                        // Si tout est bon, créer le rendez-vous
+                        // Trouver le créneau correspondant dans timeSlots
+                        const timeSlotSnapshot = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .where('time', '==', this.appointmentForm.time)
+                            .get();
+
+                        if (!timeSlotSnapshot.empty) {
+                            // Marquer le créneau comme indisponible
+                            await db.collection('timeSlots')
+                                .doc(timeSlotSnapshot.docs[0].id)
+                                .update({
+                                    unavailable: true,
+                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                        }
+
+                        // Créer le rendez-vous
                         const appointmentData = {
                             ...this.appointmentForm,
                             userId: firebase.auth().currentUser.uid,
@@ -2581,7 +2607,43 @@
                     } catch (error) {
                         console.error('Error loading slots:', error);
                     }
-                }
+                },
+                async syncTimeSlots() {
+                    try {
+                        // Récupérer tous les rendez-vous
+                        const appointmentsSnapshot = await db.collection('appointments').get();
+                        
+                        for (const appointmentDoc of appointmentsSnapshot.docs) {
+                            const appointment = appointmentDoc.data();
+                            const appointmentDate = new Date(appointment.date);
+                            const startOfDay = new Date(appointmentDate);
+                            startOfDay.setHours(0, 0, 0, 0);
+                            const endOfDay = new Date(appointmentDate);
+                            endOfDay.setHours(23, 59, 59, 999);
+
+                            // Trouver le créneau correspondant
+                            const timeSlotSnapshot = await db.collection('timeSlots')
+                                .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                                .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                                .where('time', '==', appointment.time)
+                                .get();
+
+                            if (!timeSlotSnapshot.empty) {
+                                // Mettre à jour le créneau
+                                await db.collection('timeSlots')
+                                    .doc(timeSlotSnapshot.docs[0].id)
+                                    .update({
+                                        unavailable: true,
+                                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                    });
+                            }
+                        }
+                        
+                        console.log('Synchronisation des créneaux terminée');
+                    } catch (error) {
+                        console.error('Erreur lors de la synchronisation des créneaux:', error);
+                    }
+                },
             },
             mounted() {
                 // Gestion de la navigation par hash
@@ -2606,6 +2668,7 @@
                     switch(hash) {
                         case 'appointment':
                             this.currentPage = 'appointment';
+                            this.syncTimeSlots(); // Synchroniser les créneaux au chargement de la page de rendez-vous
                             break;
                         case 'dossier':
                             this.currentPage = 'dossier';
