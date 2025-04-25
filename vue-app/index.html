@@ -915,7 +915,7 @@
             <nav class="nav-container">
                 <a href="#" class="logo">
                     <img src="images/logo_emmy.png" alt="Logo Emmy" style="height: 50px; margin-right: 10px;">
-                    Ostéopathe Animalier
+                    Emmy Vasse
                 </a>
                 <div class="hamburger" @click="toggleMenu" :class="{ active: isMenuOpen }">
                     <span></span>
@@ -1053,6 +1053,15 @@
                             <div class="form-group">
                                 <label for="animalName">Nom de l'animal</label>
                                 <input type="text" id="animalName" v-model="appointmentForm.animalName" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="phone">Numéro de téléphone</label>
+                                <input type="tel" id="phone" v-model="appointmentForm.phone" 
+                                       pattern="[0-9]{10}" 
+                                       placeholder="0612345678" 
+                                       required>
+                                <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
                             </div>
 
                             <div class="form-group">
@@ -1439,7 +1448,8 @@
                         animalName: '',
                         date: '',
                         time: '',
-                        notes: ''
+                        notes: '',
+                        phone: ''
                     },
                     appointmentSuccess: false,
                     appointmentError: '',
@@ -1628,20 +1638,14 @@
 
                         await db.collection('appointments').add(appointmentData);
 
-                        // Envoyer les emails de confirmation
-                        const sendEmails = functions.httpsCallable('sendAppointmentEmails');
-                        await sendEmails({
-                            appointment: appointmentData,
-                            osteopathEmail: 'Killian.vasse@gmail.com'
-                        });
-
                         // Réinitialiser le formulaire
                         this.appointmentForm = {
                             animalType: '',
                             animalName: '',
                             date: '',
                             time: '',
-                            notes: ''
+                            notes: '',
+                            phone: ''
                         };
                         this.appointmentSuccess = true;
                         this.appointmentError = '';
