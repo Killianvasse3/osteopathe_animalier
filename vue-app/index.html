@@ -1867,6 +1867,10 @@
                     slots: [],
                     availableDates: [],
                     isLoadingDates: false,
+                    unsubscribeSlots: null,
+                    unsubscribeAppointments: null,
+                    unsubscribeAdminSlots: null,
+                    unsubscribeAvailableDates: null,
                 }
             },
             computed: {
@@ -2070,67 +2074,75 @@
                         console.log('DEBUG - Start of day:', startOfDay);
                         console.log('DEBUG - End of day:', endOfDay);
 
-                        // Charger les créneaux disponibles pour cette date
-                        const availableSlotsSnapshot = await db.collection('timeSlots')
-                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
-                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
-                            .get();
-
-                        console.log('DEBUG - Query executed');
-                        console.log('DEBUG - Number of slots found:', availableSlotsSnapshot.size);
-
-                        // Si aucun créneau n'est défini pour cette date
-                        if (availableSlotsSnapshot.empty) {
-                            console.log('DEBUG - No slots found for this date');
-                            this.availableSlots = [];
-                            return;
+                        // Utiliser onSnapshot pour les créneaux
+                        if (this.unsubscribeSlots) {
+                            this.unsubscribeSlots();
                         }
 
-                        // Récupérer les créneaux disponibles
-                        let availableSlots = availableSlotsSnapshot.docs
-                            .filter(doc => {
-                                const data = doc.data();
-                                console.log('DEBUG - Filtering slot:', data.time);
-                                console.log('DEBUG - Is unavailable:', data.unavailable);
-                                return !data.unavailable;
-                            })
-                            .map(doc => doc.data().time);
+                        this.unsubscribeSlots = db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .onSnapshot(async (slotsSnapshot) => {
+                                console.log('DEBUG - Query executed');
+                                console.log('DEBUG - Number of slots found:', slotsSnapshot.size);
 
-                        console.log('DEBUG - Available slots before filtering:', availableSlots);
+                                // Si aucun créneau n'est défini pour cette date
+                                if (slotsSnapshot.empty) {
+                                    console.log('DEBUG - No slots found for this date');
+                                    this.availableSlots = [];
+                                    return;
+                                }
 
-                        // Charger les rendez-vous déjà pris
-                        const appointmentsSnapshot = await db.collection('appointments')
-                            .where('date', '==', this.appointmentForm.date)
-                            .get();
-                        
-                        console.log('DEBUG - Raw appointments data:', appointmentsSnapshot.docs.map(doc => {
-                            const data = doc.data();
-                            return {
-                                id: doc.id,
-                                date: data.date,
-                                time: data.time,
-                                animalName: data.animalName,
-                                createdAt: data.createdAt
-                            };
-                        }));
-                        
-                        // Filtrer les rendez-vous valides (avec un créneau horaire non vide)
-                        const bookedSlots = appointmentsSnapshot.docs
-                            .filter(doc => doc.data().time && doc.data().time.trim() !== '')
-                            .map(doc => doc.data().time);
-                            
-                        console.log('DEBUG - Booked slots:', bookedSlots);
+                                // Récupérer les créneaux disponibles
+                                let availableSlots = slotsSnapshot.docs
+                                    .filter(doc => {
+                                        const data = doc.data();
+                                        console.log('DEBUG - Filtering slot:', data.time);
+                                        console.log('DEBUG - Is unavailable:', data.unavailable);
+                                        return !data.unavailable;
+                                    })
+                                    .map(doc => doc.data().time);
 
-                        // Filtrer les créneaux déjà réservés et trier par heure
-                        this.availableSlots = availableSlots
-                            .filter(slot => !bookedSlots.includes(slot))
-                            .sort((a, b) => {
-                                const [aHours, aMinutes] = a.split(':').map(Number);
-                                const [bHours, bMinutes] = b.split(':').map(Number);
-                                return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
+                                console.log('DEBUG - Available slots before filtering:', availableSlots);
+
+                                // Utiliser onSnapshot pour les rendez-vous
+                                if (this.unsubscribeAppointments) {
+                                    this.unsubscribeAppointments();
+                                }
+
+                                this.unsubscribeAppointments = db.collection('appointments')
+                                    .where('date', '==', this.appointmentForm.date)
+                                    .onSnapshot((appointmentsSnapshot) => {
+                                        console.log('DEBUG - Raw appointments data:', appointmentsSnapshot.docs.map(doc => {
+                                            const data = doc.data();
+                                            return {
+                                                id: doc.id,
+                                                date: data.date,
+                                                time: data.time,
+                                                animalName: data.animalName,
+                                                createdAt: data.createdAt
+                                            };
+                                        }));
+                                        
+                                        // Filtrer les rendez-vous valides
+                                        const bookedSlots = appointmentsSnapshot.docs
+                                            .filter(doc => doc.data().time && doc.data().time.trim() !== '')
+                                            .map(doc => doc.data().time);
+                                            
+                                        console.log('DEBUG - Booked slots:', bookedSlots);
+
+                                        // Filtrer les créneaux déjà réservés et trier par heure
+                                        this.availableSlots = availableSlots
+                                            .filter(slot => !bookedSlots.includes(slot))
+                                            .sort((a, b) => {
+                                                const [aHours, aMinutes] = a.split(':').map(Number);
+                                                const [bHours, bMinutes] = b.split(':').map(Number);
+                                                return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
+                                            });
+
+                                        console.log('DEBUG - Final available slots:', this.availableSlots);
+                                    });
                             });
-
-                        console.log('DEBUG - Final available slots:', this.availableSlots);
 
                     } catch (error) {
                         console.error('Error loading available slots:', error);
@@ -2686,15 +2698,20 @@
                 },
                 async loadSlots() {
                     try {
-                        const snapshot = await db.collection('timeSlots')
+                        // Utiliser onSnapshot pour les créneaux dans l'interface admin
+                        if (this.unsubscribeAdminSlots) {
+                            this.unsubscribeAdminSlots();
+                        }
+
+                        this.unsubscribeAdminSlots = db.collection('timeSlots')
                             .orderBy('date')
-                            .get();
-                        
-                        this.slots = snapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data(),
-                            date: doc.data().date.toDate()
-                        }));
+                            .onSnapshot(snapshot => {
+                                this.slots = snapshot.docs.map(doc => ({
+                                    id: doc.id,
+                                    ...doc.data(),
+                                    date: doc.data().date.toDate()
+                                }));
+                            });
                     } catch (error) {
                         console.error('Error loading slots:', error);
                     }
@@ -2740,7 +2757,6 @@
                         this.isLoadingDates = true;
                         console.log('DEBUG - Loading available dates...');
                         
-                        // Charger tous les créneaux non indisponibles pour les 30 prochains jours
                         const today = new Date();
                         today.setHours(0, 0, 0, 0);
                         
@@ -2748,27 +2764,32 @@
                         thirtyDaysFromNow.setDate(today.getDate() + 30);
                         thirtyDaysFromNow.setHours(23, 59, 59, 999);
 
-                        const slotsSnapshot = await db.collection('timeSlots')
+                        // Utiliser onSnapshot pour les dates disponibles
+                        if (this.unsubscribeAvailableDates) {
+                            this.unsubscribeAvailableDates();
+                        }
+
+                        this.unsubscribeAvailableDates = db.collection('timeSlots')
                             .where('date', '>=', firebase.firestore.Timestamp.fromDate(today))
                             .where('date', '<=', firebase.firestore.Timestamp.fromDate(thirtyDaysFromNow))
                             .where('unavailable', '==', false)
-                            .get();
+                            .onSnapshot(snapshot => {
+                                console.log('DEBUG - Found', snapshot.size, 'available slots');
 
-                        console.log('DEBUG - Found', slotsSnapshot.size, 'available slots');
+                                // Extraire les dates uniques des créneaux disponibles
+                                const availableDatesSet = new Set();
+                                snapshot.forEach(doc => {
+                                    const slotDate = doc.data().date.toDate();
+                                    const dateString = slotDate.toISOString().split('T')[0];
+                                    availableDatesSet.add(dateString);
+                                });
 
-                        // Extraire les dates uniques des créneaux disponibles
-                        const availableDatesSet = new Set();
-                        slotsSnapshot.forEach(doc => {
-                            const slotDate = doc.data().date.toDate();
-                            const dateString = slotDate.toISOString().split('T')[0];
-                            availableDatesSet.add(dateString);
-                        });
-
-                        this.availableDates = Array.from(availableDatesSet).sort();
-                        console.log('DEBUG - Available dates:', this.availableDates);
+                                this.availableDates = Array.from(availableDatesSet).sort();
+                                console.log('DEBUG - Available dates:', this.availableDates);
+                                this.isLoadingDates = false;
+                            });
                     } catch (error) {
                         console.error('Error loading available dates:', error);
-                    } finally {
                         this.isLoadingDates = false;
                     }
                 },
@@ -2850,9 +2871,21 @@
                 });
             },
             beforeUnmount() {
-                // Nettoyer l'abonnement aux mises à jour en temps réel
+                // Nettoyer tous les écouteurs en temps réel
                 if (this.unsubscribeAnimals) {
                     this.unsubscribeAnimals();
+                }
+                if (this.unsubscribeSlots) {
+                    this.unsubscribeSlots();
+                }
+                if (this.unsubscribeAppointments) {
+                    this.unsubscribeAppointments();
+                }
+                if (this.unsubscribeAdminSlots) {
+                    this.unsubscribeAdminSlots();
+                }
+                if (this.unsubscribeAvailableDates) {
+                    this.unsubscribeAvailableDates();
                 }
             }
         }).mount('#app')
