@@ -97,8 +97,10 @@
         }
 
         .hamburger.active span:nth-child(1) {
-            transform: rotate(45deg);
-            transform-origin: 0 0;
+            transform: rotate(45deg) translate(0, 0);
+            transform-origin: center;
+            position: relative;
+            top: 9px;
         }
 
         .hamburger.active span:nth-child(2) {
@@ -106,8 +108,10 @@
         }
 
         .hamburger.active span:nth-child(3) {
-            transform: rotate(-45deg);
-            transform-origin: 0 100%;
+            transform: rotate(-45deg) translate(0, 0);
+            transform-origin: center;
+            position: relative;
+            top: -9px;
         }
 
         .nav-links {
