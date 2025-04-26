@@ -998,6 +998,9 @@
 
         .slots-management {
             padding: 2rem;
+            overflow-x: auto;
+            width: 100%;
+            box-sizing: border-box;
         }
 
         .slots-header {
@@ -1012,24 +1015,6 @@
             color: var(--primary-color);
         }
 
-        .calendar-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 1rem;
-            padding: 1rem;
-            background: white;
-            border-radius: 10px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        }
-
-        .calendar-header h3 {
-            margin: 0;
-            font-size: 1.5rem;
-            color: var(--primary-color);
-            text-transform: capitalize;
-        }
-
         .calendar-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -1038,6 +1023,10 @@
             padding: 1rem;
             border-radius: 10px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            min-width: 300px;
+            max-width: 100%;
+            box-sizing: border-box;
+            width: fit-content;
         }
 
         .calendar-weekday {
@@ -1046,6 +1035,7 @@
             color: var(--primary-color);
             padding: 0.5rem;
             border-bottom: 2px solid var(--light-bg);
+            font-size: 0.9rem;
         }
 
         .calendar-day {
@@ -1060,6 +1050,51 @@
             justify-content: center;
             transition: all 0.3s ease;
             position: relative;
+            font-size: 0.9rem;
+            min-width: 0;
+            overflow: hidden;
+        }
+
+        @media (max-width: 768px) {
+            .slots-management {
+                padding: 1rem;
+            }
+
+            .calendar-grid {
+                gap: 0.2rem;
+                padding: 0.5rem;
+                min-width: 280px;
+            }
+
+            .calendar-weekday {
+                padding: 0.3rem;
+                font-size: 0.8rem;
+            }
+
+            .calendar-day {
+                padding: 0.3rem;
+                font-size: 0.8rem;
+            }
+
+            .day-slots {
+                font-size: 0.7rem;
+                margin-top: 0.2rem;
+            }
+
+            .calendar-header {
+                padding: 0.5rem;
+            }
+
+            .calendar-header h3 {
+                font-size: 1.1rem;
+                margin: 0.5rem 0;
+            }
+
+            .calendar-header button {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
         }
 
         .calendar-day:hover {
@@ -1084,6 +1119,11 @@
             font-size: 0.8rem;
             color: var(--accent-color);
             margin-top: 0.3rem;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
 
         .slots-list {
@@ -1158,6 +1198,36 @@
         }
 
         /* Style pour les boutons de navigation du calendrier */
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            flex-wrap: nowrap;
+            gap: 0.5rem;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .calendar-header h3 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-color);
+            text-transform: capitalize;
+            text-align: center;
+            flex: 1;
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            order: 2;
+            box-sizing: border-box;
+        }
+
         .calendar-header button {
             width: 40px;
             height: 40px;
@@ -1171,11 +1241,30 @@
             align-items: center;
             justify-content: center;
             transition: all 0.3s ease;
+            order: 1;
+            flex-shrink: 0;
         }
 
-        .calendar-header button:hover {
-            background-color: var(--primary-color);
-            color: white;
+        .calendar-header button:last-child {
+            order: 3;
+        }
+
+        @media (max-width: 768px) {
+            .calendar-header {
+                padding: 0.5rem;
+                flex-wrap: nowrap;
+            }
+
+            .calendar-header h3 {
+                font-size: 1.1rem;
+                margin: 0;
+            }
+
+            .calendar-header button {
+                width: 30px;
+                height: 30px;
+                font-size: 1rem;
+            }
         }
 
         /* Ajouter ces styles CSS */
