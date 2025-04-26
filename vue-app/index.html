@@ -742,6 +742,8 @@
             justify-content: center;
             align-items: center;
             z-index: 1000;
+            overflow-y: auto;
+            padding: 2rem;
         }
 
         .modal-content {
@@ -749,14 +751,77 @@
             padding: 2rem;
             border-radius: 10px;
             width: 100%;
-            max-width: 500px;
+            max-width: 800px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
         }
 
-        .modal-actions {
+        .animal-details {
             display: flex;
-            justify-content: flex-end;
-            gap: 1rem;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .animal-photo {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 8px;
+            margin: 0 auto;
+        }
+
+        .body-map-container {
+            margin: 1rem 0;
+            padding: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: var(--light-bg);
+        }
+
+        .body-map {
+            width: 100%;
+            height: 400px;
+            background-color: white;
+            border-radius: 4px;
+            margin: 1rem 0;
+            border: 1px solid #ddd;
+        }
+
+        .appointments-history {
             margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background-color: var(--light-bg);
+        }
+
+        .appointments-list {
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+
+        @media (max-width: 768px) {
+            .modal {
+                padding: 1rem;
+            }
+
+            .modal-content {
+                max-width: 100%;
+                max-height: 95vh;
+            }
+
+            .animal-photo {
+                max-width: 200px;
+                max-height: 200px;
+            }
+
+            .body-map {
+                height: 300px;
+            }
         }
 
         /* Styles pour l'interface admin */
@@ -1325,6 +1390,63 @@
         select:disabled {
             background-color: #f8f9fa;
             cursor: not-allowed;
+        }
+
+        /* Styles existants */
+        
+        .animal-photo {
+            max-width: 200px;
+            max-height: 200px;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        .body-map-container {
+            margin: 1rem 0;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+
+        .body-map {
+            width: 100%;
+            height: 300px;
+            background-color: #f5f5f5;
+            border-radius: 4px;
+            margin: 1rem 0;
+        }
+
+        .appointments-history {
+            margin-top: 2rem;
+        }
+
+        .appointments-list {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .appointment-item {
+            padding: 0.5rem;
+            border-bottom: 1px solid #eee;
+        }
+
+        .appointment-item:last-child {
+            border-bottom: none;
+        }
+
+        @media (max-width: 768px) {
+            .animal-photo {
+                max-width: 150px;
+                max-height: 150px;
+            }
+
+            .body-map {
+                height: 200px;
+            }
+
+            .appointments-list {
+                max-height: 200px;
+            }
         }
     </style>
 </head>
@@ -2032,7 +2154,9 @@
                         name: '',
                         type: '',
                         birthdate: '',
-                        notes: ''
+                        notes: '',
+                        photoUrl: '',
+                        appointments: []
                     },
                     unsubscribeAnimals: null,
                     isAdmin: false,
@@ -2504,6 +2628,8 @@
                             type: this.newAnimal.type,
                             birthdate: this.newAnimal.birthdate,
                             notes: this.newAnimal.notes ? this.newAnimal.notes.trim() : '',
+                            photoUrl: this.newAnimal.photoUrl || '',
+                            appointments: [],
                             userId: userId,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2530,7 +2656,9 @@
                             name: '',
                             type: '',
                             birthdate: '',
-                            notes: ''
+                            notes: '',
+                            photoUrl: '',
+                            appointments: []
                         };
 
                         // Fermeture de la modal
@@ -2570,9 +2698,33 @@
                         <div class="modal-content">
                             <h2>Détails de ${animal.name}</h2>
                             <div class="animal-details">
+                                ${animal.photoUrl ? `<img src="${animal.photoUrl}" alt="${animal.name}" class="animal-photo">` : ''}
                                 <p><strong>Type:</strong> ${animal.type}</p>
                                 <p><strong>Date de naissance:</strong> ${this.formatDate(animal.birthdate)}</p>
                                 ${animal.notes ? `<p><strong>Notes:</strong> ${animal.notes}</p>` : ''}
+                                <div class="body-map-container">
+                                    <h3>Plan du corps</h3>
+                                    <div class="body-map" id="bodyMap-${animal.id}">
+                                        <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
+                                    </div>
+                                    <button class="btn" onclick="app.addBodyAnnotation('${animal.id}')">
+                                        Ajouter une annotation
+                                    </button>
+                                </div>
+                                <div class="appointments-history">
+                                    <h3>Historique des rendez-vous</h3>
+                                    <div class="appointments-list">
+                                        ${animal.appointments && animal.appointments.length > 0 
+                                            ? animal.appointments.map(apt => `
+                                                <div class="appointment-item">
+                                                    <p>${this.formatDateFr(apt.date)} - ${apt.time}</p>
+                                                    <p>${apt.notes || ''}</p>
+                                                </div>
+                                            `).join('')
+                                            : '<p>Aucun rendez-vous enregistré</p>'
+                                        }
+                                    </div>
+                                </div>
                             </div>
                             <div class="modal-actions">
                                 <button class="btn secondary" onclick="this.closest('.modal').remove()">Fermer</button>

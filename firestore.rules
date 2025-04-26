@@ -46,6 +46,13 @@ service cloud.firestore {
       allow update, delete: if isOwner(resource.data.userId) || isAdmin();
     }
 
+    // Collection des annotations corporelles
+    match /bodyAnnotations/{annotationId} {
+      allow read: if isOwner(resource.data.userId) || isAdmin();
+      allow create: if isAuthenticated();
+      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+    }
+
     // Collection des créneaux horaires
     match /timeSlots/{slotId} {
       allow read: if true;
