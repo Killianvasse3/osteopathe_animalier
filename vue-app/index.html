@@ -798,12 +798,14 @@
             padding: 2rem;
             border-radius: 15px;
             box-shadow: 0 3px 15px rgba(0,0,0,0.05);
+            overflow-x: auto;
         }
 
         .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-bottom: 2rem;
+            min-width: 600px;
         }
 
         .data-table th,
@@ -811,17 +813,13 @@
             padding: 1rem;
             text-align: left;
             border-bottom: 1px solid var(--light-bg);
-        }
-
-        .data-table th {
-            background: var(--light-bg);
-            color: var(--primary-color);
-            font-weight: 600;
+            white-space: nowrap;
         }
 
         .action-buttons {
             display: flex;
             gap: 0.5rem;
+            flex-wrap: wrap;
         }
 
         .btn-edit,
@@ -831,6 +829,7 @@
             border: none;
             cursor: pointer;
             transition: all 0.3s ease;
+            white-space: nowrap;
         }
 
         .btn-edit {
@@ -841,6 +840,89 @@
         .btn-delete {
             background: var(--accent-color);
             color: white;
+        }
+
+        @media (max-width: 768px) {
+            .admin-page {
+                padding: 1rem;
+            }
+
+            .admin-content {
+                padding: 1rem;
+            }
+
+            .admin-tabs {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+            }
+
+            .admin-tab {
+                padding: 0.5rem 1rem;
+                font-size: 0.9rem;
+            }
+
+            .search-bar {
+                flex-direction: column;
+                gap: 0.5rem;
+            }
+
+            .search-bar input {
+                width: 100%;
+            }
+
+            .data-table th,
+            .data-table td {
+                padding: 0.5rem;
+                font-size: 0.9rem;
+            }
+
+            .btn-edit,
+            .btn-delete {
+                padding: 0.3rem 0.6rem;
+                font-size: 0.8rem;
+            }
+
+            .slots-management {
+                padding: 1rem;
+            }
+
+            .calendar-grid {
+                gap: 0.2rem;
+            }
+
+            .calendar-day {
+                padding: 0.2rem;
+                font-size: 0.8rem;
+            }
+
+            .day-slots {
+                font-size: 0.7rem;
+            }
+
+            .time-slots-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .time-slot-card {
+                padding: 0.5rem;
+            }
+
+            .slot-time {
+                font-size: 1rem;
+            }
+
+            .slot-status {
+                font-size: 0.8rem;
+            }
+
+            .slot-actions {
+                flex-direction: column;
+                gap: 0.3rem;
+            }
+
+            .slot-actions button {
+                width: 100%;
+            }
         }
 
         .search-bar {
