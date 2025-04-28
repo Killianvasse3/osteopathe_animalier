@@ -1557,18 +1557,18 @@
                     <div class="appointment-steps">
                         <div class="step">
                             <div class="step-number">1</div>
-                            <h3>Remplissez les informations</h3>
-                            <p>Précisez les détails concernant votre animal et vos coordonnées</p>
+                            <h3>Choisissez votre animal</h3>
+                            <p>Sélectionnez un animal existant dans votre dossier ou créez un nouveau profil en renseignant ses informations</p>
                         </div>
                         <div class="step">
                             <div class="step-number">2</div>
-                            <h3>Choisissez votre créneau</h3>
-                            <p>Sélectionnez une date parmi celles disponibles, puis l'horaire qui vous convient</p>
+                            <h3>Sélectionnez la date et l'heure</h3>
+                            <p>Choisissez une date parmi celles disponibles, puis sélectionnez le créneau horaire qui vous convient</p>
                         </div>
                         <div class="step">
                             <div class="step-number">3</div>
-                            <h3>Confirmation</h3>
-                            <p>Votre rendez-vous est immédiatement enregistré dans le système</p>
+                            <h3>Confirmez votre rendez-vous</h3>
+                            <p>Votre rendez-vous est immédiatement enregistré et ajouté à l'historique de votre animal</p>
                         </div>
                     </div>
 
@@ -1580,6 +1580,16 @@
                             {{ appointmentError }}
                         </div>
                         <form @submit.prevent="submitAppointment">
+                            <div class="form-group">
+                                <label for="animalSelect">Sélectionner un animal existant</label>
+                                <select id="animalSelect" v-model="appointmentForm.selectedAnimalId" @change="onAnimalSelected">
+                                    <option value="">Sélectionnez un animal</option>
+                                    <option v-for="animal in animals" :key="animal.id" :value="animal.id">
+                                        {{ animal.name }} ({{ animal.type }})
+                                    </option>
+                                </select>
+                            </div>
+
                             <div class="form-group">
                                 <label for="animalType">Type d'animal</label>
                                 <select id="animalType" v-model="appointmentForm.animalType" required>
@@ -2139,7 +2149,8 @@
                         date: '',
                         time: '',
                         notes: '',
-                        phone: ''
+                        phone: '',
+                        selectedAnimalId: ''
                     },
                     appointmentSuccess: false,
                     appointmentError: '',
@@ -2521,7 +2532,25 @@
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
 
-                        await db.collection('appointments').add(appointmentData);
+                        // Si un animal existant est sélectionné, ajouter son ID
+                        if (this.appointmentForm.selectedAnimalId) {
+                            appointmentData.animalId = this.appointmentForm.selectedAnimalId;
+                        }
+
+                        const appointmentRef = await db.collection('appointments').add(appointmentData);
+
+                        // Si un animal existant est sélectionné, mettre à jour son historique
+                        if (this.appointmentForm.selectedAnimalId) {
+                            const animalRef = db.collection('animals').doc(this.appointmentForm.selectedAnimalId);
+                            await animalRef.update({
+                                appointments: firebase.firestore.FieldValue.arrayUnion({
+                                    id: appointmentRef.id,
+                                    date: this.appointmentForm.date,
+                                    time: this.appointmentForm.time,
+                                    notes: this.appointmentForm.notes || ''
+                                })
+                            });
+                        }
 
                         // Réinitialiser le formulaire
                         this.appointmentForm = {
@@ -2530,7 +2559,8 @@
                             date: '',
                             time: '',
                             notes: '',
-                            phone: ''
+                            phone: '',
+                            selectedAnimalId: ''
                         };
                         this.appointmentSuccess = true;
                         this.appointmentError = '';
@@ -2540,6 +2570,15 @@
                     } catch (error) {
                         console.error('Error submitting appointment:', error);
                         this.appointmentError = 'Une erreur est survenue lors de la prise de rendez-vous. Veuillez réessayer.';
+                    }
+                },
+                onAnimalSelected() {
+                    if (this.appointmentForm.selectedAnimalId) {
+                        const selectedAnimal = this.animals.find(a => a.id === this.appointmentForm.selectedAnimalId);
+                        if (selectedAnimal) {
+                            this.appointmentForm.animalName = selectedAnimal.name;
+                            this.appointmentForm.animalType = selectedAnimal.type;
+                        }
                     }
                 },
                 navigateTo(page) {
@@ -2877,6 +2916,21 @@
                             .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
                             .where('time', '==', appointment.time)
                             .get();
+
+                        // Supprimer le rendez-vous de l'historique de l'animal s'il existe
+                        if (appointment.animalId) {
+                            const animalRef = db.collection('animals').doc(appointment.animalId);
+                            const animalDoc = await animalRef.get();
+                            
+                            if (animalDoc.exists) {
+                                const animalData = animalDoc.data();
+                                const updatedAppointments = animalData.appointments.filter(apt => apt.id !== appointment.id);
+                                
+                                await animalRef.update({
+                                    appointments: updatedAppointments
+                                });
+                            }
+                        }
 
                         // Supprimer le rendez-vous
                         await db.collection('appointments').doc(appointment.id).delete();
