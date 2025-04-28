@@ -16,6 +16,8 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
     <!-- Firebase Functions -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-functions-compat.js"></script>
+    <!-- Firebase Storage -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-storage-compat.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -684,31 +686,100 @@
         .animal-card {
             background: white;
             padding: 1.5rem;
-            border-radius: 10px;
-            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .animal-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+        }
+
+        .animal-photo {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .animal-card:hover .animal-photo {
+            transform: scale(1.02);
+        }
+
+        .animal-photo.placeholder {
+            background: linear-gradient(135deg, var(--light-bg) 0%, #f0f0f0 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            font-style: italic;
+            border: 2px dashed var(--secondary-color);
+        }
+
+        .animal-info {
+            flex: 1;
+            padding: 0 0.5rem;
         }
 
         .animal-info h3 {
             color: var(--primary-color);
             margin-bottom: 0.5rem;
+            font-size: 1.4rem;
+            font-weight: 600;
         }
 
         .animal-type {
             color: var(--secondary-color);
-            font-size: 0.9rem;
+            font-size: 1rem;
             margin-bottom: 0.5rem;
+            padding: 0.3rem 0.8rem;
+            background: rgba(139, 69, 19, 0.1);
+            border-radius: 20px;
+            display: inline-block;
         }
 
         .animal-birthdate {
             color: var(--text-color);
             font-size: 0.9rem;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .animal-birthdate::before {
+            content: "🎂";
+            font-size: 1.1rem;
         }
 
         .animal-actions {
-            margin-top: 1rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .animal-actions .btn {
+            width: 100%;
+            padding: 0.8rem 1.5rem;
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .animal-actions .btn:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
         }
 
         .add-animal {
@@ -737,90 +808,122 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.7);
             display: flex;
-            justify-content: center;
             align-items: center;
+            justify-content: center;
             z-index: 1000;
-            overflow-y: auto;
-            padding: 2rem;
+            backdrop-filter: blur(5px);
         }
 
         .modal-content {
             background: white;
             padding: 2rem;
-            border-radius: 10px;
-            width: 100%;
+            border-radius: 20px;
             max-width: 800px;
+            width: 90%;
             max-height: 90vh;
             overflow-y: auto;
-            box-shadow: 0 3px 15px rgba(0,0,0,0.2);
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        .modal-content h2 {
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            font-size: 2rem;
+            text-align: center;
         }
 
         .animal-details {
-            display: flex;
-            flex-direction: column;
-            gap: 1.5rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
         }
 
-        .animal-photo {
-            max-width: 300px;
-            max-height: 300px;
-            border-radius: 8px;
-            margin: 0 auto;
+        .animal-details img {
+            width: 100%;
+            height: 300px;
+            object-fit: cover;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+
+        .animal-details-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .animal-details-info p {
+            font-size: 1.1rem;
+            padding: 0.8rem 1.2rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+            margin: 0;
+        }
+
+        .animal-details-info strong {
+            color: var(--primary-color);
+            margin-right: 0.5rem;
         }
 
         .body-map-container {
-            margin: 1rem 0;
+            grid-column: 1 / -1;
+            margin-top: 2rem;
             padding: 1.5rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: var(--light-bg);
-        }
-
-        .body-map {
-            width: 100%;
-            height: 400px;
-            background-color: white;
-            border-radius: 4px;
-            margin: 1rem 0;
-            border: 1px solid #ddd;
+            background: var(--light-bg);
+            border-radius: 15px;
         }
 
         .appointments-history {
+            grid-column: 1 / -1;
             margin-top: 2rem;
-            padding: 1.5rem;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            background-color: var(--light-bg);
         }
 
-        .appointments-list {
-            max-height: 300px;
-            overflow-y: auto;
+        .appointment-item {
+            background: white;
             padding: 1rem;
-            background-color: white;
-            border-radius: 4px;
-            border: 1px solid #ddd;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+
+        .appointment-item:hover {
+            transform: translateX(5px);
+        }
+
+        .modal-actions {
+            margin-top: 2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+        }
+
+        .modal-actions .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .modal-actions .btn.secondary {
+            background: var(--light-bg);
+            color: var(--text-color);
+        }
+
+        .modal-actions .btn.secondary:hover {
+            background: #e0e0e0;
         }
 
         @media (max-width: 768px) {
-            .modal {
-                padding: 1rem;
+            .animal-details {
+                grid-template-columns: 1fr;
             }
-
-            .modal-content {
-                max-width: 100%;
-                max-height: 95vh;
-            }
-
+            
             .animal-photo {
-                max-width: 200px;
-                max-height: 200px;
-            }
-
-            .body-map {
-                height: 300px;
+                height: 200px;
             }
         }
 
@@ -1448,6 +1551,98 @@
                 max-height: 200px;
             }
         }
+
+        .photo-preview {
+            margin-top: 1rem;
+            text-align: center;
+        }
+
+        .photo-preview img {
+            max-width: 200px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .animal-photo.placeholder {
+            background-color: var(--light-bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-color);
+            font-style: italic;
+        }
+
+        .animal-profile {
+            grid-column: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .animal-basic-info {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+        }
+
+        .animal-notes {
+            grid-column: 2;
+            padding: 1rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+            height: fit-content;
+        }
+
+        @media (max-width: 768px) {
+            .animal-profile {
+                grid-column: 1 / -1;
+            }
+            
+            .animal-notes {
+                grid-column: 1 / -1;
+            }
+        }
+
+        .animal-details-row {
+            display: flex;
+            align-items: center;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+        .animal-profile-pic {
+            flex-shrink: 0;
+        }
+        .animal-basic-info-right {
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+            font-size: 1.1rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+            padding: 1.2rem 1.5rem;
+            font-weight: 500;
+            color: var(--primary-color);
+            min-width: 220px;
+        }
+        .animal-basic-info-right p {
+            margin: 0;
+            color: var(--primary-color);
+        }
+        @media (max-width: 768px) {
+            .animal-details-row {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+            .animal-basic-info-right {
+                width: 100%;
+                min-width: unset;
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -1680,6 +1875,10 @@
                         <div v-else class="animals-list">
                             <div v-for="animal in animals" :key="animal.id" class="animal-card">
                                 <div class="animal-info">
+                                    <img v-if="animal.photoBase64" :src="animal.photoBase64" :alt="animal.name" class="animal-photo">
+                                    <div v-else class="animal-photo placeholder">
+                                        <span>Pas de photo</span>
+                                    </div>
                                     <h3>{{ animal.name }}</h3>
                                     <p class="animal-type">{{ animal.type }}</p>
                                     <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
@@ -1720,6 +1919,14 @@
                                 <div class="form-group">
                                     <label for="newAnimalNotes">Notes</label>
                                     <textarea id="newAnimalNotes" v-model="newAnimal.notes" rows="3"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newAnimalPhoto">Photo de l'animal</label>
+                                    <input type="file" id="newAnimalPhoto" accept="image/*" @change="handlePhotoUpload">
+                                    <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB)</small>
+                                    <div v-if="newAnimal.photoPreview" class="photo-preview">
+                                        <img :src="newAnimal.photoPreview" alt="Aperçu de la photo" style="max-width: 200px; margin-top: 1rem;">
+                                    </div>
                                 </div>
                                 <div class="modal-actions">
                                     <button type="button" class="btn secondary" @click="showAddAnimalModal = false">Annuler</button>
@@ -2167,6 +2374,8 @@
                         birthdate: '',
                         notes: '',
                         photoUrl: '',
+                        photoPreview: '',
+                        photoBase64: null,
                         appointments: []
                     },
                     unsubscribeAnimals: null,
@@ -2439,7 +2648,7 @@
                                 }
 
                                 this.unsubscribeAppointments = db.collection('appointments')
-                                    .where('date', '==', this.appointmentForm.date)
+                            .where('date', '==', this.appointmentForm.date)
                                     .onSnapshot((appointmentsSnapshot) => {
                                         console.log('DEBUG - Raw appointments data:', appointmentsSnapshot.docs.map(doc => {
                                             const data = doc.data();
@@ -2646,80 +2855,53 @@
                         }
                     }
                 },
-                async addAnimal() {
-                    try {
-                        // Vérification de l'authentification
-                        if (!firebase.auth().currentUser) {
-                            throw new Error('Vous devez être connecté pour ajouter un animal');
-                        }
+                addAnimal() {
+                    if (!this.newAnimal.name || !this.newAnimal.type || !this.newAnimal.birthdate) {
+                        alert('Veuillez remplir tous les champs obligatoires');
+                        return;
+                    }
 
-                        const userId = firebase.auth().currentUser.uid;
-                        console.log('Adding animal for user:', userId);
+                    const currentUser = firebase.auth().currentUser;
+                    if (!currentUser) {
+                        alert('Vous devez être connecté pour ajouter un animal');
+                        return;
+                    }
 
-                        // Validation des données
-                        if (!this.newAnimal.name || !this.newAnimal.type || !this.newAnimal.birthdate) {
-                            throw new Error('Tous les champs obligatoires doivent être remplis');
-                        }
-
-                        // Préparation des données
                         const animalData = {
-                            name: this.newAnimal.name.trim(),
+                        name: this.newAnimal.name,
                             type: this.newAnimal.type,
                             birthdate: this.newAnimal.birthdate,
-                            notes: this.newAnimal.notes ? this.newAnimal.notes.trim() : '',
-                            photoUrl: this.newAnimal.photoUrl || '',
-                            appointments: [],
-                            userId: userId,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        };
+                        notes: this.newAnimal.notes || '',
+                        userId: currentUser.uid,
+                        createdAt: new Date(),
+                        updatedAt: new Date()
+                    };
 
-                        console.log('Saving to Firestore:', animalData);
+                    // Si une photo a été sélectionnée, l'ajouter aux données
+                    if (this.newAnimal.photoBase64) {
+                        animalData.photoBase64 = this.newAnimal.photoBase64;
+                    }
 
-                        // Vérification de la connexion à Firestore
-                        if (!db) {
-                            throw new Error('Erreur de connexion à la base de données');
-                        }
-
-                        // Ajout du document avec gestion des erreurs
-                        const docRef = await db.collection('animals').add(animalData);
-                        
-                        if (!docRef.id) {
-                            throw new Error('Erreur lors de la création du document');
-                        }
-
-                        console.log('Animal added with ID:', docRef.id);
-
-                        // Réinitialisation du formulaire
+                    // Enregistrer l'animal dans Firestore
+                    firebase.firestore().collection('animals').add(animalData)
+                        .then(() => {
+                            this.showAddAnimalModal = false;
                         this.newAnimal = {
                             name: '',
                             type: '',
                             birthdate: '',
-                            notes: '',
-                            photoUrl: '',
-                            appointments: []
-                        };
-
-                        // Fermeture de la modal
-                        this.showAddAnimalModal = false;
-
-                        // Message de succès
+                                notes: '',
+                                photoFile: null,
+                                photoPreview: null,
+                                photoBase64: null
+                            };
+                            this.loadAnimals();
                         alert('Animal ajouté avec succès !');
-
-                    } catch (error) {
-                        console.error('Error adding animal:', error);
-                        let errorMessage = 'Erreur lors de l\'ajout de l\'animal: ';
-                        
-                        if (error.code === 'permission-denied') {
-                            errorMessage += 'Vous n\'avez pas les permissions nécessaires';
-                        } else if (error.code === 'unavailable') {
-                            errorMessage += 'La base de données n\'est pas accessible. Vérifiez votre connexion internet';
-                        } else {
-                            errorMessage += error.message;
-                        }
-                        
-                        alert(errorMessage);
-                    }
+                        })
+                        .catch(error => {
+                            console.error('Erreur lors de l\'ajout de l\'animal:', error);
+                            alert('Une erreur est survenue lors de l\'ajout de l\'animal');
+                        });
                 },
                 formatDate(dateString) {
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -2736,33 +2918,39 @@
                     modal.innerHTML = `
                         <div class="modal-content">
                             <h2>Détails de ${animal.name}</h2>
-                            <div class="animal-details">
-                                ${animal.photoUrl ? `<img src="${animal.photoUrl}" alt="${animal.name}" class="animal-photo">` : ''}
-                                <p><strong>Type:</strong> ${animal.type}</p>
-                                <p><strong>Date de naissance:</strong> ${this.formatDate(animal.birthdate)}</p>
-                                ${animal.notes ? `<p><strong>Notes:</strong> ${animal.notes}</p>` : ''}
-                                <div class="body-map-container">
-                                    <h3>Plan du corps</h3>
-                                    <div class="body-map" id="bodyMap-${animal.id}">
-                                        <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
-                                    </div>
-                                    <button class="btn" onclick="app.addBodyAnnotation('${animal.id}')">
-                                        Ajouter une annotation
-                                    </button>
+                            <div class="animal-details-row">
+                                <div class="animal-profile-pic">
+                                    ${animal.photoBase64 ? `<img src="${animal.photoBase64}" alt="${animal.name}" class="animal-photo">` : ''}
                                 </div>
-                                <div class="appointments-history">
-                                    <h3>Historique des rendez-vous</h3>
-                                    <div class="appointments-list">
-                                        ${animal.appointments && animal.appointments.length > 0 
-                                            ? animal.appointments.map(apt => `
-                                                <div class="appointment-item">
-                                                    <p>${this.formatDateFr(apt.date)} - ${apt.time}</p>
-                                                    <p>${apt.notes || ''}</p>
-                                                </div>
-                                            `).join('')
-                                            : '<p>Aucun rendez-vous enregistré</p>'
-                                        }
-                                    </div>
+                                <div class="animal-basic-info-right">
+                                    <p><strong>Type :</strong> ${animal.type}</p>
+                                    <p><strong>Date de naissance :</strong> ${this.formatDate(animal.birthdate)}</p>
+                                </div>
+                            </div>
+                            <div class="animal-notes">
+                                ${animal.notes ? `<p><strong>Notes:</strong> ${animal.notes}</p>` : ''}
+                            </div>
+                            <div class="body-map-container">
+                                <h3>Plan du corps</h3>
+                                <div class="body-map" id="bodyMap-${animal.id}">
+                                    <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
+                                </div>
+                                <button class="btn" onclick="app.addBodyAnnotation('${animal.id}')">
+                                    Ajouter une annotation
+                                </button>
+                            </div>
+                            <div class="appointments-history">
+                                <h3>Historique des rendez-vous</h3>
+                                <div class="appointments-list">
+                                    ${animal.appointments && animal.appointments.length > 0 
+                                        ? animal.appointments.map(apt => `
+                                            <div class="appointment-item">
+                                                <p>${this.formatDateFr(apt.date)} - ${apt.time}</p>
+                                                <p>${apt.notes || ''}</p>
+                                            </div>
+                                        `).join('')
+                                        : '<p>Aucun rendez-vous enregistré</p>'
+                                    }
                                 </div>
                             </div>
                             <div class="modal-actions">
@@ -3190,6 +3378,32 @@
                     } catch (error) {
                         console.error('Error loading available dates:', error);
                         this.isLoadingDates = false;
+                    }
+                },
+                async handlePhotoUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        // Vérifier la taille du fichier (max 5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert('La photo ne doit pas dépasser 5MB');
+                            event.target.value = '';
+                            return;
+                        }
+
+                        // Vérifier le type de fichier
+                        if (!file.type.startsWith('image/')) {
+                            alert('Le fichier doit être une image');
+                            event.target.value = '';
+                            return;
+                        }
+
+                        // Créer un aperçu de l'image
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                            this.newAnimal.photoPreview = e.target.result;
+                            this.newAnimal.photoBase64 = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
                     }
                 },
             },

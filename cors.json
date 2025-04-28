@@ -1,0 +1,8 @@
+[
+  {
+    "origin": ["https://osteopatheanimalier-50728.web.app"],
+    "method": ["GET", "PUT", "POST", "DELETE", "HEAD"],
+    "maxAgeSeconds": 3600,
+    "responseHeader": ["Content-Type", "Access-Control-Allow-Origin"]
+  }
+] 
