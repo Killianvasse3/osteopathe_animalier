@@ -1643,6 +1643,133 @@
                 padding: 1rem;
             }
         }
+
+        /* Style pour le formulaire d'édition d'animal */
+        #edit-animal-form {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+        #edit-animal-form .animal-details-row {
+            gap: 2.5rem;
+        }
+        #edit-animal-form .animal-profile-pic {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        #edit-animal-form .animal-photo {
+            border-radius: 16px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.08);
+            margin-bottom: 1rem;
+            width: 180px;
+            height: 180px;
+            object-fit: cover;
+        }
+        #edit-animal-form input[type="file"] {
+            border: none;
+            background: none;
+            font-size: 1rem;
+            margin-top: 0.5rem;
+        }
+        #edit-animal-form .animal-basic-info-right {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+            min-width: 240px;
+        }
+        #edit-animal-form label {
+            font-weight: 600;
+            color: var(--primary-color);
+            margin-bottom: 0.3rem;
+            font-size: 1.08rem;
+        }
+        #edit-animal-form select,
+        #edit-animal-form input[type="date"] {
+            width: 100%;
+            padding: 0.7rem 1rem;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1.08rem;
+            background: white;
+            margin-bottom: 0.5rem;
+            transition: border-color 0.2s;
+        }
+        #edit-animal-form select:focus,
+        #edit-animal-form input[type="date"]:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+        #edit-animal-form .animal-notes {
+            background: var(--light-bg);
+            border-radius: 12px;
+            padding: 1.5rem 2rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.7rem;
+        }
+        #edit-animal-form textarea {
+            width: 100%;
+            min-height: 60px;
+            padding: 0.8rem 1rem;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1.08rem;
+            background: white;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        #edit-animal-form textarea:focus {
+            border-color: var(--secondary-color);
+            outline: none;
+        }
+        #edit-animal-form .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+        #edit-animal-form .btn.primary {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0.9rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: background 0.2s, transform 0.2s;
+        }
+        #edit-animal-form .btn.primary:hover {
+            background: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+        #edit-animal-form .btn.secondary {
+            background: #f3f4f6;
+            color: var(--primary-color);
+            border: none;
+            border-radius: 8px;
+            padding: 0.9rem 2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            transition: background 0.2s, color 0.2s;
+        }
+        #edit-animal-form .btn.secondary:hover {
+            background: #e0e7ef;
+            color: var(--secondary-color);
+        }
+        @media (max-width: 768px) {
+            #edit-animal-form .animal-details-row {
+                flex-direction: column;
+                gap: 1.2rem;
+            }
+            #edit-animal-form .animal-basic-info-right,
+            #edit-animal-form .animal-notes {
+                padding: 1rem;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2916,19 +3043,19 @@
                     const modal = document.createElement('div');
                     modal.className = 'modal';
                     modal.innerHTML = `
-                        <div class="modal-content">
+                        <div class="modal-content" id="animal-details-modal">
                             <h2>Détails de ${animal.name}</h2>
                             <div class="animal-details-row">
                                 <div class="animal-profile-pic">
-                                    ${animal.photoBase64 ? `<img src="${animal.photoBase64}" alt="${animal.name}" class="animal-photo">` : ''}
+                                    ${animal.photoBase64 ? `<img src="${animal.photoBase64}" alt="${animal.name}" class="animal-photo" id="animal-photo-preview">` : ''}
                                 </div>
                                 <div class="animal-basic-info-right">
-                                    <p><strong>Type :</strong> ${animal.type}</p>
-                                    <p><strong>Date de naissance :</strong> ${this.formatDate(animal.birthdate)}</p>
+                                    <p><strong>Type :</strong> <span id="animal-type">${animal.type}</span></p>
+                                    <p><strong>Date de naissance :</strong> <span id="animal-birthdate">${this.formatDate(animal.birthdate)}</span></p>
                                 </div>
                             </div>
                             <div class="animal-notes">
-                                ${animal.notes ? `<p><strong>Notes:</strong> ${animal.notes}</p>` : ''}
+                                ${animal.notes ? `<p><strong>Notes:</strong> <span id="animal-notes">${animal.notes}</span></p>` : ''}
                             </div>
                             <div class="body-map-container">
                                 <h3>Plan du corps</h3>
@@ -2954,11 +3081,102 @@
                                 </div>
                             </div>
                             <div class="modal-actions">
+                                <button class="btn" id="edit-animal-btn">Modifier</button>
                                 <button class="btn secondary" onclick="this.closest('.modal').remove()">Fermer</button>
                             </div>
                         </div>
                     `;
                     document.body.appendChild(modal);
+
+                    // Ajout de la logique d'édition
+                    document.getElementById('edit-animal-btn').onclick = () => {
+                        this.showEditAnimalForm(animal, modal);
+                    };
+                },
+                showEditAnimalForm(animal, modal) {
+                    // Remplacer le contenu de la modal par un formulaire d'édition
+                    modal.querySelector('.modal-content').innerHTML = `
+                        <h2>Modifier ${animal.name}</h2>
+                        <form id="edit-animal-form">
+                            <div class="animal-details-row">
+                                <div class="animal-profile-pic">
+                                    <img id="edit-animal-photo-preview" src="${animal.photoBase64 || ''}" alt="${animal.name}" class="animal-photo">
+                                    <input type="file" id="edit-animal-photo" accept="image/*" style="margin-top:1rem;">
+                                </div>
+                                <div class="animal-basic-info-right">
+                                    <label>Type :</label>
+                                    <select id="edit-animal-type" required>
+                                        <option value="chien" ${animal.type === 'chien' ? 'selected' : ''}>Chien</option>
+                                        <option value="chat" ${animal.type === 'chat' ? 'selected' : ''}>Chat</option>
+                                        <option value="cheval" ${animal.type === 'cheval' ? 'selected' : ''}>Cheval</option>
+                                        <option value="autre" ${animal.type === 'autre' ? 'selected' : ''}>Autre</option>
+                                    </select>
+                                    <label>Date de naissance :</label>
+                                    <input type="date" id="edit-animal-birthdate" value="${animal.birthdate}" required>
+                                </div>
+                            </div>
+                            <div class="animal-notes">
+                                <label>Notes :</label>
+                                <textarea id="edit-animal-notes" rows="3">${animal.notes || ''}</textarea>
+                            </div>
+                            <div class="modal-actions">
+                                <button type="submit" class="btn primary">Enregistrer</button>
+                                <button type="button" class="btn secondary" id="cancel-edit-animal">Annuler</button>
+                            </div>
+                        </form>
+                    `;
+
+                    // Prévisualisation de la photo
+                    const photoInput = modal.querySelector('#edit-animal-photo');
+                    const photoPreview = modal.querySelector('#edit-animal-photo-preview');
+                    let newPhotoBase64 = animal.photoBase64;
+                    photoInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                                alert('La photo ne doit pas dépasser 5MB');
+                                e.target.value = '';
+                                return;
+                            }
+                            if (!file.type.startsWith('image/')) {
+                                alert('Le fichier doit être une image');
+                                e.target.value = '';
+                                return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                                photoPreview.src = ev.target.result;
+                                newPhotoBase64 = ev.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+
+                    // Annuler l'édition
+                    modal.querySelector('#cancel-edit-animal').onclick = () => {
+                        this.viewAnimalDetails(animal);
+                        modal.remove();
+                    };
+
+                    // Soumission du formulaire
+                    modal.querySelector('#edit-animal-form').onsubmit = async (e) => {
+                        e.preventDefault();
+                        const updatedAnimal = {
+                            type: modal.querySelector('#edit-animal-type').value,
+                            birthdate: modal.querySelector('#edit-animal-birthdate').value,
+                            notes: modal.querySelector('#edit-animal-notes').value,
+                            photoBase64: newPhotoBase64,
+                            updatedAt: new Date()
+                        };
+                        try {
+                            await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
+                            alert('Modifications enregistrées !');
+                            modal.remove();
+                            this.loadAnimals();
+                        } catch (err) {
+                            alert('Erreur lors de la sauvegarde : ' + err.message);
+                        }
+                    };
                 },
                 async checkAdminStatus() {
                     if (!firebase.auth().currentUser) return;
