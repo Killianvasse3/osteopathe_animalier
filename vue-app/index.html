@@ -1512,11 +1512,21 @@
         }
 
         .body-map {
+            position: relative;
             width: 100%;
-            height: 300px;
-            background-color: #f5f5f5;
+            max-width: 400px;
+            aspect-ratio: 1.5/1;
+            margin: 0 auto;
+            background: white;
             border-radius: 4px;
-            margin: 1rem 0;
+            overflow: hidden;
+            border: 1px solid #ddd;
+        }
+        .body-map img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            display: block;
         }
 
         .appointments-history {
@@ -1777,6 +1787,28 @@
             #edit-animal-form .animal-notes {
                 padding: 1rem;
             }
+        }
+
+        .annotation-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 10;
+        }
+        .annotation-form {
+            display: flex;
+            align-items: center;
+            background: white;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            z-index: 100;
+        }
+        .annotation-point {
+            box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+            transition: transform 0.1s;
+        }
+        .annotation-point:hover {
+            transform: scale(1.2);
         }
     </style>
 </head>
@@ -3070,7 +3102,7 @@
                                 <div class="body-map" id="bodyMap-${animal.id}">
                                     <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
-                                <button class="btn" onclick="app.addBodyAnnotation('${animal.id}')">
+                                <button class="btn btn-add-annotation">
                                     Ajouter une annotation
                                 </button>
                             </div>
@@ -3100,6 +3132,16 @@
                     document.getElementById('edit-animal-btn').onclick = () => {
                         this.showEditAnimalForm(animal, modal);
                     };
+
+                    // Ajout de la logique pour l'annotation
+                    modal.querySelector('.btn-add-annotation').onclick = () => {
+                        this.addBodyAnnotation(animal.id);
+                    };
+
+                    // Afficher les annotations après que le DOM du body map est prêt
+                    setTimeout(() => {
+                        this.displayBodyAnnotations(animal.id);
+                    }, 0);
                 },
                 showEditAnimalForm(animal, modal) {
                     // Remplacer le contenu de la modal par un formulaire d'édition
@@ -3719,6 +3761,153 @@
                         };
                         reader.readAsDataURL(file);
                     }
+                },
+                // Ajout d'une méthode pour gérer les annotations sur le plan du corps
+                addBodyAnnotation(animalId) {
+                    // Trouver le SVG du body map
+                    const svgContainer = document.querySelector(`#bodyMap-${animalId}`);
+                    if (!svgContainer) return;
+                    const svg = svgContainer.querySelector('img');
+                    if (!svg) return;
+
+                    // Ajouter un overlay pour capter le clic
+                    let overlay = svgContainer.querySelector('.annotation-overlay');
+                    if (!overlay) {
+                        overlay = document.createElement('div');
+                        overlay.className = 'annotation-overlay';
+                        overlay.style.position = 'absolute';
+                        overlay.style.top = 0;
+                        overlay.style.left = 0;
+                        overlay.style.width = '100%';
+                        overlay.style.height = '100%';
+                        overlay.style.cursor = 'crosshair';
+                        overlay.style.zIndex = 10;
+                        svgContainer.style.position = 'relative';
+                        svgContainer.appendChild(overlay);
+                    }
+
+                    overlay.onclick = (e) => {
+                        // Calculer la position relative au SVG
+                        const rect = svg.getBoundingClientRect();
+                        const x = ((e.clientX - rect.left) / rect.width);
+                        const y = ((e.clientY - rect.top) / rect.height);
+
+                        // Créer un mini-formulaire à la position du clic
+                        const form = document.createElement('form');
+                        form.className = 'annotation-form';
+                        form.style.position = 'absolute';
+                        // Placement intelligent pour ne pas dépasser
+                        const popupWidth = 200, popupHeight = 40;
+                        let left = x * svgContainer.offsetWidth;
+                        let top = y * svgContainer.offsetHeight;
+                        let offsetX = -popupWidth / 2;
+                        let offsetY = -popupHeight - 10;
+                        if (top + offsetY < 4) offsetY = 10;
+                        if (left + offsetX < 4) offsetX = 4 - left;
+                        if (left + offsetX + popupWidth > svgContainer.offsetWidth - 4) offsetX = svgContainer.offsetWidth - popupWidth - left - 4;
+                        form.style.left = `${left + offsetX}px`;
+                        form.style.top = `${top + offsetY}px`;
+                        form.style.transform = 'none';
+                        form.style.minWidth = popupWidth + 'px';
+                        form.innerHTML = `
+                            <input type="text" placeholder="Texte de l'annotation" required style="padding:0.3rem 0.7rem; border-radius:6px; border:1px solid #ccc; font-size:1rem; width: 120px;">
+                            <button type="submit" style="margin-left:0.5rem; background:var(--primary-color); color:white; border:none; border-radius:6px; padding:0.3rem 0.8rem; font-weight:600;">OK</button>
+                        `;
+                        overlay.appendChild(form);
+                        form.querySelector('input').focus();
+
+                        form.onsubmit = async (ev) => {
+                            ev.preventDefault();
+                            const text = form.querySelector('input').value;
+                            // Charger les annotations existantes
+                            const animalRef = firebase.firestore().collection('animals').doc(animalId);
+                            const animalDoc = await animalRef.get();
+                            let annotations = animalDoc.data().annotations || [];
+                            annotations.push({ x, y, text });
+                            await animalRef.update({ annotations });
+                            form.remove();
+                            overlay.remove();
+                            // Rafraîchir l'affichage des annotations
+                            this.displayBodyAnnotations(animalId);
+                        };
+
+                        // Un seul formulaire à la fois
+                        overlay.onclick = null;
+                    };
+                },
+
+                displayBodyAnnotations(animalId) {
+                    const svgContainer = document.querySelector(`#bodyMap-${animalId}`);
+                    if (!svgContainer) return;
+                    svgContainer.style.position = 'relative'; // S'assurer que le conteneur est bien positionné
+                    const img = svgContainer.querySelector('img');
+                    if (!img) return;
+                    // Si l'image n'est pas encore chargée, attendre l'événement onload
+                    if (!img.complete) {
+                        img.onload = () => {
+                            setTimeout(() => {
+                                this.displayBodyAnnotations(animalId);
+                            }, 50); // petit délai pour laisser le layout se stabiliser
+                        };
+                        return;
+                    }
+                    // Supprimer les anciens points
+                    svgContainer.querySelectorAll('.annotation-point').forEach(el => el.remove());
+                    // Charger les annotations
+                    firebase.firestore().collection('animals').doc(animalId).get().then(doc => {
+                        const annotations = doc.data().annotations || [];
+                        annotations.forEach(ann => {
+                            const point = document.createElement('div');
+                            point.className = 'annotation-point';
+                            point.style.position = 'absolute';
+                            point.style.left = `${ann.x * 100}%`;
+                            point.style.top = `${ann.y * 100}%`;
+                            point.style.transform = 'translate(-50%, -50%)';
+                            point.style.width = '18px';
+                            point.style.height = '18px';
+                            point.style.background = 'var(--accent-color)';
+                            point.style.border = '2px solid white';
+                            point.style.borderRadius = '50%';
+                            point.style.zIndex = 20;
+                            point.style.cursor = 'pointer';
+                            point.title = ann.text;
+                            // Info-bulle custom
+                            point.onmouseenter = () => {
+                                const tooltip = document.createElement('div');
+                                tooltip.className = 'annotation-tooltip';
+                                tooltip.innerText = ann.text;
+                                tooltip.style.position = 'absolute';
+                                const tooltipWidth = 160, tooltipHeight = 32;
+                                let left = ann.x * svgContainer.offsetWidth;
+                                let top = ann.y * svgContainer.offsetHeight;
+                                let offsetX = -tooltipWidth / 2;
+                                let offsetY = ann.y < 0.15 ? 24 : -tooltipHeight - 8;
+                                // Correction pour la gauche
+                                if (left + offsetX < 4) offsetX = 4 - left;
+                                // Correction pour le haut
+                                if (top + offsetY < 4) offsetY = 24;
+                                tooltip.style.left = `${left + offsetX}px`;
+                                tooltip.style.top = `${top + offsetY}px`;
+                                tooltip.style.transform = 'none';
+                                tooltip.style.background = 'rgba(0,0,0,0.8)';
+                                tooltip.style.color = 'white';
+                                tooltip.style.padding = '0.3rem 0.7rem';
+                                tooltip.style.borderRadius = '6px';
+                                tooltip.style.fontSize = '0.95rem';
+                                tooltip.style.whiteSpace = 'nowrap';
+                                tooltip.style.zIndex = 100;
+                                svgContainer.appendChild(tooltip);
+                                point._currentTooltip = tooltip;
+                            };
+                            point.onmouseleave = () => {
+                                if (point._currentTooltip) {
+                                    point._currentTooltip.remove();
+                                    point._currentTooltip = null;
+                                }
+                            };
+                            svgContainer.appendChild(point);
+                        });
+                    });
                 },
             },
             mounted() {
