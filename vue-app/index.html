@@ -1644,21 +1644,21 @@
             }
         }
 
-        /* Style pour le formulaire d'édition d'animal */
-        #edit-animal-form {
+        /* Style pour le formulaire d'édition d'animal (utilisateur ET admin) */
+        #edit-animal-form, #admin-edit-animal-form {
             display: flex;
             flex-direction: column;
             gap: 2rem;
         }
-        #edit-animal-form .animal-details-row {
+        #edit-animal-form .animal-details-row, #admin-edit-animal-form .animal-details-row {
             gap: 2.5rem;
         }
-        #edit-animal-form .animal-profile-pic {
+        #edit-animal-form .animal-profile-pic, #admin-edit-animal-form .animal-profile-pic {
             display: flex;
             flex-direction: column;
             align-items: center;
         }
-        #edit-animal-form .animal-photo {
+        #edit-animal-form .animal-photo, #admin-edit-animal-form .animal-photo {
             border-radius: 16px;
             box-shadow: 0 4px 16px rgba(0,0,0,0.08);
             margin-bottom: 1rem;
@@ -1666,13 +1666,13 @@
             height: 180px;
             object-fit: cover;
         }
-        #edit-animal-form input[type="file"] {
+        #edit-animal-form input[type="file"], #admin-edit-animal-form input[type="file"] {
             border: none;
             background: none;
             font-size: 1rem;
             margin-top: 0.5rem;
         }
-        #edit-animal-form .animal-basic-info-right {
+        #edit-animal-form .animal-basic-info-right, #admin-edit-animal-form .animal-basic-info-right {
             background: var(--light-bg);
             border-radius: 12px;
             padding: 1.5rem 2rem;
@@ -1681,14 +1681,18 @@
             gap: 1.2rem;
             min-width: 240px;
         }
-        #edit-animal-form label {
+        #edit-animal-form label, #admin-edit-animal-form label {
             font-weight: 600;
             color: var(--primary-color);
             margin-bottom: 0.3rem;
             font-size: 1.08rem;
         }
         #edit-animal-form select,
-        #edit-animal-form input[type="date"] {
+        #edit-animal-form input[type="date"],
+        #edit-animal-form input[type="text"],
+        #admin-edit-animal-form select,
+        #admin-edit-animal-form input[type="date"],
+        #admin-edit-animal-form input[type="text"] {
             width: 100%;
             padding: 0.7rem 1rem;
             border: 1.5px solid #d1d5db;
@@ -1699,11 +1703,15 @@
             transition: border-color 0.2s;
         }
         #edit-animal-form select:focus,
-        #edit-animal-form input[type="date"]:focus {
+        #edit-animal-form input[type="date"]:focus,
+        #edit-animal-form input[type="text"]:focus,
+        #admin-edit-animal-form select:focus,
+        #admin-edit-animal-form input[type="date"]:focus,
+        #admin-edit-animal-form input[type="text"]:focus {
             border-color: var(--secondary-color);
             outline: none;
         }
-        #edit-animal-form .animal-notes {
+        #edit-animal-form .animal-notes, #admin-edit-animal-form .animal-notes {
             background: var(--light-bg);
             border-radius: 12px;
             padding: 1.5rem 2rem;
@@ -1711,7 +1719,7 @@
             flex-direction: column;
             gap: 0.7rem;
         }
-        #edit-animal-form textarea {
+        #edit-animal-form textarea, #admin-edit-animal-form textarea {
             width: 100%;
             min-height: 60px;
             padding: 0.8rem 1rem;
@@ -1722,17 +1730,17 @@
             resize: vertical;
             transition: border-color 0.2s;
         }
-        #edit-animal-form textarea:focus {
+        #edit-animal-form textarea:focus, #admin-edit-animal-form textarea:focus {
             border-color: var(--secondary-color);
             outline: none;
         }
-        #edit-animal-form .modal-actions {
+        #edit-animal-form .modal-actions, #admin-edit-animal-form .modal-actions {
             display: flex;
             justify-content: flex-end;
             gap: 1rem;
             margin-top: 1.5rem;
         }
-        #edit-animal-form .btn.primary {
+        #edit-animal-form .btn.primary, #admin-edit-animal-form .btn.primary {
             background: var(--accent-color);
             color: white;
             border: none;
@@ -1742,11 +1750,11 @@
             font-weight: 600;
             transition: background 0.2s, transform 0.2s;
         }
-        #edit-animal-form .btn.primary:hover {
+        #edit-animal-form .btn.primary:hover, #admin-edit-animal-form .btn.primary:hover {
             background: var(--secondary-color);
             transform: translateY(-2px);
         }
-        #edit-animal-form .btn.secondary {
+        #edit-animal-form .btn.secondary, #admin-edit-animal-form .btn.secondary {
             background: #f3f4f6;
             color: var(--primary-color);
             border: none;
@@ -1756,12 +1764,12 @@
             font-weight: 600;
             transition: background 0.2s, color 0.2s;
         }
-        #edit-animal-form .btn.secondary:hover {
+        #edit-animal-form .btn.secondary:hover, #admin-edit-animal-form .btn.secondary:hover {
             background: #e0e7ef;
             color: var(--secondary-color);
         }
         @media (max-width: 768px) {
-            #edit-animal-form .animal-details-row {
+            #edit-animal-form .animal-details-row, #admin-edit-animal-form .animal-details-row {
                 flex-direction: column;
                 gap: 1.2rem;
             }
@@ -3227,8 +3235,96 @@
                     return this.userEmails[userId] || 'Email non trouvé';
                 },
                 async editAnimal(animal) {
-                    this.editingAnimal = { ...animal };
-                    this.showEditAnimalModal = true;
+                    // Ouvre une modale d'édition moderne pour l'admin
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.innerHTML = `
+                        <div class="modal-content">
+                            <h2>Modifier ${animal.name}</h2>
+                            <form id="admin-edit-animal-form">
+                                <div class="animal-details-row">
+                                    <div class="animal-profile-pic">
+                                        <img id="admin-edit-animal-photo-preview" src="${animal.photoBase64 || ''}" alt="${animal.name}" class="animal-photo">
+                                        <input type="file" id="admin-edit-animal-photo" accept="image/*" style="margin-top:1rem;">
+                                    </div>
+                                    <div class="animal-basic-info-right">
+                                        <label>Nom :</label>
+                                        <input type="text" id="admin-edit-animal-name" value="${animal.name}" required>
+                                        <label>Type :</label>
+                                        <select id="admin-edit-animal-type" required>
+                                            <option value="chien" ${animal.type === 'chien' ? 'selected' : ''}>Chien</option>
+                                            <option value="chat" ${animal.type === 'chat' ? 'selected' : ''}>Chat</option>
+                                            <option value="cheval" ${animal.type === 'cheval' ? 'selected' : ''}>Cheval</option>
+                                            <option value="autre" ${animal.type === 'autre' ? 'selected' : ''}>Autre</option>
+                                        </select>
+                                        <label>Date de naissance :</label>
+                                        <input type="date" id="admin-edit-animal-birthdate" value="${animal.birthdate}" required>
+                                    </div>
+                                </div>
+                                <div class="animal-notes">
+                                    <label>Notes :</label>
+                                    <textarea id="admin-edit-animal-notes" rows="3">${animal.notes || ''}</textarea>
+                                </div>
+                                <div class="modal-actions">
+                                    <button type="submit" class="btn primary">Enregistrer</button>
+                                    <button type="button" class="btn secondary" id="admin-cancel-edit-animal">Annuler</button>
+                                </div>
+                            </form>
+                        </div>
+                    `;
+                    document.body.appendChild(modal);
+
+                    // Prévisualisation de la photo
+                    const photoInput = modal.querySelector('#admin-edit-animal-photo');
+                    const photoPreview = modal.querySelector('#admin-edit-animal-photo-preview');
+                    let newPhotoBase64 = animal.photoBase64;
+                    photoInput.addEventListener('change', (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            if (file.size > 5 * 1024 * 1024) {
+                                alert('La photo ne doit pas dépasser 5MB');
+                                e.target.value = '';
+                                return;
+                            }
+                            if (!file.type.startsWith('image/')) {
+                                alert('Le fichier doit être une image');
+                                e.target.value = '';
+                                return;
+                            }
+                            const reader = new FileReader();
+                            reader.onload = (ev) => {
+                                photoPreview.src = ev.target.result;
+                                newPhotoBase64 = ev.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        }
+                    });
+
+                    // Annuler l'édition
+                    modal.querySelector('#admin-cancel-edit-animal').onclick = () => {
+                        modal.remove();
+                    };
+
+                    // Soumission du formulaire
+                    modal.querySelector('#admin-edit-animal-form').onsubmit = async (e) => {
+                        e.preventDefault();
+                        const updatedAnimal = {
+                            name: modal.querySelector('#admin-edit-animal-name').value,
+                            type: modal.querySelector('#admin-edit-animal-type').value,
+                            birthdate: modal.querySelector('#admin-edit-animal-birthdate').value,
+                            notes: modal.querySelector('#admin-edit-animal-notes').value,
+                            photoBase64: newPhotoBase64,
+                            updatedAt: new Date()
+                        };
+                        try {
+                            await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
+                            alert('Modifications enregistrées !');
+                            modal.remove();
+                            this.loadAllData();
+                        } catch (err) {
+                            alert('Erreur lors de la sauvegarde : ' + err.message);
+                        }
+                    };
                 },
                 async updateAnimal() {
                     try {
