@@ -2016,6 +2016,36 @@
             justify-content: center;
             height: 36px;
         }
+
+        .notification-badge {
+            background-color: var(--accent-color);
+            color: white;
+            border-radius: 50%;
+            padding: 0.2rem 0.5rem;
+            font-size: 0.8rem;
+            margin-left: 0.5rem;
+        }
+
+        .status-badge {
+            padding: 0.3rem 0.8rem;
+            border-radius: 15px;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .status-badge.unread {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .status-badge.read {
+            background-color: var(--green-accent);
+            color: white;
+        }
+
+        tr.unread {
+            background-color: rgba(255, 91, 91, 0.1);
+        }
     </style>
 </head>
 <body>
@@ -2340,6 +2370,12 @@
                             @click="adminActiveTab = 'clients'">
                             Clients
                         </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'messages' }]"
+                            @click="adminActiveTab = 'messages'">
+                            Messages
+                            <span v-if="unreadMessagesCount > 0" class="notification-badge">{{ unreadMessagesCount }}</span>
+                        </button>
                     </div>
 
                     <!-- Onglet Dossiers Animaux -->
@@ -2540,6 +2576,55 @@
                                 </tr>
                                 <tr v-if="filteredClients.length === 0">
                                     <td colspan="6" class="text-center">Aucun client trouvé</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Onglet Messages -->
+                    <div v-if="adminActiveTab === 'messages'" class="admin-content">
+                        <div class="search-bar">
+                            <input 
+                                type="text" 
+                                v-model="adminSearch" 
+                                placeholder="Rechercher un message...">
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Nom</th>
+                                    <th>Email</th>
+                                    <th>Message</th>
+                                    <th>Statut</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="message in filteredMessages" :key="message.id" :class="{ 'unread': message.status === 'unread' }">
+                                    <td>{{ formatDate(message.createdAt) }}</td>
+                                    <td>{{ message.name }}</td>
+                                    <td>{{ message.email }}</td>
+                                    <td>{{ message.message }}</td>
+                                    <td>
+                                        <span :class="['status-badge', message.status]">
+                                            {{ message.status === 'unread' ? 'Non lu' : 'Lu' }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-view" @click="toggleMessageStatus(message)">
+                                                {{ message.status === 'unread' ? 'Marquer comme lu' : 'Marquer comme non lu' }}
+                                            </button>
+                                            <button class="btn-delete" @click="deleteMessage(message)">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-if="filteredMessages.length === 0">
+                                    <td colspan="6" class="text-center">Aucun message trouvé</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -2899,10 +2984,12 @@
                     lastName: '',
                     editingClient: null,
                     showEditClientModal: false,
-                    allClients: [],
                     showClientAnimalsModal: false,
                     selectedClient: null,
                     clientAnimals: [],
+                    messages: [],
+                    unreadMessagesCount: 0,
+                    unsubscribeMessages: null,
                 }
             },
             computed: {
@@ -2996,6 +3083,15 @@
                 },
                 getClientAnimalsCount(clientId) {
                     return this.allAnimals.filter(animal => animal.userId === clientId).length;
+                },
+                filteredMessages() {
+                    if (!this.adminSearch) return this.messages;
+                    const search = this.adminSearch.toLowerCase();
+                    return this.messages.filter(message => 
+                        message.name.toLowerCase().includes(search) ||
+                        message.email.toLowerCase().includes(search) ||
+                        message.message.toLowerCase().includes(search)
+                    );
                 },
             },
             watch: {
@@ -3111,13 +3207,43 @@
                     }
                 },
                 sendMessage() {
-                    // Ici, vous pouvez ajouter la logique pour envoyer le message
-                    alert('Message envoyé ! Nous vous contacterons bientôt.');
-                    this.contactForm = {
-                        name: '',
-                        email: '',
-                        message: ''
+                    // Vérification des champs requis
+                    if (!this.contactForm.name || !this.contactForm.email || !this.contactForm.message) {
+                        alert('Veuillez remplir tous les champs du formulaire.');
+                        return;
+                    }
+
+                    // Vérification basique du format email
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(this.contactForm.email)) {
+                        alert('Veuillez entrer une adresse email valide.');
+                        return;
+                    }
+
+                    const messageData = {
+                        name: this.contactForm.name,
+                        email: this.contactForm.email,
+                        message: this.contactForm.message,
+                        status: 'unread',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null
                     };
+
+                    // Sauvegarder le message dans Firebase
+                    db.collection('contact_messages')
+                        .add(messageData)
+                        .then(() => {
+                            alert('Message envoyé ! Nous vous contacterons bientôt.');
+                            this.contactForm = {
+                                name: '',
+                                email: '',
+                                message: ''
+                            };
+                        })
+                        .catch(error => {
+                            console.error('Error sending message:', error);
+                            alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
+                        });
                 },
                 async loadUnavailableSlots() {
                     if (!this.appointmentForm.date) {
@@ -3652,6 +3778,8 @@
                                 }
                             }
                         }
+
+                        await this.loadMessages();
                     } catch (error) {
                         console.error('Error loading admin data:', error);
                     }
@@ -4356,6 +4484,42 @@
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === client.id);
                     this.showClientAnimalsModal = true;
                 },
+                async loadMessages() {
+                    if (!this.isAdmin) return;
+                    
+                    if (this.unsubscribeMessages) {
+                        this.unsubscribeMessages();
+                    }
+
+                    this.unsubscribeMessages = db.collection('contact_messages')
+                        .orderBy('createdAt', 'desc')
+                        .onSnapshot(snapshot => {
+                            this.messages = snapshot.docs.map(doc => ({
+                                id: doc.id,
+                                ...doc.data()
+                            }));
+                            this.unreadMessagesCount = this.messages.filter(m => m.status === 'unread').length;
+                        });
+                },
+                async toggleMessageStatus(message) {
+                    try {
+                        await db.collection('contact_messages').doc(message.id).update({
+                            status: message.status === 'unread' ? 'read' : 'unread'
+                        });
+                    } catch (error) {
+                        console.error('Error updating message status:', error);
+                        alert('Erreur lors de la mise à jour du statut du message');
+                    }
+                },
+                async deleteMessage(message) {
+                    if (!confirm('Êtes-vous sûr de vouloir supprimer ce message ?')) return;
+                    try {
+                        await db.collection('contact_messages').doc(message.id).delete();
+                    } catch (error) {
+                        console.error('Error deleting message:', error);
+                        alert('Erreur lors de la suppression du message');
+                    }
+                },
             },
             mounted() {
                 // Gestion de la navigation par hash
@@ -4449,6 +4613,9 @@
                 }
                 if (this.unsubscribeAvailableDates) {
                     this.unsubscribeAvailableDates();
+                }
+                if (this.unsubscribeMessages) {
+                    this.unsubscribeMessages();
                 }
             }
         }).mount('#app')
