@@ -2559,7 +2559,7 @@
                                     <td>{{ client.firstName || 'N/A' }}</td>
                                     <td>{{ client.email }}</td>
                                     <td>{{ formatDate(client.createdAt) }}</td>
-                                    <td>{{ allAnimals.filter(animal => animal.userId === client.id).length }}</td>
+                                    <td>{{ client.animalsCount }}</td>
                                     <td>
                                         <div class="action-buttons">
                                             <button class="btn-view" @click="viewClientAnimals(client)">
@@ -2990,6 +2990,8 @@
                     messages: [],
                     unreadMessagesCount: 0,
                     unsubscribeMessages: null,
+                    allClients: [], // Ajouter allClients dans data
+                    clientsData: [], // Nouvelle propriété pour stocker les données brutes des clients
                 }
             },
             computed: {
@@ -3063,27 +3065,6 @@
                     if (!this.appointmentForm.date) return [];
                     return this.availableSlots;
                 },
-                filteredClients() {
-                    if (!this.adminSearch) return this.allClients;
-                    const search = this.adminSearch.toLowerCase();
-                    return this.allClients.filter(client => 
-                        client.lastName.toLowerCase().includes(search) ||
-                        client.firstName.toLowerCase().includes(search) ||
-                        client.email.toLowerCase().includes(search)
-                    );
-                },
-                allClients() {
-                    return this.allAppointments.map(appointment => ({
-                        id: appointment.userId,
-                        firstName: this.getUserEmail(appointment.userId).split(' ')[0],
-                        lastName: this.getUserEmail(appointment.userId).split(' ')[1],
-                        email: this.getUserEmail(appointment.userId),
-                        createdAt: appointment.createdAt.toDate()
-                    }));
-                },
-                getClientAnimalsCount(clientId) {
-                    return this.allAnimals.filter(animal => animal.userId === clientId).length;
-                },
                 filteredMessages() {
                     if (!this.adminSearch) return this.messages;
                     const search = this.adminSearch.toLowerCase();
@@ -3092,6 +3073,20 @@
                         message.email.toLowerCase().includes(search) ||
                         message.message.toLowerCase().includes(search)
                     );
+                },
+                filteredClients() {
+                    if (!this.adminSearch) return this.allClients;
+                    const search = this.adminSearch.toLowerCase();
+                    return this.allClients.filter(client => 
+                        (client.lastName || '').toLowerCase().includes(search) ||
+                        (client.firstName || '').toLowerCase().includes(search) ||
+                        client.email.toLowerCase().includes(search)
+                    );
+                },
+                getClientAnimalsCount() {
+                    return (clientId) => {
+                        return this.allAnimals.filter(animal => animal.userId === clientId).length;
+                    };
                 },
             },
             watch: {
@@ -3761,7 +3756,8 @@
                                 firstName: doc.data().firstName || '',
                                 lastName: doc.data().lastName || '',
                                 email: doc.data().email,
-                                createdAt: doc.data().createdAt || firebase.firestore.Timestamp.now()
+                                createdAt: doc.data().createdAt || firebase.firestore.Timestamp.now(),
+                                animalsCount: this.allAnimals.filter(animal => animal.userId === doc.id).length
                             }));
 
                         // Charger les emails des utilisateurs pour la rétrocompatibilité
