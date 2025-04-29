@@ -3398,6 +3398,17 @@
                                     <label>Notes :</label>
                                     <textarea id="admin-edit-animal-notes" rows="3">${animal.notes || ''}</textarea>
                                 </div>
+                                <div class="body-map-container">
+                                    <h3>Plan du corps</h3>
+                                    <div class="body-map" id="bodyMap-${animal.id}">
+                                        <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
+                                    </div>
+                                    <div class="body-map-annotations-list" id="annotations-list-${animal.id}">
+                                      <h4>Annotations du plan du corps :</h4>
+                                      <ul></ul>
+                                    </div>
+                                    <button class="btn btn-add-annotation" type="button">Ajouter une annotation</button>
+                                </div>
                                 <div class="modal-actions">
                                     <button type="submit" class="btn primary">Enregistrer</button>
                                     <button type="button" class="btn secondary" id="admin-cancel-edit-animal">Annuler</button>
@@ -3458,6 +3469,16 @@
                             alert('Erreur lors de la sauvegarde : ' + err.message);
                         }
                     };
+
+                    // Ajout de la logique pour l'annotation
+                    modal.querySelector('.btn-add-annotation').onclick = () => {
+                        this.addBodyAnnotation(animal.id);
+                    };
+
+                    // Afficher les annotations après que le DOM du body map est prêt
+                    setTimeout(() => {
+                        this.displayBodyAnnotations(animal.id);
+                    }, 0);
                 },
                 async updateAnimal() {
                     try {
