@@ -2216,6 +2216,11 @@
                             @click="adminActiveTab = 'slots'">
                             Créneaux
                         </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'clients' }]"
+                            @click="adminActiveTab = 'clients'">
+                            Clients
+                        </button>
                     </div>
 
                     <!-- Onglet Dossiers Animaux -->
@@ -2372,6 +2377,51 @@
                             </div>
                         </div>
                     </div>
+
+                    <!-- Onglet Clients -->
+                    <div v-if="adminActiveTab === 'clients'" class="admin-content">
+                        <div class="search-bar">
+                            <input 
+                                type="text" 
+                                v-model="adminSearch" 
+                                placeholder="Rechercher un client...">
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Nom</th>
+                                    <th>Prénom</th>
+                                    <th>Email</th>
+                                    <th>Date d'inscription</th>
+                                    <th>Nombre d'animaux</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr v-for="client in filteredClients" :key="client.id">
+                                    <td>{{ client.lastName || 'N/A' }}</td>
+                                    <td>{{ client.firstName || 'N/A' }}</td>
+                                    <td>{{ client.email }}</td>
+                                    <td>{{ formatDate(client.createdAt) }}</td>
+                                    <td>{{ allAnimals.filter(animal => animal.userId === client.id).length }}</td>
+                                    <td>
+                                        <div class="action-buttons">
+                                            <button class="btn-edit" @click="editClient(client)">
+                                                Modifier
+                                            </button>
+                                            <button class="btn-delete" @click="deleteClient(client)">
+                                                Supprimer
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr v-if="filteredClients.length === 0">
+                                    <td colspan="6" class="text-center">Aucun client trouvé</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </section>
             </template>
         </div>
@@ -2406,6 +2456,10 @@
         <div v-if="showAuth" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;">
             <div class="auth-form">
                 <h3>{{ isLogin ? 'Connexion' : 'Inscription' }}</h3>
+                <template v-if="!isLogin">
+                    <input type="text" v-model="firstName" placeholder="Prénom" required>
+                    <input type="text" v-model="lastName" placeholder="Nom" required>
+                </template>
                 <input type="email" v-model="email" placeholder="Email">
                 <input type="password" v-model="password" placeholder="Mot de passe">
                 <button class="primary" @click="isLogin ? login() : register()">{{ isLogin ? 'Se connecter' : 'S\'inscrire' }}</button>
@@ -2539,6 +2593,31 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal d'édition pour les clients -->
+        <div v-if="showEditClientModal" class="edit-modal">
+            <div class="edit-modal-content">
+                <h2>Modifier le client</h2>
+                <form @submit.prevent="updateClient">
+                    <div class="edit-form-group">
+                        <label for="editClientFirstName">Prénom</label>
+                        <input type="text" id="editClientFirstName" v-model="editingClient.firstName" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientLastName">Nom</label>
+                        <input type="text" id="editClientLastName" v-model="editingClient.lastName" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientEmail">Email</label>
+                        <input type="email" id="editClientEmail" v-model="editingClient.email" required>
+                    </div>
+                    <div class="edit-modal-actions">
+                        <button type="button" class="btn secondary" @click="showEditClientModal = false">Annuler</button>
+                        <button type="submit" class="btn primary">Enregistrer</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -2662,6 +2741,11 @@
                     unsubscribeAppointments: null,
                     unsubscribeAdminSlots: null,
                     unsubscribeAvailableDates: null,
+                    firstName: '',
+                    lastName: '',
+                    editingClient: null,
+                    showEditClientModal: false,
+                    allClients: [],
                 }
             },
             computed: {
@@ -2734,7 +2818,28 @@
                 displayedTimeSlots() {
                     if (!this.appointmentForm.date) return [];
                     return this.availableSlots;
-                }
+                },
+                filteredClients() {
+                    if (!this.adminSearch) return this.allClients;
+                    const search = this.adminSearch.toLowerCase();
+                    return this.allClients.filter(client => 
+                        client.lastName.toLowerCase().includes(search) ||
+                        client.firstName.toLowerCase().includes(search) ||
+                        client.email.toLowerCase().includes(search)
+                    );
+                },
+                allClients() {
+                    return this.allAppointments.map(appointment => ({
+                        id: appointment.userId,
+                        firstName: this.getUserEmail(appointment.userId).split(' ')[0],
+                        lastName: this.getUserEmail(appointment.userId).split(' ')[1],
+                        email: this.getUserEmail(appointment.userId),
+                        createdAt: appointment.createdAt.toDate()
+                    }));
+                },
+                getClientAnimalsCount(clientId) {
+                    return this.allAnimals.filter(animal => animal.userId === clientId).length;
+                },
             },
             watch: {
                 'appointmentForm.date': {
@@ -2784,6 +2889,10 @@
                 },
                 async register() {
                     try {
+                        if (!this.firstName || !this.lastName) {
+                            this.error = 'Le nom et le prénom sont requis';
+                            return;
+                        }
                         const userCredential = await firebase.auth().createUserWithEmailAndPassword(this.email, this.password);
                         
                         // Liste des IDs administrateurs
@@ -2792,6 +2901,8 @@
                         // Créer un document utilisateur dans Firestore
                         await db.collection('users').doc(userCredential.user.uid).set({
                             email: userCredential.user.email,
+                            firstName: this.firstName,
+                            lastName: this.lastName,
                             role: adminIds.includes(userCredential.user.uid) ? 'admin' : 'user',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
@@ -2800,6 +2911,12 @@
                         this.userEmail = userCredential.user.email;
                         this.error = '';
                         this.showAuth = false;
+
+                        // Réinitialiser les champs
+                        this.firstName = '';
+                        this.lastName = '';
+                        this.email = '';
+                        this.password = '';
 
                         // Vérifier si l'utilisateur est admin
                         await this.checkAdminStatus();
@@ -3157,9 +3274,13 @@
                             alert('Une erreur est survenue lors de l\'ajout de l\'animal');
                         });
                 },
-                formatDate(dateString) {
+                formatDate(date) {
+                    if (!date) return 'N/A';
+                    if (date instanceof firebase.firestore.Timestamp) {
+                        date = date.toDate();
+                    }
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
-                    return new Date(dateString).toLocaleDateString('fr-FR', options);
+                    return new Date(date).toLocaleDateString('fr-FR', options);
                 },
                 formatDateFr(dateString) {
                     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -3348,16 +3469,30 @@
                             ...doc.data()
                         }));
 
-                        // Charger les emails des utilisateurs
+                        // Charger tous les clients (users)
+                        const usersSnapshot = await db.collection('users').get();
+                        this.allClients = usersSnapshot.docs
+                            .filter(doc => doc.data().role !== 'admin') // Exclure les administrateurs
+                            .map(doc => ({
+                                id: doc.id,
+                                firstName: doc.data().firstName || '',
+                                lastName: doc.data().lastName || '',
+                                email: doc.data().email,
+                                createdAt: doc.data().createdAt || firebase.firestore.Timestamp.now()
+                            }));
+
+                        // Charger les emails des utilisateurs pour la rétrocompatibilité
                         const userIds = new Set([
                             ...this.allAnimals.map(a => a.userId),
                             ...this.allAppointments.map(a => a.userId)
                         ]);
                         
                         for (const userId of userIds) {
-                            const userDoc = await db.collection('users').doc(userId).get();
-                            if (userDoc.exists) {
-                                this.userEmails[userId] = userDoc.data().email;
+                            if (!this.userEmails[userId]) {
+                                const userDoc = await db.collection('users').doc(userId).get();
+                                if (userDoc.exists) {
+                                    this.userEmails[userId] = userDoc.data().email;
+                                }
                             }
                         }
                     } catch (error) {
@@ -4028,6 +4163,36 @@
                             });
                         });
                     });
+                },
+                async editClient(client) {
+                    this.editingClient = { ...client };
+                    this.showEditClientModal = true;
+                },
+                async updateClient() {
+                    try {
+                        await db.collection('users').doc(this.editingClient.id).update({
+                            firstName: this.editingClient.firstName,
+                            lastName: this.editingClient.lastName,
+                            email: this.editingClient.email,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        this.showEditClientModal = false;
+                        alert('Client modifié avec succès');
+                    } catch (error) {
+                        console.error('Error updating client:', error);
+                        alert('Erreur lors de la modification: ' + error.message);
+                    }
+                },
+                async deleteClient(client) {
+                    if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ?`)) return;
+                    try {
+                        await db.collection('users').doc(client.id).delete();
+                        this.allClients = this.allClients.filter(c => c.id !== client.id);
+                        alert('Client supprimé avec succès');
+                    } catch (error) {
+                        console.error('Error deleting client:', error);
+                        alert('Erreur lors de la suppression');
+                    }
                 },
             },
             mounted() {
