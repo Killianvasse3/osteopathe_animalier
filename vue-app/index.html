@@ -1818,10 +1818,20 @@
         }
         /* Ajoute ce CSS à la fin du <style> */
         .body-map-annotations-list {
-          margin-top: 1rem;
-          background: #f8f9fa;
-          border-radius: 8px;
-          padding: 1rem;
+          margin-top: 1.2rem;
+          background: #fff;
+          border-radius: 12px;
+          padding: 1.2rem 1.5rem 1.2rem 1.2rem;
+          box-shadow: 0 4px 24px rgba(0,0,0,0.07);
+          border: 1.5px solid #f3f3f3;
+          max-width: 350px;
+        }
+        .body-map-annotations-list h4 {
+          font-family: 'Playfair Display', serif;
+          color: var(--primary-color);
+          font-size: 1.15rem;
+          margin-bottom: 1rem;
+          letter-spacing: 0.5px;
         }
         .body-map-annotations-list ul {
           list-style: none;
@@ -1831,18 +1841,61 @@
         .body-map-annotations-list li {
           display: flex;
           align-items: center;
-          margin-bottom: 0.5rem;
-          font-size: 1rem;
+          margin-bottom: 0.7rem;
+          font-size: 1.08rem;
+          background: none;
+          border-radius: 8px;
+          padding: 0.3rem 0.7rem;
+          transition: background 0.2s, font-weight 0.2s;
+        }
+        .body-map-annotations-list li:last-child {
+          margin-bottom: 0;
+        }
+        .body-map-annotations-list li.active {
+          background: #f3f6ff;
+          font-weight: 700;
+          color: var(--primary-color);
         }
         .annotation-dot {
           display: inline-block;
-          width: 14px;
-          height: 14px;
+          width: 16px;
+          height: 16px;
           background: var(--accent-color);
           border-radius: 50%;
-          margin-right: 0.7em;
-          border: 2px solid #fff;
-          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+          margin-right: 0.9em;
+          border: 2.5px solid #fff;
+          box-shadow: 0 1px 6px rgba(0,0,0,0.10);
+          transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .annotation-point {
+          transition: box-shadow 0.2s, transform 0.2s;
+        }
+        .annotation-point.active {
+          box-shadow: 0 0 0 6px #222, 0 2px 8px rgba(0,0,0,0.15);
+          transform: scale(1.35);
+          z-index: 30;
+        }
+        .body-map-annotations-list + .btn {
+            margin-top: 1.2rem;
+        }
+        .annotation-delete-btn {
+            background: none;
+            border: none;
+            color: #c00;
+            font-size: 1.2em;
+            margin-left: auto;
+            cursor: pointer;
+            padding: 0 0.4em;
+            border-radius: 4px;
+            transition: background 0.15s;
+            line-height: 1;
+        }
+        .annotation-delete-btn:hover {
+            background: #ffeaea;
+            color: #a00;
+        }
+        .body-map-annotations-list li {
+            position: relative;
         }
     </style>
 </head>
@@ -3881,7 +3934,9 @@
                     svgContainer.querySelectorAll('.annotation-point').forEach(el => el.remove());
                     firebase.firestore().collection('animals').doc(animalId).get().then(doc => {
                         const annotations = doc.data().annotations || [];
-                        annotations.forEach(ann => {
+                        const points = [];
+                        const lines = [];
+                        annotations.forEach((ann, idx) => {
                             const point = document.createElement('div');
                             point.className = 'annotation-point';
                             point.style.position = 'absolute';
@@ -3896,32 +3951,10 @@
                             point.style.zIndex = 20;
                             point.style.cursor = 'pointer';
                             point.title = ann.text;
-                            point.onmouseenter = () => {
-                                const tooltip = document.createElement('div');
-                                tooltip.className = 'annotation-tooltip';
-                                tooltip.innerText = ann.text;
-                                tooltip.style.position = 'absolute';
-                                tooltip.style.left = '50%';
-                                tooltip.style.bottom = '120%';
-                                tooltip.style.transform = 'translateX(-50%)';
-                                tooltip.style.background = 'rgba(0,0,0,0.85)';
-                                tooltip.style.color = 'white';
-                                tooltip.style.whiteSpace = 'normal';
-                                tooltip.style.maxWidth = '260px';
-                                tooltip.style.textAlign = 'center';
-                                tooltip.style.padding = '0.5rem 0.8rem';
-                                tooltip.style.fontSize = '0.9rem';
-                                tooltip.style.lineHeight = '1.4';
-                                tooltip.style.zIndex = 100;
-                                tooltip.style.wordBreak = 'normal';
-                                tooltip.style.overflowWrap = 'break-word';
-                                point.appendChild(tooltip);
-                            };
-                            point.onmouseleave = () => {
-                                const tooltip = point.querySelector('.annotation-tooltip');
-                                if (tooltip) tooltip.remove();
-                            };
+                            point.onmouseenter = null;
+                            point.onmouseleave = null;
                             svgContainer.appendChild(point);
+                            points.push(point);
                         });
                         // Remplir la liste sous le SVG
                         const listContainer = document.getElementById(`annotations-list-${animalId}`);
@@ -3933,16 +3966,46 @@
                                 li.textContent = 'Aucune annotation';
                                 ul.appendChild(li);
                             } else {
-                                annotations.forEach(ann => {
+                                annotations.forEach((ann, idx) => {
                                     const li = document.createElement('li');
                                     const dot = document.createElement('span');
                                     dot.className = 'annotation-dot';
                                     li.appendChild(dot);
                                     li.appendChild(document.createTextNode(ann.text));
+                                    // Bouton suppression
+                                    const delBtn = document.createElement('button');
+                                    delBtn.className = 'annotation-delete-btn';
+                                    delBtn.title = 'Supprimer cette annotation';
+                                    delBtn.innerHTML = '&times;';
+                                    delBtn.onclick = async (e) => {
+                                        e.stopPropagation();
+                                        annotations.splice(idx, 1);
+                                        await firebase.firestore().collection('animals').doc(animalId).update({ annotations });
+                                        this.displayBodyAnnotations(animalId);
+                                    };
+                                    li.appendChild(delBtn);
                                     ul.appendChild(li);
+                                    lines.push(li);
                                 });
                             }
                         }
+                        // Synchronisation du survol
+                        points.forEach((point, idx) => {
+                            point.addEventListener('mouseenter', () => {
+                                lines[idx]?.classList.add('active');
+                            });
+                            point.addEventListener('mouseleave', () => {
+                                lines[idx]?.classList.remove('active');
+                            });
+                        });
+                        lines.forEach((li, idx) => {
+                            li.addEventListener('mouseenter', () => {
+                                points[idx]?.classList.add('active');
+                            });
+                            li.addEventListener('mouseleave', () => {
+                                points[idx]?.classList.remove('active');
+                            });
+                        });
                     });
                 },
             },
