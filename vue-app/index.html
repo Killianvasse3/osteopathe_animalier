@@ -1810,6 +1810,40 @@
         .annotation-point:hover {
             transform: scale(1.2);
         }
+        /* Ajoute ce CSS global à la fin du <style> */
+        .annotation-tooltip {
+            box-sizing: border-box;
+            overflow-wrap: break-word;
+            word-break: normal;
+        }
+        /* Ajoute ce CSS à la fin du <style> */
+        .body-map-annotations-list {
+          margin-top: 1rem;
+          background: #f8f9fa;
+          border-radius: 8px;
+          padding: 1rem;
+        }
+        .body-map-annotations-list ul {
+          list-style: none;
+          padding: 0;
+          margin: 0;
+        }
+        .body-map-annotations-list li {
+          display: flex;
+          align-items: center;
+          margin-bottom: 0.5rem;
+          font-size: 1rem;
+        }
+        .annotation-dot {
+          display: inline-block;
+          width: 14px;
+          height: 14px;
+          background: var(--accent-color);
+          border-radius: 50%;
+          margin-right: 0.7em;
+          border: 2px solid #fff;
+          box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+        }
     </style>
 </head>
 <body>
@@ -3102,6 +3136,10 @@
                                 <div class="body-map" id="bodyMap-${animal.id}">
                                     <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
+                                <div class="body-map-annotations-list" id="annotations-list-${animal.id}">
+                                  <h4>Annotations du plan du corps :</h4>
+                                  <ul></ul>
+                                </div>
                                 <button class="btn btn-add-annotation">
                                     Ajouter une annotation
                                 </button>
@@ -3796,21 +3834,11 @@
                         const form = document.createElement('form');
                         form.className = 'annotation-form';
                         form.style.position = 'absolute';
-                        // Placement intelligent pour ne pas dépasser
-                        const popupWidth = 200, popupHeight = 40;
-                        let left = x * svgContainer.offsetWidth;
-                        let top = y * svgContainer.offsetHeight;
-                        let offsetX = -popupWidth / 2;
-                        let offsetY = -popupHeight - 10;
-                        if (top + offsetY < 4) offsetY = 10;
-                        if (left + offsetX < 4) offsetX = 4 - left;
-                        if (left + offsetX + popupWidth > svgContainer.offsetWidth - 4) offsetX = svgContainer.offsetWidth - popupWidth - left - 4;
-                        form.style.left = `${left + offsetX}px`;
-                        form.style.top = `${top + offsetY}px`;
-                        form.style.transform = 'none';
-                        form.style.minWidth = popupWidth + 'px';
+                        form.style.left = `${x * 100}%`;
+                        form.style.top = `${y * 100}%`;
+                        form.style.transform = 'translate(-50%, -50%)';
                         form.innerHTML = `
-                            <input type="text" placeholder="Texte de l'annotation" required style="padding:0.3rem 0.7rem; border-radius:6px; border:1px solid #ccc; font-size:1rem; width: 120px;">
+                            <input type="text" placeholder="Texte de l'annotation" required style="padding:0.3rem 0.7rem; border-radius:6px; border:1px solid #ccc; font-size:1rem;">
                             <button type="submit" style="margin-left:0.5rem; background:var(--primary-color); color:white; border:none; border-radius:6px; padding:0.3rem 0.8rem; font-weight:600;">OK</button>
                         `;
                         overlay.appendChild(form);
@@ -3839,21 +3867,18 @@
                 displayBodyAnnotations(animalId) {
                     const svgContainer = document.querySelector(`#bodyMap-${animalId}`);
                     if (!svgContainer) return;
-                    svgContainer.style.position = 'relative'; // S'assurer que le conteneur est bien positionné
+                    svgContainer.style.position = 'relative';
                     const img = svgContainer.querySelector('img');
                     if (!img) return;
-                    // Si l'image n'est pas encore chargée, attendre l'événement onload
                     if (!img.complete) {
                         img.onload = () => {
                             setTimeout(() => {
                                 this.displayBodyAnnotations(animalId);
-                            }, 50); // petit délai pour laisser le layout se stabiliser
+                            }, 50);
                         };
                         return;
                     }
-                    // Supprimer les anciens points
                     svgContainer.querySelectorAll('.annotation-point').forEach(el => el.remove());
-                    // Charger les annotations
                     firebase.firestore().collection('animals').doc(animalId).get().then(doc => {
                         const annotations = doc.data().annotations || [];
                         annotations.forEach(ann => {
@@ -3871,42 +3896,53 @@
                             point.style.zIndex = 20;
                             point.style.cursor = 'pointer';
                             point.title = ann.text;
-                            // Info-bulle custom
                             point.onmouseenter = () => {
                                 const tooltip = document.createElement('div');
                                 tooltip.className = 'annotation-tooltip';
                                 tooltip.innerText = ann.text;
                                 tooltip.style.position = 'absolute';
-                                const tooltipWidth = 160, tooltipHeight = 32;
-                                let left = ann.x * svgContainer.offsetWidth;
-                                let top = ann.y * svgContainer.offsetHeight;
-                                let offsetX = -tooltipWidth / 2;
-                                let offsetY = ann.y < 0.15 ? 24 : -tooltipHeight - 8;
-                                // Correction pour la gauche
-                                if (left + offsetX < 4) offsetX = 4 - left;
-                                // Correction pour le haut
-                                if (top + offsetY < 4) offsetY = 24;
-                                tooltip.style.left = `${left + offsetX}px`;
-                                tooltip.style.top = `${top + offsetY}px`;
-                                tooltip.style.transform = 'none';
-                                tooltip.style.background = 'rgba(0,0,0,0.8)';
+                                tooltip.style.left = '50%';
+                                tooltip.style.bottom = '120%';
+                                tooltip.style.transform = 'translateX(-50%)';
+                                tooltip.style.background = 'rgba(0,0,0,0.85)';
                                 tooltip.style.color = 'white';
-                                tooltip.style.padding = '0.3rem 0.7rem';
-                                tooltip.style.borderRadius = '6px';
-                                tooltip.style.fontSize = '0.95rem';
-                                tooltip.style.whiteSpace = 'nowrap';
+                                tooltip.style.whiteSpace = 'normal';
+                                tooltip.style.maxWidth = '260px';
+                                tooltip.style.textAlign = 'center';
+                                tooltip.style.padding = '0.5rem 0.8rem';
+                                tooltip.style.fontSize = '0.9rem';
+                                tooltip.style.lineHeight = '1.4';
                                 tooltip.style.zIndex = 100;
-                                svgContainer.appendChild(tooltip);
-                                point._currentTooltip = tooltip;
+                                tooltip.style.wordBreak = 'normal';
+                                tooltip.style.overflowWrap = 'break-word';
+                                point.appendChild(tooltip);
                             };
                             point.onmouseleave = () => {
-                                if (point._currentTooltip) {
-                                    point._currentTooltip.remove();
-                                    point._currentTooltip = null;
-                                }
+                                const tooltip = point.querySelector('.annotation-tooltip');
+                                if (tooltip) tooltip.remove();
                             };
                             svgContainer.appendChild(point);
                         });
+                        // Remplir la liste sous le SVG
+                        const listContainer = document.getElementById(`annotations-list-${animalId}`);
+                        if (listContainer) {
+                            const ul = listContainer.querySelector('ul');
+                            ul.innerHTML = '';
+                            if (annotations.length === 0) {
+                                const li = document.createElement('li');
+                                li.textContent = 'Aucune annotation';
+                                ul.appendChild(li);
+                            } else {
+                                annotations.forEach(ann => {
+                                    const li = document.createElement('li');
+                                    const dot = document.createElement('span');
+                                    dot.className = 'annotation-dot';
+                                    li.appendChild(dot);
+                                    li.appendChild(document.createTextNode(ann.text));
+                                    ul.appendChild(li);
+                                });
+                            }
+                        }
                     });
                 },
             },
