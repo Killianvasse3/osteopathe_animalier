@@ -986,28 +986,66 @@
 
         .action-buttons {
             display: flex;
+            flex-direction: column;
             gap: 0.5rem;
-            flex-wrap: wrap;
+            min-width: 150px;
         }
 
-        .btn-edit,
-        .btn-delete {
+        .action-buttons button {
+            width: 100%;
             padding: 0.5rem 1rem;
-            border-radius: 15px;
             border: none;
+            border-radius: 8px;
             cursor: pointer;
             transition: all 0.3s ease;
-            white-space: nowrap;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .btn-view {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
         }
 
         .btn-edit {
-            background: var(--green-accent);
+            background-color: var(--green-accent);
             color: white;
         }
 
+        .btn-edit:hover {
+            background-color: #4ab85e;
+            transform: translateY(-2px);
+        }
+
         .btn-delete {
-            background: var(--accent-color);
+            background-color: var(--accent-color);
             color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #e64545;
+            transform: translateY(-2px);
+        }
+
+        /* Ajuster la largeur de la colonne Actions dans la table */
+        .data-table td:last-child {
+            min-width: 150px;
+            padding: 0.75rem;
+        }
+
+        /* Style pour le texte des boutons */
+        .action-buttons button {
+            font-size: 0.9rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
         }
 
         @media (max-width: 768px) {
@@ -1897,6 +1935,87 @@
         .body-map-annotations-list li {
             position: relative;
         }
+
+        .btn-view {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.5rem 1rem;
+            border-radius: 15px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+            margin-right: 0.5rem;
+        }
+
+        .btn-view:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .action-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            min-width: 150px;
+        }
+
+        .action-buttons button {
+            width: 100%;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            text-align: center;
+        }
+
+        .btn-view {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .btn-view:hover {
+            background-color: var(--secondary-color);
+            transform: translateY(-2px);
+        }
+
+        .btn-edit {
+            background-color: var(--green-accent);
+            color: white;
+        }
+
+        .btn-edit:hover {
+            background-color: #4ab85e;
+            transform: translateY(-2px);
+        }
+
+        .btn-delete {
+            background-color: var(--accent-color);
+            color: white;
+        }
+
+        .btn-delete:hover {
+            background-color: #e64545;
+            transform: translateY(-2px);
+        }
+
+        /* Ajuster la largeur de la colonne Actions dans la table */
+        .data-table td:last-child {
+            min-width: 150px;
+            padding: 0.75rem;
+        }
+
+        /* Style pour le texte des boutons */
+        .action-buttons button {
+            font-size: 0.9rem;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 36px;
+        }
     </style>
 </head>
 <body>
@@ -2407,6 +2526,9 @@
                                     <td>{{ allAnimals.filter(animal => animal.userId === client.id).length }}</td>
                                     <td>
                                         <div class="action-buttons">
+                                            <button class="btn-view" @click="viewClientAnimals(client)">
+                                                Voir les dossiers
+                                            </button>
                                             <button class="btn-edit" @click="editClient(client)">
                                                 Modifier
                                             </button>
@@ -2618,6 +2740,38 @@
                 </form>
             </div>
         </div>
+
+        <!-- Modal pour voir les dossiers d'animaux d'un client -->
+        <div v-if="showClientAnimalsModal" class="modal">
+            <div class="modal-content" style="max-width: 900px;">
+                <h2>Dossiers des animaux de {{ selectedClient ? (selectedClient.firstName + ' ' + selectedClient.lastName) : '' }}</h2>
+                
+                <div class="animals-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
+                    <div v-for="animal in clientAnimals" :key="animal.id" class="animal-card">
+                        <div class="animal-info">
+                            <img v-if="animal.photoBase64" :src="animal.photoBase64" :alt="animal.name" class="animal-photo">
+                            <div v-else class="animal-photo placeholder">
+                                <span>Pas de photo</span>
+                            </div>
+                            <h3>{{ animal.name }}</h3>
+                            <p class="animal-type">{{ animal.type }}</p>
+                            <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
+                            <p v-if="animal.notes" class="animal-notes">{{ animal.notes }}</p>
+                        </div>
+                        <div class="animal-actions">
+                            <button class="btn" @click="viewAnimalDetails(animal)">Voir le dossier</button>
+                        </div>
+                    </div>
+                    <div v-if="clientAnimals.length === 0" class="no-animals" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
+                        <p>Ce client n'a pas encore d'animaux enregistrés.</p>
+                    </div>
+                </div>
+
+                <div class="modal-actions" style="margin-top: 2rem;">
+                    <button class="btn secondary" @click="showClientAnimalsModal = false">Fermer</button>
+                </div>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -2746,6 +2900,9 @@
                     editingClient: null,
                     showEditClientModal: false,
                     allClients: [],
+                    showClientAnimalsModal: false,
+                    selectedClient: null,
+                    clientAnimals: [],
                 }
             },
             computed: {
@@ -4193,6 +4350,11 @@
                         console.error('Error deleting client:', error);
                         alert('Erreur lors de la suppression');
                     }
+                },
+                viewClientAnimals(client) {
+                    this.selectedClient = client;
+                    this.clientAnimals = this.allAnimals.filter(animal => animal.userId === client.id);
+                    this.showClientAnimalsModal = true;
                 },
             },
             mounted() {
