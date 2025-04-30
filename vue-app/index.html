@@ -50,7 +50,7 @@
             position: fixed;
             width: 100%;
             top: 0;
-            z-index: 1000;
+            z-index: 10001; /* Augmenter le z-index pour être au-dessus de l'overlay */
             height: 80px;
         }
 
@@ -2046,6 +2046,184 @@
         tr.unread {
             background-color: rgba(255, 91, 91, 0.1);
         }
+
+        /* Styles pour le bouton flottant du tutoriel */
+        .tutorial-btn {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background-color: var(--accent-color);
+            color: white;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            cursor: pointer;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .tutorial-btn:hover {
+            transform: scale(1.1);
+            background-color: var(--secondary-color);
+        }
+
+        .tutorial-btn i {
+            font-size: 24px;
+        }
+
+        /* Styles pour les étapes du tutoriel */
+        .tutorial-step {
+            position: fixed;
+            background: white;
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+            max-width: 300px;
+            z-index: 10003; /* Augmenter le z-index pour être au-dessus de tout */
+            animation: fadeIn 0.3s ease;
+        }
+
+        .tutorial-step h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .tutorial-step p {
+            margin-bottom: 1rem;
+            line-height: 1.5;
+            color: var(--text-color);
+        }
+
+        .tutorial-step .btn-group {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .tutorial-step button {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .tutorial-step .btn-next {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        .tutorial-step .btn-skip {
+            background: var(--light-bg);
+            color: var(--text-color);
+        }
+
+        .tutorial-step button:hover {
+            transform: translateY(-2px);
+        }
+
+        .tutorial-overlay {
+            position: fixed;
+            top: 80px; /* Hauteur de la barre de navigation */
+            left: 0;
+            width: 100%;
+            height: calc(100% - 80px); /* Hauteur totale moins la barre de navigation */
+            background: rgba(0,0,0,0.5);
+            z-index: 9998;
+            backdrop-filter: blur(2px);
+        }
+
+        .tutorial-highlight {
+            position: relative;
+            z-index: 10002; /* Augmenter le z-index pour être au-dessus de la barre de navigation */
+            box-shadow: 0 0 0 4px var(--accent-color);
+            border-radius: 4px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 768px) {
+            .tutorial-btn {
+                bottom: 1rem;
+                right: 1rem;
+                width: 50px;
+                height: 50px;
+            }
+
+            .tutorial-step {
+                max-width: calc(100% - 2rem);
+                margin: 1rem;
+                position: fixed;
+                top: 90px !important; /* Juste en dessous de la barre de navigation */
+                left: 50% !important;
+                bottom: auto !important;
+                right: auto !important;
+                transform: translateX(-50%) !important;
+                transition: all 0.3s ease;
+                z-index: 10001;
+            }
+
+            .tutorial-overlay {
+                top: 0;
+                height: 100%;
+            }
+
+            .nav-links.active {
+                z-index: 10002;
+                padding-top: 180px; /* Augmenté pour laisser de la place pour la fenêtre de tutoriel */
+                display: flex;
+                flex-direction: column;
+                gap: 2rem;
+            }
+
+            .tutorial-highlight {
+                background-color: rgba(255, 91, 91, 0.1);
+                transition: all 0.3s ease;
+                padding: 10px 20px;
+                margin: 5px 0;
+            }
+
+            .nav-links.active .tutorial-highlight {
+                background-color: var(--accent-color);
+                color: white;
+                box-shadow: none;
+                border-radius: 8px;
+                width: calc(100% - 40px);
+                margin: 5px 20px;
+            }
+
+            /* S'assurer que le menu burger reste visible */
+            .hamburger {
+                z-index: 10004;
+            }
+
+            /* Animation pour les étapes du tutoriel */
+            .tutorial-step {
+                animation: slideDown 0.3s ease;
+            }
+
+            @keyframes slideDown {
+                from {
+                    transform: translate(-50%, -100%);
+                    opacity: 0;
+                }
+                to {
+                    transform: translate(-50%, 0);
+                    opacity: 1;
+                }
+            }
+        }
     </style>
 </head>
 <body>
@@ -2659,6 +2837,29 @@
             </div>
         </footer>
 
+        <!-- Bouton flottant du tutoriel -->
+        <button class="tutorial-btn" @click="startTutorial" v-if="!showAuth">
+            <i>?</i>
+        </button>
+
+        <!-- Composant du tutoriel -->
+        <template v-if="showTutorial">
+            <div class="tutorial-overlay" @click="skipTutorial"></div>
+            <div class="tutorial-step" :style="currentTutorialStep.position">
+                <h3>{{ currentTutorialStep.title }}</h3>
+                <p>{{ currentTutorialStep.content }}</p>
+                <div class="btn-group">
+                    <button class="btn-skip" @click="skipTutorial">Passer</button>
+                    <button class="btn-next" @click="nextTutorialStep" v-if="!isLastTutorialStep">
+                        Suivant
+                    </button>
+                    <button class="btn-next" @click="skipTutorial" v-else>
+                        Terminer
+                    </button>
+                </div>
+            </div>
+        </template>
+
         <!-- Modal d'authentification -->
         <div v-if="showAuth" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;">
             <div class="auth-form">
@@ -2992,6 +3193,53 @@
                     unsubscribeMessages: null,
                     allClients: [], // Ajouter allClients dans data
                     clientsData: [], // Nouvelle propriété pour stocker les données brutes des clients
+                    // Données pour le tutoriel
+                    showTutorial: false,
+                    currentTutorialStepIndex: 0,
+                    tutorialSteps: [
+                        {
+                            title: "Bienvenue !",
+                            content: "Je vais vous guider à travers les principales fonctionnalités de l'application.",
+                            position: {
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)'
+                            }
+                        },
+                        {
+                            title: "Créer un compte",
+                            content: "Pour commencer, créez un compte ou connectez-vous en cliquant sur 'Connexion' dans le menu.",
+                            position: {
+                                top: '80px',
+                                right: '20px'
+                            }
+                        },
+                        {
+                            title: "Dossier ostéopathique",
+                            content: "Une fois connecté, accédez à votre dossier ostéopathique pour gérer vos animaux.",
+                            position: {
+                                top: '80px',
+                                right: '150px'
+                            }
+                        },
+                        {
+                            title: "Ajouter un animal",
+                            content: "Dans votre dossier, vous pourrez ajouter vos animaux et suivre leur historique de soins.",
+                            position: {
+                                top: '50%',
+                                left: '50%',
+                                transform: 'translate(-50%, -50%)'
+                            }
+                        },
+                        {
+                            title: "Prendre rendez-vous",
+                            content: "Une fois votre animal ajouté, vous pourrez facilement prendre rendez-vous en quelques clics.",
+                            position: {
+                                top: '80px',
+                                right: '250px'
+                            }
+                        }
+                    ]
                 }
             },
             computed: {
@@ -3087,6 +3335,12 @@
                     return (clientId) => {
                         return this.allAnimals.filter(animal => animal.userId === clientId).length;
                     };
+                },
+                currentTutorialStep() {
+                    return this.tutorialSteps[this.currentTutorialStepIndex];
+                },
+                isLastTutorialStep() {
+                    return this.currentTutorialStepIndex === this.tutorialSteps.length - 1;
                 },
             },
             watch: {
@@ -4515,6 +4769,120 @@
                         console.error('Error deleting message:', error);
                         alert('Erreur lors de la suppression du message');
                     }
+                },
+                // Méthodes pour le tutoriel
+                startTutorial() {
+                    this.currentTutorialStepIndex = 0;
+                    this.showTutorial = true;
+                    // Ouvrir le menu burger sur mobile
+                    if (window.innerWidth <= 768) {
+                        this.isMenuOpen = true;
+                    }
+                    this.highlightCurrentElement();
+                },
+                skipTutorial() {
+                    this.showTutorial = false;
+                    this.removeHighlights();
+                    // Fermer le menu burger si on était sur mobile
+                    if (window.innerWidth <= 768) {
+                        this.isMenuOpen = false;
+                    }
+                },
+                nextTutorialStep() {
+                    this.removeHighlights();
+                    if (this.currentTutorialStepIndex < this.tutorialSteps.length - 1) {
+                        this.currentTutorialStepIndex++;
+                        // Ouvrir le menu burger sur mobile pour les étapes concernées
+                        if (window.innerWidth <= 768) {
+                            if ([1, 2, 4].includes(this.currentTutorialStepIndex)) {
+                                this.isMenuOpen = true;
+                            }
+                        }
+                        this.highlightCurrentElement();
+                    }
+                },
+                highlightCurrentElement() {
+                    this.removeHighlights();
+                    let elementToHighlight;
+                    const isMobile = window.innerWidth <= 768;
+                    
+                    // Réinitialiser la position de défilement sur mobile
+                    if (isMobile) {
+                        window.scrollTo({
+                            top: 0,
+                            behavior: 'smooth'
+                        });
+                    }
+
+                    switch(this.currentTutorialStepIndex) {
+                        case 0: // Bienvenue
+                            if (!isMobile) {
+                                this.tutorialSteps[0].position = {
+                                    top: '50%',
+                                    left: '50%',
+                                    transform: 'translate(-50%, -50%)'
+                                };
+                            }
+                            break;
+                        case 1: // Connexion
+                            elementToHighlight = document.querySelector('.nav-links a[href="#"]');
+                            if (!isMobile) {
+                                this.tutorialSteps[1].position = {
+                                    top: '80px',
+                                    right: '20px'
+                                };
+                            }
+                            break;
+                        case 2: // Dossier ostéopathique
+                            elementToHighlight = document.querySelector('.nav-links a[href="#dossier"]');
+                            if (!isMobile) {
+                                this.tutorialSteps[2].position = {
+                                    top: '80px',
+                                    right: '150px'
+                                };
+                            }
+                            break;
+                        case 3: // Ajouter un animal
+                            if (this.currentPage === 'dossier') {
+                                elementToHighlight = document.querySelector('.btn.add-animal');
+                                if (!isMobile) {
+                                    this.tutorialSteps[3].position = {
+                                        top: '50%',
+                                        left: '50%',
+                                        transform: 'translate(-50%, -50%)'
+                                    };
+                                }
+                            }
+                            break;
+                        case 4: // Prendre rendez-vous
+                            elementToHighlight = document.querySelector('.nav-links a[href="#appointment"]');
+                            if (!isMobile) {
+                                this.tutorialSteps[4].position = {
+                                    top: '80px',
+                                    right: '250px'
+                                };
+                            }
+                            break;
+                    }
+
+                    if (elementToHighlight) {
+                        elementToHighlight.classList.add('tutorial-highlight');
+                        
+                        // Sur mobile, attendre que le menu soit ouvert
+                        if (isMobile) {
+                            setTimeout(() => {
+                                elementToHighlight.scrollIntoView({
+                                    behavior: 'smooth',
+                                    block: 'center'
+                                });
+                            }, 500);
+                        }
+                    }
+                },
+                removeHighlights() {
+                    document.querySelectorAll('.tutorial-highlight').forEach(el => {
+                        el.classList.remove('tutorial-highlight');
+                    });
                 },
             },
             mounted() {
