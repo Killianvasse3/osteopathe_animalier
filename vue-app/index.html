@@ -455,12 +455,15 @@
                 align-items: center;
                 justify-content: center;
                 transition: right 0.3s ease;
-                z-index: 1000;
-                gap: 2rem;
+                z-index: 10002;
+                padding: 32px 0 20px 0; /* Réduit l'espace en haut */
+                gap: 1rem;
             }
-
             .nav-links.active {
                 right: 0;
+            }
+            .nav-links.tutorial-padding {
+                padding-top: 180px !important; /* S'applique seulement si le tutoriel est affiché */
             }
 
             .nav-links a {
@@ -2343,7 +2346,7 @@
                     <span></span>
                     <span></span>
                 </div>
-                <div class="nav-links" :class="{ active: isMenuOpen }">
+                <div class="nav-links" :class="{ active: isMenuOpen, 'tutorial-padding': showTutorial && isMobile }">
                     <a href="#services" @click="closeMenu">Services</a>
                     <a href="#about" @click="closeMenu">À propos</a>
                     <a href="#contact" @click="closeMenu">Contact</a>
@@ -3343,7 +3346,8 @@
                                 right: '250px'
                             }
                         }
-                    ]
+                    ],
+                    isMobile: window.innerWidth <= 768,
                 }
             },
             computed: {
@@ -5063,6 +5067,10 @@
                             this.currentPage = 'home';
                         }
                     }
+                });
+
+                window.addEventListener('resize', () => {
+                    this.isMobile = window.innerWidth <= 768;
                 });
             },
             beforeUnmount() {
