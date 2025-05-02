@@ -2385,11 +2385,14 @@
             padding-bottom: 1rem;
             margin-bottom: 2rem;
             padding-right: 0;
+            scroll-behavior: smooth;
+            scroll-snap-type: x mandatory;
         }
         .blog-post {
             min-width: 320px;
             max-width: 350px;
             flex: 0 0 350px;
+            scroll-snap-align: start;
         }
 
         .blog-post:hover {
@@ -2472,11 +2475,14 @@
             .blog-grid {
                 gap: 1rem;
                 padding-bottom: 1rem;
+                scroll-behavior: smooth;
+                scroll-snap-type: x mandatory;
             }
             .blog-post {
                 min-width: 260px;
                 max-width: 280px;
                 flex: 0 0 280px;
+                scroll-snap-align: start;
             }
         }
 
