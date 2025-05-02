@@ -2534,6 +2534,9 @@
                                 <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message">
                                     Aucune date disponible pour les 30 prochains jours.
                                 </div>
+                                <small class="info-message" style="color: var(--accent-color); display: block; margin-top: 0.5rem;">
+                                    Note : Les rendez-vous doivent être pris au moins un jour à l'avance.
+                                </small>
                             </div>
 
                             <div class="form-group">
@@ -3369,8 +3372,9 @@
             },
             computed: {
                 minDate() {
-                    const today = new Date();
-                    return today.toISOString().split('T')[0];
+                    const tomorrow = new Date();
+                    tomorrow.setDate(tomorrow.getDate() + 1);
+                    return tomorrow.toISOString().split('T')[0];
                 },
                 maxDate() {
                     const max = new Date();
@@ -3758,11 +3762,21 @@
                             return;
                         }
 
-                        // Vérifier si le créneau est toujours disponible
+                        // Vérifier que la date n'est pas aujourd'hui
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
                         const selectedDate = new Date(this.appointmentForm.date);
-                        const startOfDay = new Date(selectedDate);
+                        selectedDate.setHours(0, 0, 0, 0);
+
+                        if (selectedDate.getTime() === today.getTime()) {
+                            this.appointmentError = 'Les rendez-vous ne peuvent pas être pris pour le jour même. Veuillez sélectionner une date ultérieure.';
+                            return;
+                        }
+
+                        // Vérifier si le créneau est toujours disponible
+                        const startOfDay = new Date(this.appointmentForm.date);
                         startOfDay.setHours(0, 0, 0, 0);
-                        const endOfDay = new Date(selectedDate);
+                        const endOfDay = new Date(this.appointmentForm.date);
                         endOfDay.setHours(23, 59, 59, 999);
 
                         // Vérifier s'il n'y a pas déjà un rendez-vous à cette date et heure
@@ -4780,11 +4794,13 @@
                         this.isLoadingDates = true;
                         console.log('DEBUG - Loading available dates...');
                         
-                        const today = new Date();
-                        today.setHours(0, 0, 0, 0);
+                        // Calculer la date de début (demain)
+                        const tomorrow = new Date();
+                        tomorrow.setDate(tomorrow.getDate() + 1);
+                        tomorrow.setHours(0, 0, 0, 0);
                         
                         const thirtyDaysFromNow = new Date();
-                        thirtyDaysFromNow.setDate(today.getDate() + 30);
+                        thirtyDaysFromNow.setDate(tomorrow.getDate() + 30);
                         thirtyDaysFromNow.setHours(23, 59, 59, 999);
 
                         // Utiliser onSnapshot pour les dates disponibles
@@ -4793,7 +4809,7 @@
                         }
 
                         this.unsubscribeAvailableDates = db.collection('timeSlots')
-                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(today))
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(tomorrow))
                             .where('date', '<=', firebase.firestore.Timestamp.fromDate(thirtyDaysFromNow))
                             .where('unavailable', '==', false)
                             .onSnapshot(snapshot => {
