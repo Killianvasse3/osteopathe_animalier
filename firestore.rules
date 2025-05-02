@@ -111,5 +111,15 @@ service cloud.firestore {
         isAdmin()
       );
     }
+
+    // Collection des articles de blog
+    match /blog_posts/{postId} {
+      // Lecture publique pour tous
+      allow read: if true;
+      allow list: if true;
+      
+      // Création, modification et suppression réservées aux administrateurs
+      allow create, update, delete: if isAdmin();
+    }
   }
 } 

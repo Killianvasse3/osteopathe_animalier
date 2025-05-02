@@ -2348,6 +2348,264 @@
         #onesignal-bell-container.show-bell {
             display: block !important;
         }
+
+        /* Styles pour la section blog */
+        .blog-section {
+            padding: 5rem 2rem;
+            background-color: var(--white);
+        }
+
+        .blog-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            /* height: 600px; */ /* Supprimé pour permettre à la grille de s'adapter */
+            display: flex;
+            flex-direction: column;
+        }
+
+        .blog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .blog-header h2 {
+            font-family: 'Playfair Display', serif;
+            color: var(--primary-color);
+            font-size: 2.5rem;
+            margin: 0;
+        }
+
+        .blog-grid {
+            display: flex;
+            flex-direction: row;
+            gap: 2rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+            padding-right: 0;
+        }
+        .blog-post {
+            min-width: 320px;
+            max-width: 350px;
+            flex: 0 0 350px;
+        }
+
+        .blog-post:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+        }
+
+        .blog-post-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .blog-post-content {
+            padding: 1.5rem;
+        }
+
+        .blog-post-date {
+            color: var(--secondary-color);
+            font-size: 0.9rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .blog-post-title {
+            color: var(--primary-color);
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .blog-post-excerpt {
+            color: var(--text-color);
+            margin-bottom: 1rem;
+            line-height: 1.6;
+        }
+
+        .blog-post-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            transition: color 0.3s;
+            cursor: pointer;
+        }
+
+        .blog-post-link:after {
+            content: '→';
+            margin-left: 0.5rem;
+            transition: transform 0.3s;
+        }
+
+        .blog-post:hover .blog-post-link:after {
+            transform: translateX(5px);
+        }
+
+        /* Style pour la scrollbar personnalisée */
+        .blog-grid::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .blog-grid::-webkit-scrollbar-track {
+            background: var(--light-bg);
+            border-radius: 4px;
+        }
+
+        .blog-grid::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .blog-grid::-webkit-scrollbar-thumb:hover {
+            background: var(--secondary-color);
+        }
+
+        @media (max-width: 768px) {
+            .blog-container {
+                /* height: 500px; */ /* Supprimé pour éviter le scroll interne */
+            }
+            .blog-grid {
+                gap: 1rem;
+                padding-bottom: 1rem;
+            }
+            .blog-post {
+                min-width: 260px;
+                max-width: 280px;
+                flex: 0 0 280px;
+            }
+        }
+
+        .blog-form {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+        }
+
+        .blog-form .form-group {
+            margin: 0;
+        }
+
+        .blog-form input[type="text"],
+        .blog-form input[type="url"],
+        .blog-form input[type="date"],
+        .blog-form textarea {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid var(--light-bg);
+            border-radius: 8px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        .blog-form input:focus,
+        .blog-form textarea:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        .blog-form label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--primary-color);
+            font-weight: 500;
+        }
+
+        .blog-form textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        /* Styles pour le modal des articles de blog */
+        .blog-post-modal {
+            max-width: 800px !important;
+            width: 95% !important;
+            padding: 2rem !important;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            margin: 2rem auto;
+            position: relative;
+            overflow-y: auto;
+            max-height: 90vh;
+        }
+
+        .blog-post-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .blog-post-header h2 {
+            color: var(--primary-color);
+            font-family: 'Playfair Display', serif;
+            font-size: 2.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .blog-post-date {
+            color: var(--secondary-color);
+            font-size: 1.1rem;
+            margin-bottom: 1rem;
+        }
+
+        .blog-post-full-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: 15px;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+
+        .blog-post-full-content {
+            font-size: 1.1rem;
+            line-height: 1.8;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+            white-space: pre-line;
+            padding: 0 1rem;
+        }
+
+        .blog-post-modal .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 1rem;
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--light-bg);
+        }
+
+        .blog-post-modal .btn {
+            padding: 0.8rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        @media (max-width: 768px) {
+            .blog-post-modal {
+                padding: 1rem !important;
+                margin: 1rem;
+                width: calc(100% - 2rem) !important;
+            }
+
+            .blog-post-header h2 {
+                font-size: 1.8rem;
+            }
+
+            .blog-post-full-image {
+                height: 250px;
+            }
+
+            .blog-post-full-content {
+                font-size: 1rem;
+                padding: 0;
+            }
+        }
     </style>
 </head>
 <body>
@@ -2421,6 +2679,32 @@
                             <p>Ma pratique s'appuie sur une approche holistique, prenant en compte l'animal dans sa globalité pour identifier et traiter la source des problèmes.</p>
                         </div>
                         <img src="https://images.unsplash.com/photo-1552053831-71594a27632d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60" alt="Ostéopathe avec un chien" class="about-image">
+                    </div>
+                </section>
+
+                <section id="blog" class="blog-section">
+                    <div class="blog-container">
+                        <div class="blog-header">
+                            <h2 class="section-title">Actualités & Événements</h2>
+                            <div v-if="isAdmin" class="admin-controls">
+                                <button class="btn" @click="showAddPostModal = true">
+                                    Ajouter un article
+                                </button>
+                            </div>
+                        </div>
+                        <div class="blog-grid">
+                            <article v-for="post in blogPosts" :key="post.id" class="blog-post" @click="showPostDetails(post)">
+                                <img :src="post.imageUrl" :alt="post.title" class="blog-post-image">
+                                <div class="blog-post-content">
+                                    <div class="blog-post-date">{{ formatDate(post.date) }}</div>
+                                    <h3 class="blog-post-title">{{ post.title }}</h3>
+                                    <p class="blog-post-excerpt">{{ post.excerpt }}</p>
+                                    <div class="blog-post-link">
+                                        Lire la suite
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
                     </div>
                 </section>
 
@@ -3185,6 +3469,39 @@
                 </div>
             </div>
         </div>
+
+        <!-- Modal d'ajout/modification d'article -->
+        <div v-if="showAddPostModal" class="modal">
+            <div class="modal-content" style="max-width: 800px;">
+                <h2>{{ editingPost ? 'Modifier l\'article' : 'Nouvel article' }}</h2>
+                <form @submit.prevent="addBlogPost" class="blog-form">
+                    <div class="form-group">
+                        <label for="postTitle">Titre</label>
+                        <input type="text" id="postTitle" v-model="newPost.title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="postDate">Date de publication</label>
+                        <input type="date" id="postDate" v-model="newPost.date" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="postImage">URL de l'image</label>
+                        <input type="url" id="postImage" v-model="newPost.imageUrl" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="postExcerpt">Extrait (résumé court)</label>
+                        <textarea id="postExcerpt" v-model="newPost.excerpt" rows="2" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="postContent">Contenu</label>
+                        <textarea id="postContent" v-model="newPost.content" rows="10" required></textarea>
+                    </div>
+                    <div class="modal-actions">
+                        <button type="button" class="btn secondary" @click="showAddPostModal = false">Annuler</button>
+                        <button type="submit" class="btn primary">{{ editingPost ? 'Mettre à jour' : 'Publier' }}</button>
+                    </div>
+                </form>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -3368,6 +3685,17 @@
                         }
                     ],
                     isMobile: window.innerWidth <= 768,
+                    blogPosts: [],
+                    showAddPostModal: false,
+                    newPost: {
+                        title: '',
+                        content: '',
+                        excerpt: '',
+                        imageUrl: '',
+                        date: new Date().toISOString().split('T')[0]
+                    },
+                    unsubscribeBlogPosts: null,
+                    editingPost: null
                 }
             },
             computed: {
@@ -5278,6 +5606,204 @@
                         el.classList.remove('tutorial-highlight');
                     });
                 },
+                async loadBlogPosts() {
+                    try {
+                        if (this.unsubscribeBlogPosts) {
+                            this.unsubscribeBlogPosts();
+                        }
+
+                        this.unsubscribeBlogPosts = db.collection('blog_posts')
+                            .orderBy('date', 'desc')
+                            .onSnapshot(snapshot => {
+                                // Gérer les modifications en temps réel
+                                snapshot.docChanges().forEach(change => {
+                                    const post = {
+                                        id: change.doc.id,
+                                        ...change.doc.data()
+                                    };
+
+                                    if (change.type === 'added') {
+                                        // Nouveau post
+                                        const index = this.blogPosts.findIndex(p => p.id === post.id);
+                                        if (index === -1) {
+                                            this.blogPosts.push(post);
+                                        }
+                                    } else if (change.type === 'modified') {
+                                        // Post modifié
+                                        const index = this.blogPosts.findIndex(p => p.id === post.id);
+                                        if (index !== -1) {
+                                            this.blogPosts.splice(index, 1, post);
+                                        }
+                                    } else if (change.type === 'removed') {
+                                        // Post supprimé
+                                        const index = this.blogPosts.findIndex(p => p.id === post.id);
+                                        if (index !== -1) {
+                                            this.blogPosts.splice(index, 1);
+                                        }
+                                    }
+                                });
+
+                                // Trier les posts par date
+                                this.blogPosts.sort((a, b) => b.date.seconds - a.date.seconds);
+                            }, error => {
+                                console.error('Error loading blog posts:', error);
+                            });
+                    } catch (error) {
+                        console.error('Error setting up blog posts listener:', error);
+                    }
+                },
+                async addBlogPost() {
+                    try {
+                        if (!this.newPost.title || !this.newPost.content || !this.newPost.imageUrl) {
+                            alert('Veuillez remplir tous les champs obligatoires');
+                            return;
+                        }
+
+                        const postData = {
+                            ...this.newPost,
+                            date: firebase.firestore.Timestamp.fromDate(new Date(this.newPost.date)),
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        if (this.editingPost) {
+                            // Mise à jour d'un article existant
+                            await db.collection('blog_posts').doc(this.editingPost.id).update(postData);
+                        } else {
+                            // Création d'un nouvel article
+                            postData.createdAt = firebase.firestore.FieldValue.serverTimestamp();
+                            await db.collection('blog_posts').add(postData);
+                        }
+
+                        this.showAddPostModal = false;
+                        this.editingPost = null;
+                        this.newPost = {
+                            title: '',
+                            content: '',
+                            excerpt: '',
+                            imageUrl: '',
+                            date: new Date().toISOString().split('T')[0]
+                        };
+                    } catch (error) {
+                        console.error('Error saving blog post:', error);
+                        alert('Erreur lors de l\'enregistrement de l\'article');
+                    }
+                },
+                showPostDetails(post) {
+                    const formattedContent = post.content.replace(/\n/g, '<br>');
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.innerHTML = `
+                        <div class="modal-content blog-post-modal">
+                            <div class="blog-post-header">
+                                <h2>${post.title}</h2>
+                                <div class="blog-post-date">${this.formatDate(post.date)}</div>
+                            </div>
+                            <img src="${post.imageUrl}" alt="${post.title}" class="blog-post-full-image">
+                            <div class="blog-post-full-content">${formattedContent}</div>
+                            <div class="modal-actions">
+                                ${this.isAdmin ? `
+                                    <button class="btn primary" onclick="this.closest('.modal').dispatchEvent(new CustomEvent('edit-post'))">Modifier</button>
+                                    <button class="btn secondary" onclick="this.closest('.modal').dispatchEvent(new CustomEvent('delete-post'))">Supprimer</button>
+                                ` : ''}
+                                <button class="btn secondary" onclick="this.closest('.modal').remove()">Fermer</button>
+                            </div>
+                        </div>
+                    `;
+
+                    // Ajouter les styles spécifiques pour le modal de blog
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .blog-post-modal {
+                            max-width: 800px;
+                            padding: 2rem;
+                        }
+
+                        .blog-post-header {
+                            margin-bottom: 1.5rem;
+                            text-align: center;
+                        }
+
+                        .blog-post-header h2 {
+                            color: var(--primary-color);
+                            font-family: 'Playfair Display', serif;
+                            font-size: 2.5rem;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .blog-post-full-image {
+                            width: 100%;
+                            height: 400px;
+                            object-fit: cover;
+                            border-radius: 15px;
+                            margin-bottom: 2rem;
+                            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+                        }
+
+                        .blog-post-full-content {
+                            font-size: 1.1rem;
+                            line-height: 1.8;
+                            color: var(--text-color);
+                            margin-bottom: 2rem;
+                            white-space: pre-line;
+                        }
+
+                        @media (max-width: 768px) {
+                            .blog-post-modal {
+                                padding: 1rem;
+                            }
+
+                            .blog-post-header h2 {
+                                font-size: 2rem;
+                            }
+
+                            .blog-post-full-image {
+                                height: 250px;
+                            }
+                        }
+                    `;
+                    modal.appendChild(style);
+
+                    if (this.isAdmin) {
+                        modal.addEventListener('edit-post', () => {
+                            this.editPost(post);
+                            modal.remove();
+                        });
+                        modal.addEventListener('delete-post', () => {
+                            this.deletePost(post);
+                            modal.remove();
+                        });
+                    }
+
+                    document.body.appendChild(modal);
+                },
+                async editPost(post) {
+                    this.editingPost = post;
+                    this.newPost = {
+                        title: post.title,
+                        content: post.content,
+                        excerpt: post.excerpt,
+                        imageUrl: post.imageUrl,
+                        date: post.date.toDate().toISOString().split('T')[0]
+                    };
+                    this.showAddPostModal = true;
+
+                    // Modifier la méthode addBlogPost pour gérer aussi les modifications
+                    const modal = document.querySelector('.modal');
+                    if (modal) {
+                        modal.remove();
+                    }
+                },
+                async deletePost(post) {
+                    if (confirm('Êtes-vous sûr de vouloir supprimer cet article ?')) {
+                        try {
+                            await db.collection('blog_posts').doc(post.id).delete();
+                            alert('Article supprimé avec succès');
+                        } catch (error) {
+                            console.error('Error deleting blog post:', error);
+                            alert('Erreur lors de la suppression de l\'article');
+                        }
+                    }
+                }
             },
             mounted() {
                 // Gestion de la navigation par hash
@@ -5370,6 +5896,8 @@
                 window.addEventListener('resize', () => {
                     this.isMobile = window.innerWidth <= 768;
                 });
+
+                this.loadBlogPosts();
             },
             beforeUnmount() {
                 // Nettoyer tous les écouteurs en temps réel
@@ -5390,6 +5918,9 @@
                 }
                 if (this.unsubscribeMessages) {
                     this.unsubscribeMessages();
+                }
+                if (this.unsubscribeBlogPosts) {
+                    this.unsubscribeBlogPosts();
                 }
             }
         }).mount('#app')
