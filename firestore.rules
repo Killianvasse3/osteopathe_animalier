@@ -2,69 +2,100 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Fonction pour vérifier si l'utilisateur est authentifié
+    // Fonctions de base
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    // Fonction pour vérifier si l'utilisateur est le propriétaire du document
     function isOwner(userId) {
       return isAuthenticated() && userId == request.auth.uid;
     }
 
-    // Fonction pour vérifier si l'utilisateur est admin
     function isAdmin() {
       return isAuthenticated() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
     }
 
+    // Fonction pour vérifier si un créneau est disponible
+    function isSlotAvailable(slotId) {
+      let slot = get(/databases/$(database)/documents/timeSlots/$(slotId)).data;
+      return !slot.unavailable;
+    }
+
     // Collection des utilisateurs
     match /users/{userId} {
-      allow read: if isOwner(userId) || isAdmin();
+      allow read: if isAuthenticated();
       allow create: if isAuthenticated() && request.auth.uid == userId;
       allow update: if isOwner(userId) || isAdmin();
-      allow delete: if isAdmin(); // Permettre aux admins de supprimer les utilisateurs
+      allow delete: if isAdmin();
     }
 
     // Collection des rendez-vous
     match /appointments/{appointmentId} {
-      allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow create: if isAuthenticated();
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      allow read: if isAuthenticated() && (
+        resource == null ||
+        request.auth.uid == resource.data.userId ||
+        isAdmin()
+      );
+
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
+
+      allow update, delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId ||
+        isAdmin()
+      );
+
+      allow list: if isAuthenticated();
     }
 
-    // Collection des services (lecture seule)
+    // Collection des services
     match /services/{serviceId} {
       allow read: if true;
-      allow write: if false;
+      allow write: if isAdmin();
     }
 
     // Collection des animaux
     match /animals/{animalId} {
-      allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow create: if isAuthenticated();
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
-    }
-
-    // Collection des annotations corporelles
-    match /bodyAnnotations/{annotationId} {
-      allow read: if isOwner(resource.data.userId) || isAdmin();
-      allow create: if isAuthenticated();
-      allow update, delete: if isOwner(resource.data.userId) || isAdmin();
+      allow read: if isAuthenticated() && (
+        resource == null ||
+        request.auth.uid == resource.data.userId ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId ||
+        isAdmin()
+      );
     }
 
     // Collection des créneaux horaires
     match /timeSlots/{slotId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, list: if isAuthenticated();
+      allow create, delete: if isAdmin();
+      allow update: if isAuthenticated();
     }
 
     // Collection des messages de contact
     match /contact_messages/{messageId} {
       allow read: if isAdmin();
-      allow create: if true; // Permettre à tout le monde d'envoyer des messages
+      allow create: if true;
       allow update, delete: if isAdmin();
+    }
+
+    // Collection des annotations corporelles
+    match /bodyAnnotations/{annotationId} {
+      allow read: if isAuthenticated() && (
+        resource == null ||
+        request.auth.uid == resource.data.userId ||
+        isAdmin()
+      );
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAuthenticated() && (
+        request.auth.uid == resource.data.userId ||
+        isAdmin()
+      );
     }
   }
 } 

@@ -4,9 +4,18 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Emmy VASSE - Soins naturels pour vos animaux</title>
+    <link rel="manifest" href="manifest.json">
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="images/logo_emmy.png">
     <link rel="apple-touch-icon" href="images/logo_emmy.png">
+    
+    <!-- OneSignal -->
+    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
+    <script>
+        window.OneSignal = window.OneSignal || [];
+        // On n'initialise pas OneSignal immédiatement, on attend la vérification du statut admin
+    </script>
+
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <!-- Firebase App (the core Firebase SDK) -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
@@ -2331,6 +2340,14 @@
             margin: 0;
             padding: 0.6rem 1.2rem;
         }
+
+        /* Ajouter ces styles pour gérer la visibilité du bouton OneSignal */
+        #onesignal-bell-container {
+            display: none !important;
+        }
+        #onesignal-bell-container.show-bell {
+            display: block !important;
+        }
     </style>
 </head>
 <body>
@@ -2945,12 +2962,12 @@
         </footer>
 
         <!-- Bouton flottant du tutoriel -->
-        <button class="tutorial-btn" @click="startTutorial" v-if="!showAuth">
+        <button class="tutorial-btn" @click="startTutorial" v-if="!showAuth && !isAdmin">
             <i>?</i>
         </button>
 
         <!-- Composant du tutoriel -->
-        <template v-if="showTutorial">
+        <template v-if="showTutorial && !isAdmin">
             <div class="tutorial-overlay" @click="skipTutorial"></div>
             <div class="tutorial-step" :style="currentTutorialStep.position">
                 <h3>{{ currentTutorialStep.title }}</h3>
@@ -3536,18 +3553,25 @@
                 },
                 async logout() {
                     try {
-                        // Nettoyer l'abonnement aux mises à jour en temps réel avant la déconnexion
+                        // Nettoyer l'abonnement aux mises à jour en temps réel
                         if (this.unsubscribeAnimals) {
                             this.unsubscribeAnimals();
                             this.unsubscribeAnimals = null;
                         }
                         
-                        // Réinitialiser les données avant la déconnexion
+                        // Réinitialiser les données
                         this.animals = [];
                         this.isAuthenticated = false;
+                        this.isAdmin = false;
                         this.userEmail = '';
                         this.email = '';
                         this.password = '';
+                        
+                        // Cacher le bouton de notification
+                        const bellContainer = document.querySelector('#onesignal-bell-container');
+                        if (bellContainer) {
+                            bellContainer.classList.remove('show-bell');
+                        }
                         
                         // Attendre un court instant pour s'assurer que les données sont nettoyées
                         await new Promise(resolve => setTimeout(resolve, 100));
@@ -3563,7 +3587,7 @@
                         this.error = error.message;
                     }
                 },
-                sendMessage() {
+                async sendMessage() {
                     // Vérification des champs requis
                     if (!this.contactForm.name || !this.contactForm.email || !this.contactForm.message) {
                         alert('Veuillez remplir tous les champs du formulaire.');
@@ -3577,30 +3601,56 @@
                         return;
                     }
 
-                    const messageData = {
-                        name: this.contactForm.name,
-                        email: this.contactForm.email,
-                        message: this.contactForm.message,
-                        status: 'unread',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null
-                    };
+                    try {
+                        const messageData = {
+                            name: this.contactForm.name,
+                            email: this.contactForm.email,
+                            message: this.contactForm.message,
+                            status: 'unread',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null
+                        };
 
-                    // Sauvegarder le message dans Firebase
-                    db.collection('contact_messages')
-                        .add(messageData)
-                        .then(() => {
-                            alert('Message envoyé ! Nous vous contacterons bientôt.');
-                            this.contactForm = {
-                                name: '',
-                                email: '',
-                                message: ''
-                            };
-                        })
-                        .catch(error => {
-                            console.error('Error sending message:', error);
-                            alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
+                        // Sauvegarder le message dans Firebase
+                        const messageRef = await db.collection('contact_messages').add(messageData);
+
+                        // Envoyer une notification aux administrateurs via OneSignal
+                        const notificationData = {
+                            app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
+                            contents: {
+                                en: `Nouveau message de ${this.contactForm.name}`,
+                                fr: `Nouveau message de ${this.contactForm.name}`
+                            },
+                            headings: {
+                                en: "Nouveau message de contact",
+                                fr: "Nouveau message de contact"
+                            },
+                            url: window.location.origin + "/#admin", // Lien vers la section admin
+                            filters: [
+                                {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
+                            ]
+                        };
+
+                        // Envoyer la notification via l'API REST de OneSignal
+                        await fetch('https://onesignal.com/api/v1/notifications', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da' // Vous devrez remplacer ceci par votre API Key OneSignal
+                            },
+                            body: JSON.stringify(notificationData)
                         });
+
+                        alert('Message envoyé ! Nous vous contacterons bientôt.');
+                        this.contactForm = {
+                            name: '',
+                            email: '',
+                            message: ''
+                        };
+                    } catch (error) {
+                        console.error('Error sending message:', error);
+                        alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
+                    }
                 },
                 async loadUnavailableSlots() {
                     if (!this.appointmentForm.date) {
@@ -3734,22 +3784,30 @@
                             .where('time', '==', this.appointmentForm.time)
                             .get();
 
-                        if (!timeSlotSnapshot.empty) {
-                            // Marquer le créneau comme indisponible
-                            await db.collection('timeSlots')
-                                .doc(timeSlotSnapshot.docs[0].id)
-                                .update({
-                                    unavailable: true,
-                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                                });
+                        if (timeSlotSnapshot.empty) {
+                            this.appointmentError = 'Ce créneau n\'est plus disponible';
+                            await this.loadUnavailableSlots();
+                            return;
                         }
+
+                        const timeSlotId = timeSlotSnapshot.docs[0].id;
+
+                        // Marquer le créneau comme indisponible
+                        await db.collection('timeSlots')
+                            .doc(timeSlotId)
+                            .update({
+                                unavailable: true,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
 
                         // Créer le rendez-vous
                         const appointmentData = {
                             ...this.appointmentForm,
                             userId: firebase.auth().currentUser.uid,
                             userEmail: firebase.auth().currentUser.email,
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            timeSlotId: timeSlotId, // Ajouter l'ID du créneau
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            status: 'confirmed'
                         };
 
                         // Si un animal existant est sélectionné, ajouter son ID
@@ -3771,6 +3829,44 @@
                                 })
                             });
                         }
+
+                        // Envoyer une notification aux administrateurs
+                        const formattedDate = new Date(this.appointmentForm.date).toLocaleDateString('fr-FR', {
+                            weekday: 'long',
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        });
+
+                        const notificationData = {
+                            app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
+                            contents: {
+                                en: `Nouveau rendez-vous pour ${this.appointmentForm.animalName} (${this.appointmentForm.animalType})`,
+                                fr: `Nouveau rendez-vous pour ${this.appointmentForm.animalName} (${this.appointmentForm.animalType})`
+                            },
+                            headings: {
+                                en: `${formattedDate} à ${this.appointmentForm.time}`,
+                                fr: `${formattedDate} à ${this.appointmentForm.time}`
+                            },
+                            subtitle: {
+                                en: `Contact: ${this.appointmentForm.phone}`,
+                                fr: `Contact: ${this.appointmentForm.phone}`
+                            },
+                            url: window.location.origin + "/#admin",
+                            filters: [
+                                {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
+                            ]
+                        };
+
+                        // Envoyer la notification
+                        await fetch('https://onesignal.com/api/v1/notifications', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                            },
+                            body: JSON.stringify(notificationData)
+                        });
 
                         // Réinitialiser le formulaire
                         this.appointmentForm = {
@@ -3832,32 +3928,25 @@
                         }
 
                         // Utiliser onSnapshot pour les mises à jour en temps réel
-                        const unsubscribe = db.collection('animals')
+                        this.unsubscribeAnimals = db.collection('animals')
                             .where('userId', '==', userId)
                             .orderBy('createdAt', 'desc')
                             .onSnapshot(
                                 snapshot => {
                                     console.log('Animals updated:', snapshot.docs.length);
-                                    
                                     this.animals = snapshot.docs.map(doc => ({
                                         id: doc.id,
                                         ...doc.data()
                                     }));
-
                                     console.log('Animals loaded:', this.animals);
                                 },
                                 error => {
-                                    // Ne pas afficher l'erreur si l'utilisateur est en train de se déconnecter
                                     if (this.isAuthenticated) {
                                         console.error('Error in real-time update:', error);
                                         alert('Erreur lors de la mise à jour des animaux: ' + error.message);
                                     }
                                 }
                             );
-
-                        // Stocker la fonction unsubscribe pour le nettoyage
-                        this.unsubscribeAnimals = unsubscribe;
-
                     } catch (error) {
                         console.error('Error loading animals:', error);
                         this.animals = [];
@@ -4081,15 +4170,96 @@
                     };
                 },
                 async checkAdminStatus() {
-                    if (!firebase.auth().currentUser) return;
+                    if (!firebase.auth().currentUser) {
+                        this.isAdmin = false;
+                        // Cacher le bouton de notification
+                        const bellContainer = document.querySelector('#onesignal-bell-container');
+                        if (bellContainer) {
+                            bellContainer.classList.remove('show-bell');
+                        }
+                        return;
+                    }
                     try {
                         const userDoc = await db.collection('users')
                             .doc(firebase.auth().currentUser.uid)
                             .get();
                         this.isAdmin = userDoc.exists && userDoc.data().role === 'admin';
+                        
+                        // Initialiser OneSignal uniquement si ce n'est pas déjà fait
+                        if (this.isAdmin) {
+                            if (!window.OneSignal.initialized) {
+                                window.OneSignal.push(function() {
+                                    OneSignal.init({
+                                        appId: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
+                                        safari_web_id: "web.onesignal.auto.xxx",
+                                        notifyButton: {
+                                            enable: true,
+                                            size: 'medium',
+                                            theme: 'default',
+                                            position: 'bottom-right',
+                                            offset: {
+                                                bottom: '20px',
+                                                right: '20px'
+                                            },
+                                            prenotify: true,
+                                            showCredit: false,
+                                            text: {
+                                                'tip.state.unsubscribed': 'Activer les notifications administrateur',
+                                                'tip.state.subscribed': 'Notifications administrateur activées',
+                                                'tip.state.blocked': 'Notifications administrateur bloquées',
+                                                'message.prenotify': 'Cliquez pour activer les notifications administrateur',
+                                                'message.action.subscribed': 'Merci ! Vous recevrez les notifications administrateur',
+                                                'message.action.resubscribed': 'Notifications administrateur réactivées',
+                                                'message.action.unsubscribed': 'Notifications administrateur désactivées',
+                                                'dialog.main.title': 'Notifications Administrateur',
+                                                'dialog.main.button.subscribe': 'ACTIVER',
+                                                'dialog.main.button.unsubscribe': 'DÉSACTIVER',
+                                                'dialog.blocked.title': 'Débloquer les notifications',
+                                                'dialog.blocked.message': 'Suivez ces instructions pour autoriser les notifications:'
+                                            }
+                                        },
+                                        allowLocalhostAsSecureOrigin: true,
+                                        promptOptions: {
+                                            slidedown: {
+                                                prompts: [
+                                                    {
+                                                        type: "push",
+                                                        autoPrompt: true,
+                                                        text: {
+                                                            actionMessage: "Voulez-vous recevoir les notifications administrateur ?",
+                                                            acceptButton: "Autoriser",
+                                                            cancelButton: "Plus tard"
+                                                        }
+                                                    }
+                                                ]
+                                            }
+                                        }
+                                    });
+                                    window.OneSignal.initialized = true;
+                                });
+                            }
+                            // Afficher le bouton de notification
+                            setTimeout(() => {
+                                const bellContainer = document.querySelector('#onesignal-bell-container');
+                                if (bellContainer) {
+                                    bellContainer.classList.add('show-bell');
+                                }
+                            }, 1000);
+                        } else {
+                            // Cacher le bouton de notification pour les non-admins
+                            const bellContainer = document.querySelector('#onesignal-bell-container');
+                            if (bellContainer) {
+                                bellContainer.classList.remove('show-bell');
+                            }
+                        }
                     } catch (error) {
                         console.error('Error checking admin status:', error);
                         this.isAdmin = false;
+                        // Cacher le bouton en cas d'erreur
+                        const bellContainer = document.querySelector('#onesignal-bell-container');
+                        if (bellContainer) {
+                            bellContainer.classList.remove('show-bell');
+                        }
                     }
                 },
                 async loadAllData() {
@@ -4548,39 +4718,61 @@
                     }
                 },
                 async syncTimeSlots() {
+                    if (!this.isAuthenticated) {
+                        console.log('Synchronisation des créneaux ignorée : utilisateur non connecté');
+                        return;
+                    }
+
                     try {
-                        // Récupérer tous les rendez-vous
-                        const appointmentsSnapshot = await db.collection('appointments').get();
+                        console.log('Début de la synchronisation des créneaux...');
                         
-                        for (const appointmentDoc of appointmentsSnapshot.docs) {
-                            const appointment = appointmentDoc.data();
-                            const appointmentDate = new Date(appointment.date);
-                            const startOfDay = new Date(appointmentDate);
-                            startOfDay.setHours(0, 0, 0, 0);
-                            const endOfDay = new Date(appointmentDate);
-                            endOfDay.setHours(23, 59, 59, 999);
+                        // Récupérer tous les rendez-vous
+                        const appointmentsSnapshot = await db.collection('appointments')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(new Date()))
+                            .get();
+                        
+                        // Traiter les rendez-vous par lots de 10 pour éviter les limitations
+                        const appointments = appointmentsSnapshot.docs;
+                        for (let i = 0; i < appointments.length; i += 10) {
+                            const batch = appointments.slice(i, i + 10);
+                            await Promise.all(batch.map(async (appointmentDoc) => {
+                                const appointment = appointmentDoc.data();
+                                const appointmentDate = new Date(appointment.date);
+                                const startOfDay = new Date(appointmentDate);
+                                startOfDay.setHours(0, 0, 0, 0);
+                                const endOfDay = new Date(appointmentDate);
+                                endOfDay.setHours(23, 59, 59, 999);
 
-                            // Trouver le créneau correspondant
-                            const timeSlotSnapshot = await db.collection('timeSlots')
-                                .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
-                                .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
-                                .where('time', '==', appointment.time)
-                                .get();
+                                try {
+                                    // Trouver le créneau correspondant
+                                    const timeSlotSnapshot = await db.collection('timeSlots')
+                                        .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                                        .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                                        .where('time', '==', appointment.time)
+                                        .get();
 
-                            if (!timeSlotSnapshot.empty) {
-                                // Mettre à jour le créneau
-                                await db.collection('timeSlots')
-                                    .doc(timeSlotSnapshot.docs[0].id)
-                                    .update({
-                                        unavailable: true,
-                                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                                    });
-                            }
+                                    if (!timeSlotSnapshot.empty) {
+                                        // Mettre à jour le créneau
+                                        await db.collection('timeSlots')
+                                            .doc(timeSlotSnapshot.docs[0].id)
+                                            .update({
+                                                unavailable: true,
+                                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                            });
+                                    }
+                                } catch (error) {
+                                    console.warn(`Erreur lors de la mise à jour du créneau pour le rendez-vous ${appointmentDoc.id}:`, error);
+                                }
+                            }));
                         }
                         
-                        console.log('Synchronisation des créneaux terminée');
+                        console.log('Synchronisation des créneaux terminée avec succès');
                     } catch (error) {
-                        console.error('Erreur lors de la synchronisation des créneaux:', error);
+                        if (error.code === 'permission-denied') {
+                            console.warn('Synchronisation des créneaux ignorée : permissions insuffisantes');
+                        } else {
+                            console.error('Erreur lors de la synchronisation des créneaux:', error);
+                        }
                     }
                 },
                 async loadAvailableDates() {
@@ -5050,12 +5242,17 @@
                     switch(hash) {
                         case 'appointment':
                             this.currentPage = 'appointment';
-                            this.syncTimeSlots();
-                            this.loadAvailableDates(); // Charger les dates disponibles
+                            if (this.isAuthenticated) {
+                                this.loadAnimals();
+                                this.syncTimeSlots();
+                                this.loadAvailableDates();
+                            }
                             break;
                         case 'dossier':
                             this.currentPage = 'dossier';
-                            this.loadAnimals();
+                            if (this.isAuthenticated) {
+                                this.loadAnimals();
+                            }
                             break;
                         case 'admin':
                             if (this.isAdmin) {
@@ -5066,7 +5263,6 @@
                             break;
                         default:
                             this.currentPage = 'home';
-                            // Faire défiler jusqu'à la section correspondante
                             const element = document.getElementById(hash);
                             if (element) {
                                 element.scrollIntoView({ behavior: 'smooth' });
@@ -5077,16 +5273,23 @@
                 window.addEventListener('hashchange', handleHashChange);
                 handleHashChange();
 
+                // Écouteur d'authentification Firebase
                 firebase.auth().onAuthStateChanged(async (user) => {
                     if (user) {
                         this.isAuthenticated = true;
                         this.userEmail = user.email;
                         await this.checkAdminStatus();
-                        if (this.currentPage === 'dossier') {
-                            this.loadAnimals();
+                        
+                        // Charger les animaux dès la connexion
+                        await this.loadAnimals();
+                        
+                        // Si on est sur la page de rendez-vous, charger les données nécessaires
+                        if (this.currentPage === 'appointment') {
+                            await this.syncTimeSlots();
+                            await this.loadAvailableDates();
                         } else if (this.currentPage === 'admin' && this.isAdmin) {
-                            this.loadAllData();
-                            this.loadSlots();
+                            await this.loadAllData();
+                            await this.loadSlots();
                         }
                     } else {
                         if (this.unsubscribeAnimals) {
@@ -5103,6 +5306,7 @@
                     }
                 });
 
+                // Gestion du responsive
                 window.addEventListener('resize', () => {
                     this.isMobile = window.innerWidth <= 768;
                 });

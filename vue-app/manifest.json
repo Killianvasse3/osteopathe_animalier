@@ -1,0 +1,14 @@
+{
+    "name": "Emmy VASSE - Ostéopathe Animalier",
+    "short_name": "Emmy VASSE",
+    "start_url": "/",
+    "display": "standalone",
+    "gcm_sender_id": "482941778795",
+    "icons": [
+        {
+            "src": "images/logo_emmy.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        }
+    ]
+} 
