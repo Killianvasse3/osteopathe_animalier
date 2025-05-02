@@ -4626,7 +4626,13 @@
                         const slotsToAdd = [];
                         const startDate = new Date(this.newSlot.date);
                         const endDate = this.newSlot.recurrence !== 'none' ? new Date(this.newSlot.endDate) : startDate;
-                        
+
+                        // Validation de base
+                        if (!this.newSlot.time || !this.newSlot.date) {
+                            throw new Error('La date et l\'heure sont requises');
+                        }
+
+                        // Générer tous les créneaux à ajouter
                         if (this.newSlot.recurrence === 'none') {
                             const slotDate = new Date(startDate);
                             const [hours, minutes] = this.newSlot.time.split(':');
@@ -4665,13 +4671,46 @@
                                 }
                             }
                         }
-                        
+
+                        // Vérifier les doublons pour tous les créneaux d'un coup
+                        const conflictingSlots = [];
                         for (const slot of slotsToAdd) {
-                            await db.collection('timeSlots').add({
+                            const dateStr = slot.date.toDate().toISOString().split('T')[0];
+                            const existingSlots = await db.collection('timeSlots')
+                                .where('date', '>=', slot.date)
+                                .where('date', '<=', slot.date)
+                                .get();
+
+                            const hasConflict = existingSlots.docs.some(doc => doc.data().time === slot.time);
+                            if (hasConflict) {
+                                const formattedDate = slot.date.toDate().toLocaleDateString('fr-FR', {
+                                    weekday: 'long',
+                                    year: 'numeric',
+                                    month: 'long',
+                                    day: 'numeric'
+                                });
+                                conflictingSlots.push(`${formattedDate} à ${slot.time}`);
+                            }
+                        }
+
+                        // S'il y a des conflits, afficher tous les créneaux en conflit
+                        if (conflictingSlots.length > 0) {
+                            throw new Error(
+                                'Des créneaux existent déjà aux dates suivantes :\n' +
+                                conflictingSlots.join('\n')
+                            );
+                        }
+                        
+                        // Si aucun conflit, ajouter tous les créneaux
+                        const batch = db.batch();
+                        for (const slot of slotsToAdd) {
+                            const newSlotRef = db.collection('timeSlots').doc();
+                            batch.set(newSlotRef, {
                                 ...slot,
                                 createdAt: firebase.firestore.FieldValue.serverTimestamp()
                             });
                         }
+                        await batch.commit();
                         
                         this.showAddSlotModal = false;
                         this.newSlot = {
@@ -4682,10 +4721,15 @@
                             endDate: ''
                         };
                         await this.loadSlots();
-                        alert('Créneaux ajoutés avec succès');
+                        
+                        // Message de succès avec le nombre de créneaux ajoutés
+                        const message = slotsToAdd.length === 1
+                            ? 'Créneau ajouté avec succès'
+                            : `${slotsToAdd.length} créneaux ajoutés avec succès`;
+                        alert(message);
                     } catch (error) {
                         console.error('Error adding slots:', error);
-                        alert('Erreur lors de l\'ajout des créneaux: ' + error.message);
+                        alert(error.message || 'Erreur lors de l\'ajout des créneaux');
                     }
                 },
                 async toggleSlotAvailability(slot) {

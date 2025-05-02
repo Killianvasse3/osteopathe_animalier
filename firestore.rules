@@ -23,6 +23,19 @@ service cloud.firestore {
       return !slot.unavailable;
     }
 
+    // Fonction pour vérifier si un créneau existe déjà à la même date et heure
+    function hasNoConflictingSlot() {
+      let requestDate = request.resource.data.date;
+      let requestTime = request.resource.data.time;
+      
+      return !exists(/databases/$(database)/documents/timeSlots/**) || 
+        getAfter(/databases/$(database)/documents/timeSlots/**).size() == 0 ||
+        !getAfter(/databases/$(database)/documents/timeSlots)
+          .where('date', '==', requestDate)
+          .where('time', '==', requestTime)
+          .size() > 0;
+    }
+
     // Collection des utilisateurs
     match /users/{userId} {
       allow read: if isAuthenticated();
@@ -73,7 +86,8 @@ service cloud.firestore {
     // Collection des créneaux horaires
     match /timeSlots/{slotId} {
       allow read, list: if isAuthenticated();
-      allow create, delete: if isAdmin();
+      allow create: if isAdmin();
+      allow delete: if isAdmin();
       allow update: if isAuthenticated();
     }
 
