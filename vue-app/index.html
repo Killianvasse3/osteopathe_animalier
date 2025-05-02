@@ -4425,7 +4425,7 @@
                             </div>
                             <div class="modal-actions">
                                 <button class="btn" id="edit-animal-btn">Modifier</button>
-                                <button class="btn secondary" onclick="this.closest('.modal').remove()">Fermer</button>
+                                <button class="btn secondary" id="close-animal-modal">Fermer</button>
                             </div>
                         </div>
                     `;
@@ -4445,6 +4445,28 @@
                     setTimeout(() => {
                         this.displayBodyAnnotations(animal.id);
                     }, 0);
+
+                    // Gestion fermeture (Échap et retour)
+                    const closeModal = () => {
+                        modal.remove();
+                        window.removeEventListener('keydown', escListener);
+                        window.removeEventListener('popstate', popListener);
+                        if (window.location.hash === '#animaldetails') {
+                            history.back();
+                        }
+                    };
+                    const escListener = (e) => {
+                        if (e.key === 'Escape') {
+                            closeModal();
+                        }
+                    };
+                    window.addEventListener('keydown', escListener);
+                    const popListener = (e) => {
+                        closeModal();
+                    };
+                    window.addEventListener('popstate', popListener);
+                    history.pushState({ animalModal: true }, '', '#animaldetails');
+                    modal.querySelector('#close-animal-modal').onclick = closeModal;
                 },
                 showEditAnimalForm(animal, modal) {
                     // Remplacer le contenu de la modal par un formulaire d'édition
@@ -5725,7 +5747,7 @@
                                     <button class="btn primary" onclick="this.closest('.modal').dispatchEvent(new CustomEvent('edit-post'))">Modifier</button>
                                     <button class="btn secondary" onclick="this.closest('.modal').dispatchEvent(new CustomEvent('delete-post'))">Supprimer</button>
                                 ` : ''}
-                                <button class="btn secondary" onclick="this.closest('.modal').remove()">Fermer</button>
+                                <button class="btn secondary" id="close-blog-modal">Fermer</button>
                             </div>
                         </div>
                     `;
@@ -5783,14 +5805,45 @@
                     `;
                     modal.appendChild(style);
 
+                    // Fonction pour fermer le modal proprement
+                    const closeModal = () => {
+                        modal.remove();
+                        window.removeEventListener('keydown', escListener);
+                        window.removeEventListener('popstate', popListener);
+                        // Si on a ajouté une entrée à l'historique, on la retire
+                        if (window.location.hash === '#blogpost') {
+                            history.back();
+                        }
+                    };
+
+                    // Listener pour la touche Échap
+                    const escListener = (e) => {
+                        if (e.key === 'Escape') {
+                            closeModal();
+                        }
+                    };
+                    window.addEventListener('keydown', escListener);
+
+                    // Listener pour le bouton retour du téléphone
+                    const popListener = (e) => {
+                        closeModal();
+                    };
+                    window.addEventListener('popstate', popListener);
+
+                    // Ajoute une entrée à l'historique pour gérer le bouton retour
+                    history.pushState({ blogModal: true }, '', '#blogpost');
+
+                    // Bouton fermer
+                    modal.querySelector('#close-blog-modal').onclick = closeModal;
+
                     if (this.isAdmin) {
                         modal.addEventListener('edit-post', () => {
                             this.editPost(post);
-                            modal.remove();
+                            closeModal();
                         });
                         modal.addEventListener('delete-post', () => {
                             this.deletePost(post);
-                            modal.remove();
+                            closeModal();
                         });
                     }
 
