@@ -51,6 +51,8 @@
             color: var(--text-color);
             line-height: 1.6;
             background-color: var(--white);
+            margin: 0;
+            padding: 0;
         }
 
         .header {
@@ -155,6 +157,14 @@
         .page-container {
             min-height: 100vh;
             padding-top: 80px;
+            margin: 0;
+        }
+
+        @media (max-width: 768px) {
+            .page-container {
+                padding-top: 70px !important;
+                margin: 0 !important;
+            }
         }
 
         .hero {
@@ -2534,10 +2544,10 @@
             background: white;
             border-radius: 20px;
             box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            margin: 2rem auto;
+            margin: 90px auto 2rem auto;
             position: relative;
             overflow-y: auto;
-            max-height: 90vh;
+            max-height: calc(100vh - 120px);
         }
 
         .blog-post-header {
@@ -2595,8 +2605,9 @@
         @media (max-width: 768px) {
             .blog-post-modal {
                 padding: 1rem !important;
-                margin: 1rem;
-                width: calc(100% - 2rem) !important;
+                margin: 80px 0.5rem 1rem 0.5rem;
+                width: calc(100% - 1rem) !important;
+                max-height: calc(100vh - 100px);
             }
 
             .blog-post-header h2 {
