@@ -171,13 +171,14 @@
             background: linear-gradient(rgba(75, 108, 193, 0.7), rgba(155, 78, 199, 0.7)),
                         url('images/Photo_cheval.jpg');
             background-size: cover;
-            background-position: center;
+            background-position: 75% center;
             min-height: calc(100vh - 80px);
             display: flex;
             align-items: center;
             justify-content: center;
             text-align: center;
             color: white;
+            filter: sepia(50%);
         }
 
         .hero-content {
@@ -496,6 +497,7 @@
 
             .hero {
                 min-height: calc(100vh - 60px);
+                background-position: 75% center;
             }
 
             .hero-content {
