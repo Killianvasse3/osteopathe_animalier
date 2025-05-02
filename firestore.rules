@@ -12,6 +12,7 @@ service cloud.firestore {
       return isAuthenticated() && userId == request.auth.uid;
     }
 
+    // Fonction pour vérifier si l'utilisateur est admin
     function isAdmin() {
       return isAuthenticated() && 
         exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
@@ -22,8 +23,8 @@ service cloud.firestore {
     match /users/{userId} {
       allow read: if isOwner(userId) || isAdmin();
       allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isOwner(userId);
-      allow delete: if false; // Les utilisateurs ne peuvent pas supprimer leur compte
+      allow update: if isOwner(userId) || isAdmin();
+      allow delete: if isAdmin(); // Permettre aux admins de supprimer les utilisateurs
     }
 
     // Collection des rendez-vous
@@ -57,6 +58,13 @@ service cloud.firestore {
     match /timeSlots/{slotId} {
       allow read: if true;
       allow write: if isAdmin();
+    }
+
+    // Collection des messages de contact
+    match /contact_messages/{messageId} {
+      allow read: if isAdmin();
+      allow create: if true; // Permettre à tout le monde d'envoyer des messages
+      allow update, delete: if isAdmin();
     }
   }
 } 

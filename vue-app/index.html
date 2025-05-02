@@ -2686,7 +2686,7 @@
                                 <tr v-for="animal in filteredAnimals" :key="animal.id">
                                     <td>{{ animal.name }}</td>
                                     <td>{{ animal.type }}</td>
-                                    <td>{{ getUserEmail(animal.userId) }}</td>
+                                    <td>{{ getUserFullName(animal.userId) }}</td>
                                     <td>{{ formatDate(animal.birthdate) }}</td>
                                     <td>
                                         <div class="action-buttons">
@@ -2728,7 +2728,7 @@
                                     <td>{{ formatDate(appointment.date) }}</td>
                                     <td>{{ appointment.time }}</td>
                                     <td>{{ appointment.animalName }}</td>
-                                    <td>{{ getUserEmail(appointment.userId) }}</td>
+                                    <td>{{ getUserFullName(appointment.userId) }}</td>
                                     <td>{{ appointment.phone }}</td>
                                     <td>
                                         <div class="action-buttons">
@@ -3366,7 +3366,7 @@
                     return this.allAnimals.filter(animal => 
                         animal.name.toLowerCase().includes(search) ||
                         animal.type.toLowerCase().includes(search) ||
-                        this.getUserEmail(animal.userId).toLowerCase().includes(search)
+                        this.getUserFullName(animal.userId).toLowerCase().includes(search)
                     );
                 },
                 filteredAppointments() {
@@ -3374,7 +3374,7 @@
                     const search = this.adminSearch.toLowerCase();
                     return this.allAppointments.filter(apt => 
                         apt.animalName.toLowerCase().includes(search) ||
-                        this.getUserEmail(apt.userId).toLowerCase().includes(search)
+                        this.getUserFullName(apt.userId).toLowerCase().includes(search)
                     );
                 },
                 currentMonthName() {
@@ -4095,6 +4095,18 @@
                 async loadAllData() {
                     if (!this.isAdmin) return;
                     try {
+                        // Charger tous les utilisateurs d'abord
+                        const usersSnapshot = await db.collection('users').get();
+                        this.userEmails = {};
+                        usersSnapshot.docs.forEach(doc => {
+                            this.userEmails[doc.id] = {
+                                email: doc.data().email,
+                                firstName: doc.data().firstName || '',
+                                lastName: doc.data().lastName || '',
+                                role: doc.data().role
+                            };
+                        });
+
                         // Charger tous les animaux
                         const animalsSnapshot = await db.collection('animals').get();
                         this.allAnimals = animalsSnapshot.docs.map(doc => ({
@@ -4110,7 +4122,6 @@
                         }));
 
                         // Charger tous les clients (users)
-                        const usersSnapshot = await db.collection('users').get();
                         this.allClients = usersSnapshot.docs
                             .filter(doc => doc.data().role !== 'admin') // Exclure les administrateurs
                             .map(doc => ({
@@ -4122,28 +4133,15 @@
                                 animalsCount: this.allAnimals.filter(animal => animal.userId === doc.id).length
                             }));
 
-                        // Charger les emails des utilisateurs pour la rétrocompatibilité
-                        const userIds = new Set([
-                            ...this.allAnimals.map(a => a.userId),
-                            ...this.allAppointments.map(a => a.userId)
-                        ]);
-                        
-                        for (const userId of userIds) {
-                            if (!this.userEmails[userId]) {
-                                const userDoc = await db.collection('users').doc(userId).get();
-                                if (userDoc.exists) {
-                                    this.userEmails[userId] = userDoc.data().email;
-                                }
-                            }
-                        }
-
                         await this.loadMessages();
                     } catch (error) {
                         console.error('Error loading admin data:', error);
                     }
                 },
-                getUserEmail(userId) {
-                    return this.userEmails[userId] || 'Email non trouvé';
+                getUserFullName(userId) {
+                    const user = this.userEmails[userId];
+                    if (!user) return 'Client non trouvé';
+                    return `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Client non trouvé';
                 },
                 async editAnimal(animal) {
                     // Ouvre une modale d'édition moderne pour l'admin
@@ -4827,14 +4825,50 @@
                     }
                 },
                 async deleteClient(client) {
-                    if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ?`)) return;
+                    if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ? Cette action supprimera également tous ses animaux et rendez-vous.`)) return;
                     try {
-                        await db.collection('users').doc(client.id).delete();
+                        // Commencer une transaction batch
+                        const batch = db.batch();
+
+                        // 1. Supprimer tous les animaux du client
+                        const animalsSnapshot = await db.collection('animals')
+                            .where('userId', '==', client.id)
+                            .get();
+                        animalsSnapshot.docs.forEach(doc => {
+                            batch.delete(doc.ref);
+                        });
+
+                        // 2. Supprimer tous les rendez-vous du client
+                        const appointmentsSnapshot = await db.collection('appointments')
+                            .where('userId', '==', client.id)
+                            .get();
+                        appointmentsSnapshot.docs.forEach(doc => {
+                            batch.delete(doc.ref);
+                        });
+
+                        // 3. Supprimer tous les messages du client
+                        const messagesSnapshot = await db.collection('contact_messages')
+                            .where('userId', '==', client.id)
+                            .get();
+                        messagesSnapshot.docs.forEach(doc => {
+                            batch.delete(doc.ref);
+                        });
+
+                        // 4. Supprimer le document utilisateur
+                        batch.delete(db.collection('users').doc(client.id));
+
+                        // Exécuter toutes les opérations de suppression
+                        await batch.commit();
+
+                        // Mettre à jour la liste locale des clients
                         this.allClients = this.allClients.filter(c => c.id !== client.id);
-                        alert('Client supprimé avec succès');
+                        alert('Client et toutes ses données associées supprimés avec succès');
+
+                        // Recharger les données pour mettre à jour les autres listes
+                        this.loadAllData();
                     } catch (error) {
                         console.error('Error deleting client:', error);
-                        alert('Erreur lors de la suppression');
+                        alert('Erreur lors de la suppression: ' + error.message);
                     }
                 },
                 viewClientAnimals(client) {
