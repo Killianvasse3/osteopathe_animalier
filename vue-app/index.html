@@ -2727,6 +2727,47 @@
             color: var(--text-color);
             font-weight: 500;
         }
+
+        .documents-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+
+        .document-card {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .document-card img {
+            width: 100%;
+            height: 150px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-bottom: 0.5rem;
+        }
+
+        .document-card p {
+            font-size: 0.9rem;
+            color: var(--text-color);
+            margin: 0;
+        }
+
+        .document-card {
+            transition: transform 0.2s ease-in-out;
+        }
+        .document-card:hover {
+            transform: scale(1.02);
+        }
+        .modal {
+            z-index: 1000;
+        }
+        .modal-content img {
+            transition: transform 0.3s ease-in-out;
+        }
     </style>
 </head>
 <body>
@@ -2915,7 +2956,7 @@
 
                             <!-- Formulaire pour consultation de suivi -->
                             <template v-if="appointmentForm.consultationType === 'suivi'">
-                                <div class="form-group">
+                            <div class="form-group">
                                     <label for="animalSelect">Sélectionner un animal</label>
                                     <select id="animalSelect" v-model="appointmentForm.selectedAnimalId" @change="onAnimalSelected" required>
                                         <option value="">Sélectionnez un animal</option>
@@ -2923,8 +2964,8 @@
                                             {{ animal.name }} ({{ animal.species }})
                                         </option>
                                         <option value="autre">Autre animal</option>
-                                    </select>
-                                </div>
+                                </select>
+                            </div>
 
                                 <!-- Message pour "Autre animal" -->
                                 <div v-if="appointmentForm.selectedAnimalId === 'autre'" class="info-message" style="background: var(--light-bg); padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
@@ -2938,54 +2979,54 @@
                                         </li>
                                     </ul>
                                     <p>Ou utilisez le <a href="#contact" @click="scrollToContact">formulaire de contact</a> ci-dessous.</p>
-                                </div>
+                            </div>
 
                                 <!-- Formulaire de rendez-vous pour un animal existant -->
                                 <template v-if="appointmentForm.selectedAnimalId && appointmentForm.selectedAnimalId !== 'autre'">
-                                    <div class="form-group">
-                                        <label for="phone">Numéro de téléphone</label>
-                                        <input type="tel" id="phone" v-model="appointmentForm.phone" 
-                                               pattern="[0-9]{10}" 
-                                               placeholder="0612345678" 
-                                               required>
-                                        <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
-                                    </div>
+                            <div class="form-group">
+                                <label for="phone">Numéro de téléphone</label>
+                                <input type="tel" id="phone" v-model="appointmentForm.phone" 
+                                       pattern="[0-9]{10}" 
+                                       placeholder="0612345678" 
+                                       required>
+                                <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
+                            </div>
 
-                                    <div class="form-group">
-                                        <label for="appointmentDate">Date du rendez-vous</label>
-                                        <select id="appointmentDate" 
-                                                v-model="appointmentForm.date" 
-                                                required
-                                                :disabled="isLoadingDates">
-                                            <option value="">Sélectionnez une date</option>
-                                            <option v-for="date in availableDates" 
-                                                    :key="date" 
-                                                    :value="date">
-                                                {{ formatDateFr(date) }}
-                                            </option>
-                                        </select>
-                                        <div v-if="isLoadingDates" class="loading-message">
-                                            Chargement des dates disponibles...
-                                        </div>
+                            <div class="form-group">
+                                <label for="appointmentDate">Date du rendez-vous</label>
+                                <select id="appointmentDate" 
+                                        v-model="appointmentForm.date" 
+                                        required
+                                        :disabled="isLoadingDates">
+                                    <option value="">Sélectionnez une date</option>
+                                    <option v-for="date in availableDates" 
+                                            :key="date" 
+                                            :value="date">
+                                        {{ formatDateFr(date) }}
+                                    </option>
+                                </select>
+                                <div v-if="isLoadingDates" class="loading-message">
+                                    Chargement des dates disponibles...
+                                </div>
                                         <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message" style="color: var(--text-color);">
-                                            Aucune date disponible pour les 30 prochains jours.
-                                        </div>
-                                    </div>
+                                    Aucune date disponible pour les 30 prochains jours.
+                                </div>
+                            </div>
 
-                                    <div class="form-group">
-                                        <label>Heure du rendez-vous</label>
-                                        <div v-if="displayedTimeSlots.length === 0" class="no-slots-message">
-                                            Aucun créneau disponible pour cette date.
-                                        </div>
-                                        <div v-else class="time-slots">
-                                            <div v-for="slot in displayedTimeSlots" 
-                                                 :key="slot"
-                                                 class="time-slot"
-                                                 :class="{ 'selected': appointmentForm.time === slot }"
-                                                 @click="appointmentForm.time = slot">
-                                                {{ slot }}
-                                            </div>
-                                        </div>
+                            <div class="form-group">
+                                <label>Heure du rendez-vous</label>
+                                <div v-if="displayedTimeSlots.length === 0" class="no-slots-message">
+                                    Aucun créneau disponible pour cette date.
+                                </div>
+                                <div v-else class="time-slots">
+                                    <div v-for="slot in displayedTimeSlots" 
+                                         :key="slot"
+                                         class="time-slot"
+                                         :class="{ 'selected': appointmentForm.time === slot }"
+                                         @click="appointmentForm.time = slot">
+                                        {{ slot }}
+                                    </div>
+                                </div>
                                         <div class="info-message" style="margin-top: 1rem; color: var(--text-color); font-style: italic; background: var(--light-bg); padding: 1rem; border-radius: 8px;">
                                             D'autres créneaux peuvent être disponibles. N'hésitez pas à me contacter directement :
                                             <ul style="list-style: none; margin-top: 0.5rem;">
@@ -2993,14 +3034,14 @@
                                                 <li>💬 Par message : <a href="#contact" @click="scrollToContact">formulaire de contact</a></li>
                                             </ul>
                                         </div>
-                                    </div>
+                            </div>
 
-                                    <div class="form-group">
-                                        <label for="notes">Notes supplémentaires</label>
-                                        <textarea id="notes" v-model="appointmentForm.notes" rows="3"></textarea>
-                                    </div>
+                            <div class="form-group">
+                                <label for="notes">Notes supplémentaires</label>
+                                <textarea id="notes" v-model="appointmentForm.notes" rows="3"></textarea>
+                            </div>
 
-                                    <button type="submit" class="btn primary">Confirmer le rendez-vous</button>
+                            <button type="submit" class="btn primary">Confirmer le rendez-vous</button>
                                 </template>
                             </template>
                         </form>
@@ -3127,6 +3168,11 @@
                                     <div v-if="newAnimal.photoPreview" class="photo-preview">
                                         <img :src="newAnimal.photoPreview" alt="Aperçu de la photo" style="max-width: 200px; margin-top: 1rem;">
                                     </div>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newAnimalDocuments">Documents</label>
+                                    <input type="file" id="newAnimalDocuments" @change="handleDocumentUpload">
+                                    <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : PDF, JPG, PNG (max 10MB)</small>
                                 </div>
                                 <div class="modal-actions">
                                     <button type="button" class="btn secondary" @click="showAddAnimalModal = false">Annuler</button>
@@ -3818,6 +3864,7 @@
                         photoUrl: '',
                         photoPreview: '',
                         photoBase64: null,
+                        documents: [],
                         appointments: []
                     },
                     unsubscribeAnimals: null,
@@ -4549,11 +4596,14 @@
                         return;
                     }
 
-                    const animalData = {
+                    console.log('Début de l\'ajout de l\'animal');
+                    console.log('Documents à ajouter:', this.newAnimal.documents);
+
+                        const animalData = {
                         name: this.newAnimal.name,
                         species: this.newAnimal.species,
                         race: this.newAnimal.race || '',
-                        birthdate: this.newAnimal.birthdate,
+                            birthdate: this.newAnimal.birthdate,
                         sterilization: this.newAnimal.sterilization || false,
                         diet: this.newAnimal.diet || '',
                         activity: this.newAnimal.activity || '',
@@ -4564,23 +4614,27 @@
                         notes: this.newAnimal.notes || '',
                         userId: currentUser.uid,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        documents: this.newAnimal.documents || []
                     };
 
-                    // Si une photo a été sélectionnée, l'ajouter aux données
+                    console.log('Données de l\'animal préparées:', animalData);
+
                     if (this.newAnimal.photoBase64) {
                         animalData.photoBase64 = this.newAnimal.photoBase64;
                     }
 
-                    // Enregistrer l'animal dans Firestore
+                    console.log('Envoi à Firestore...');
+
                     firebase.firestore().collection('animals').add(animalData)
                         .then(() => {
+                            console.log('Animal ajouté avec succès');
                             this.showAddAnimalModal = false;
-                            this.newAnimal = {
-                                name: '',
+                        this.newAnimal = {
+                            name: '',
                                 species: '',
                                 race: '',
-                                birthdate: '',
+                            birthdate: '',
                                 sterilization: false,
                                 diet: '',
                                 activity: '',
@@ -4590,14 +4644,15 @@
                                 notes: '',
                                 photoUrl: '',
                                 photoPreview: null,
-                                photoBase64: null
+                                photoBase64: null,
+                                documents: []
                             };
                             this.loadAnimals();
-                            alert('Animal ajouté avec succès !');
+                        alert('Animal ajouté avec succès !');
                         })
                         .catch(error => {
-                            console.error('Erreur lors de l\'ajout de l\'animal:', error);
-                            alert('Une erreur est survenue lors de l\'ajout de l\'animal');
+                            console.error('Erreur détaillée lors de l\'ajout de l\'animal:', error);
+                            alert('Une erreur est survenue lors de l\'ajout de l\'animal: ' + error.message);
                         });
                 },
                 formatDate(date) {
@@ -4613,7 +4668,6 @@
                     return new Date(dateString).toLocaleDateString('fr-FR', options);
                 },
                 viewAnimalDetails(animal) {
-                    // Créer une modal pour afficher les détails de l'animal
                     const modal = document.createElement('div');
                     modal.className = 'modal';
                     modal.innerHTML = `
@@ -4670,12 +4724,27 @@
                                     <img src="images/body_map_${animal.species}.svg" alt="Plan du corps ${animal.species}" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
                                 <div class="body-map-annotations-list" id="annotations-list-${animal.id}">
-                                    <h4>Annotations du plan du corps :</h4>
-                                    <ul></ul>
+                                  <h4>Annotations du plan du corps :</h4>
+                                  <ul></ul>
                                 </div>
                                 <button class="btn btn-add-annotation">
                                     Ajouter une annotation
                                 </button>
+                            </div>
+                            <div class="animal-details-section">
+                                <h3>Documents</h3>
+                                <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+                                    ${animal.documents && animal.documents.length > 0 
+                                        ? animal.documents.map(doc => `
+                                            <div class="document-card" style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;" onclick="this.dispatchEvent(new CustomEvent('view-document', {detail: '${doc.id}', bubbles: true}))">
+                                                <img src="${doc.data}" alt="${doc.name}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                                                <p style="font-size: 0.9rem; color: var(--text-color); margin: 0;">${doc.name}</p>
+                                                <p style="font-size: 0.8rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">${this.formatDate(doc.date)}</p>
+                                            </div>
+                                        `).join('')
+                                        : '<p>Aucun document</p>'
+                                    }
+                                </div>
                             </div>
                             <div class="appointments-history">
                                 <h3>Historique des rendez-vous</h3>
@@ -4698,6 +4767,30 @@
                         </div>
                     `;
                     document.body.appendChild(modal);
+
+                    // Ajouter le gestionnaire pour l'affichage en grand format
+                    modal.addEventListener('view-document', (e) => {
+                        const documentId = e.detail;
+                        const selectedDoc = animal.documents.find(doc => doc.id === documentId);
+                        if (selectedDoc) {
+                            const fullscreenModal = window.document.createElement('div');
+                            fullscreenModal.className = 'modal';
+                            fullscreenModal.style.zIndex = '1001'; // Pour être au-dessus de la modal des détails
+                            fullscreenModal.innerHTML = `
+                                <div class="modal-content" style="max-width: 90vw; max-height: 90vh; padding: 1rem;">
+                                    <div style="position: relative;">
+                                        <img src="${selectedDoc.data}" alt="${selectedDoc.name}" style="max-width: 100%; max-height: calc(90vh - 100px); object-fit: contain;">
+                                        <button class="btn secondary" style="position: absolute; top: 10px; right: 10px;" onclick="this.closest('.modal').remove()">Fermer</button>
+                                    </div>
+                                    <div style="margin-top: 1rem;">
+                                        <h3 style="margin: 0;">${selectedDoc.name}</h3>
+                                        <p style="margin: 0.5rem 0 0 0; color: var(--secondary-color);">Ajouté le ${this.formatDate(selectedDoc.date)}</p>
+                                    </div>
+                                </div>
+                            `;
+                            window.document.body.appendChild(fullscreenModal);
+                        }
+                    });
 
                     // Ajout de la logique d'édition
                     document.getElementById('edit-animal-btn').onclick = () => {
@@ -4775,8 +4868,8 @@
                                                 <input type="radio" name="sterilization" value="false" ${!animal.sterilization ? 'checked' : ''}>
                                                 Non
                                             </label>
-                                        </div>
-                                    </div>
+                                </div>
+                            </div>
                                 </div>
                             </div>
 
@@ -4816,6 +4909,27 @@
                             <div class="form-group">
                                 <label>Notes supplémentaires :</label>
                                 <textarea id="edit-animal-notes" rows="3">${animal.notes || ''}</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Documents :</label>
+                                <div class="documents-grid">
+                                    ${animal.documents && animal.documents.length > 0 
+                                        ? animal.documents.map(doc => `
+                                            <div class="document-card">
+                                                <img src="${doc.data}" alt="${doc.name}">
+                                                <p>${doc.name}</p>
+                                                <p>${this.formatDate(doc.date)}</p>
+                                                <button type="button" class="btn-delete" onclick="this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        `).join('')
+                                        : '<p>Aucun document</p>'
+                                    }
+                                </div>
+                                <input type="file" id="edit-animal-documents" accept="image/*" style="margin-top: 1rem;">
+                                <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : JPG, PNG</small>
                             </div>
 
                             <div class="modal-actions">
@@ -4876,15 +4990,217 @@
                             photoBase64: newPhotoBase64,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
+
+                        // Ajouter le gestionnaire de documents
+                        const documentsInput = modal.querySelector('#edit-animal-documents');
+                        if (documentsInput.files.length > 0) {
+                            const file = documentsInput.files[0];
+                            try {
+                                if (!file.type.startsWith('image/')) {
+                                    alert('Le fichier doit être une image');
+                                    return;
+                                }
+
+                                const reader = new FileReader();
+                                reader.onload = async (e) => {
+                                    const img = new Image();
+                                    img.onload = async () => {
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+                                        
+                                        const MAX_WIDTH = 1400;
+                                        const MAX_HEIGHT = 1400;
+                                        
+                                        if (width > MAX_WIDTH) {
+                                            height *= MAX_WIDTH / width;
+                                            width = MAX_WIDTH;
+                                        }
+                                        
+                                        if (height > MAX_HEIGHT) {
+                                            width *= MAX_HEIGHT / height;
+                                            height = MAX_HEIGHT;
+                                        }
+                                        
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        
+                                        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                                        
+                                        const newDocument = {
+                                            id: Date.now().toString(),
+                                            name: file.name,
+                                            date: new Date().toISOString(),
+                                            data: resizedBase64
+                                        };
+
+                                        if (!updatedAnimal.documents) {
+                                            updatedAnimal.documents = [];
+                                        }
+                                        updatedAnimal.documents.push(newDocument);
+
                         try {
                             await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
                             alert('Modifications enregistrées !');
                             modal.remove();
                             this.loadAnimals();
                         } catch (err) {
+                                            console.error('Erreur lors de la sauvegarde:', err);
                             alert('Erreur lors de la sauvegarde : ' + err.message);
                         }
                     };
+                                    img.src = e.target.result;
+                                };
+                                reader.readAsDataURL(file);
+                            } catch (error) {
+                                console.error('Erreur lors du traitement du document:', error);
+                                alert('Erreur lors du traitement du document. Veuillez réessayer.');
+                            }
+                        } else {
+                            try {
+                                await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
+                                alert('Modifications enregistrées !');
+                                modal.remove();
+                                this.loadAnimals();
+                            } catch (err) {
+                                console.error('Erreur lors de la sauvegarde:', err);
+                                alert('Erreur lors de la sauvegarde : ' + err.message);
+                            }
+                        }
+                    };
+
+                    // Gestion des documents
+                    const documentsInput = modal.querySelector('#edit-animal-documents');
+                    documentsInput.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            try {
+                                // Vérifier le type de fichier
+                                if (!file.type.startsWith('image/')) {
+                                    alert('Le fichier doit être une image');
+                                    e.target.value = '';
+                                    return;
+                                }
+
+                                // Créer un aperçu de l'image
+                                const reader = new FileReader();
+                                reader.onload = async (e) => {
+                                    // Créer une image pour le redimensionnement
+                                    const img = new Image();
+                                    img.onload = async () => {
+                                        // Créer un canvas pour le redimensionnement
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+                                        
+                                        // Calculer les nouvelles dimensions en gardant le ratio
+                                        const MAX_WIDTH = 1200;
+                                        const MAX_HEIGHT = 1200;
+                                        
+                                        if (width > height) {
+                                            if (width > MAX_WIDTH) {
+                                                height *= MAX_WIDTH / width;
+                                                width = MAX_WIDTH;
+                                            }
+                                        } else {
+                                            if (height > MAX_HEIGHT) {
+                                                width *= MAX_HEIGHT / height;
+                                                height = MAX_HEIGHT;
+                                            }
+                                        }
+                                        
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        
+                                        // Dessiner l'image redimensionnée
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        
+                                        // Convertir en base64 avec compression adaptée
+                                        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
+                                        
+                                        // Créer un nouvel objet document
+                                        const newDocument = {
+                                            id: Date.now().toString(),
+                                            name: file.name,
+                                            date: new Date().toISOString(),
+                                            data: resizedBase64
+                                        };
+
+                                        // Ajouter le document à la liste
+                                        if (!animal.documents) {
+                                            animal.documents = [];
+                                        }
+                                        animal.documents.push(newDocument);
+
+                                        // Mettre à jour l'affichage
+                                        const documentsGrid = modal.querySelector('.documents-grid');
+                                        documentsGrid.innerHTML = animal.documents.map(doc => `
+                                            <div class="document-card">
+                                                <img src="${doc.data}" alt="${doc.name}">
+                                                <p>${doc.name}</p>
+                                                <p>${this.formatDate(doc.date)}</p>
+                                                <button type="button" class="btn-delete" onclick="this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        `).join('');
+                                    };
+                                    img.src = e.target.result;
+                                };
+                                reader.readAsDataURL(file);
+                            } catch (error) {
+                                console.error('Erreur lors du traitement du document:', error);
+                                alert('Erreur lors du traitement du document. Veuillez réessayer.');
+                                e.target.value = '';
+                            }
+                        }
+                    });
+
+                    // Gestion de la suppression des documents
+                    modal.addEventListener('delete-document', async (e) => {
+                        const documentId = e.detail;
+                        try {
+                            // Récupérer l'animal actuel
+                            const animalDoc = await firebase.firestore().collection('animals').doc(animal.id).get();
+                            const currentAnimal = animalDoc.data();
+                            
+                            // Filtrer les documents pour retirer celui qu'on veut supprimer
+                            const updatedDocuments = currentAnimal.documents.filter(doc => doc.id !== documentId);
+                            
+                            // Mettre à jour l'animal avec la nouvelle liste de documents
+                            await firebase.firestore().collection('animals').doc(animal.id).update({
+                                documents: updatedDocuments,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+
+                            // Mettre à jour l'affichage
+                            const documentsGrid = modal.querySelector('.documents-grid');
+                            if (updatedDocuments.length > 0) {
+                                documentsGrid.innerHTML = updatedDocuments.map(doc => `
+                                    <div class="document-card">
+                                        <img src="${doc.data}" alt="${doc.name}">
+                                        <p>${doc.name}</p>
+                                        <p>${this.formatDate(doc.date)}</p>
+                                        <button type="button" class="btn-delete" onclick="this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                `).join('');
+                            } else {
+                                documentsGrid.innerHTML = '<p>Aucun document</p>';
+                            }
+
+                            // Mettre à jour la référence locale
+                            animal.documents = updatedDocuments;
+                        } catch (error) {
+                            console.error('Erreur lors de la suppression du document:', error);
+                            alert('Erreur lors de la suppression du document. Veuillez réessayer.');
+                        }
+                    });
                 },
                 async checkAdminStatus() {
                     if (!firebase.auth().currentUser) {
@@ -5074,15 +5390,15 @@
                                                     <input type="radio" name="admin-sterilization" value="false" ${!animal.sterilization ? 'checked' : ''}>
                                                     Non
                                                 </label>
-                                            </div>
-                                        </div>
                                     </div>
                                 </div>
+                                </div>
+                                    </div>
 
                                 <div class="form-group">
                                     <label>Alimentation :</label>
                                     <textarea id="admin-edit-animal-diet" rows="2" placeholder="Type d'alimentation, fréquence des repas, etc.">${animal.diet || ''}</textarea>
-                                </div>
+                                    </div>
 
                                 <div class="form-group">
                                     <label>Activité :</label>
@@ -5709,6 +6025,80 @@
                         }
                     }
                 },
+                async handleDocumentUpload(event) {
+                    const file = event.target.files[0];
+                    if (file) {
+                        try {
+                            console.log('Début du traitement du document:', file.name);
+
+                        if (!file.type.startsWith('image/')) {
+                            alert('Le fichier doit être une image');
+                            event.target.value = '';
+                            return;
+                        }
+
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
+                                const img = new Image();
+                                img.onload = async () => {
+                                    console.log('Image chargée, début du redimensionnement');
+                                    const canvas = document.createElement('canvas');
+                                    let width = img.width;
+                                    let height = img.height;
+                                    
+                                    // Redimensionnement si nécessaire
+                                    const MAX_WIDTH = 1400;
+                                    const MAX_HEIGHT = 1400;
+                                    
+                                    if (width > MAX_WIDTH) {
+                                        height *= MAX_WIDTH / width;
+                                        width = MAX_WIDTH;
+                                    }
+                                    
+                                    if (height > MAX_HEIGHT) {
+                                        width *= MAX_HEIGHT / height;
+                                        height = MAX_HEIGHT;
+                                    }
+                                    
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    
+                                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                                    console.log('Image redimensionnée, taille:', resizedBase64.length);
+                                    
+                                    const newDocument = {
+                                        id: Date.now().toString(),
+                                        name: file.name,
+                                        date: new Date().toISOString(),
+                                        data: resizedBase64
+                                    };
+                                    
+                                    console.log('Document créé avec ID:', newDocument.id);
+                                    
+                                    if (!this.newAnimal.documents) {
+                                        this.newAnimal.documents = [];
+                                        console.log('Initialisation du tableau documents');
+                                    }
+                                    
+                                    this.newAnimal.documents.push(newDocument);
+                                    console.log('Document ajouté, nombre total:', this.newAnimal.documents.length);
+                                    console.log('Documents actuels:', JSON.stringify(this.newAnimal.documents));
+                                    
+                                    this.$forceUpdate();
+                                };
+                                img.src = e.target.result;
+                        };
+                        reader.readAsDataURL(file);
+                        } catch (error) {
+                            console.error('Erreur détaillée lors du traitement du document:', error);
+                            alert('Erreur lors du traitement du document. Veuillez réessayer.');
+                            event.target.value = '';
+                        }
+                    }
+                },
                 // Ajout d'une méthode pour gérer les annotations sur le plan du corps
                 addBodyAnnotation(animalId) {
                     // Trouver le SVG du body map
@@ -6315,8 +6705,8 @@
                         } catch (error) {
                             console.error('Error deleting blog post:', error);
                             alert('Erreur lors de la suppression de l\'article');
-                        }
                     }
+                }
                 },
             },
             mounted() {
