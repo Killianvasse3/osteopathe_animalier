@@ -2785,86 +2785,115 @@
                         </div>
                         <form @submit.prevent="submitAppointment">
                             <div class="form-group">
-                                <label for="animalSelect">Sélectionner un animal existant</label>
-                                <select id="animalSelect" v-model="appointmentForm.selectedAnimalId" @change="onAnimalSelected">
-                                    <option value="">Sélectionnez un animal</option>
-                                    <option v-for="animal in animals" :key="animal.id" :value="animal.id">
-                                        {{ animal.name }} ({{ animal.type }})
-                                    </option>
+                                <label for="consultationType">Type de consultation</label>
+                                <select id="consultationType" v-model="appointmentForm.consultationType" required>
+                                    <option value="">Sélectionnez le type de consultation</option>
+                                    <option value="premiere">Première consultation</option>
+                                    <option value="suivi">Consultation de suivi</option>
+                                    <option value="particulier">Consultation pour motif particulier</option>
                                 </select>
                             </div>
 
-                            <div class="form-group">
-                                <label for="animalType">Type d'animal</label>
-                                <select id="animalType" v-model="appointmentForm.animalType" required>
-                                    <option value="">Sélectionnez un type d'animal</option>
-                                    <option value="chien">Chien</option>
-                                    <option value="chat">Chat</option>
-                                    <option value="cheval">Cheval</option>
-                                    <option value="autre">Autre</option>
-                                </select>
+                            <!-- Message pour première consultation ou motif particulier -->
+                            <div v-if="appointmentForm.consultationType === 'premiere' || appointmentForm.consultationType === 'particulier'" class="info-message" style="background: var(--light-bg); padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                                <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Prise de contact nécessaire</h3>
+                                <p style="margin-bottom: 1rem;">Pour ce type de consultation, merci de me contacter directement via :</p>
+                                <ul style="list-style: none; margin-bottom: 1rem;">
+                                    <li style="margin-bottom: 0.5rem;">📞 Téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
+                                    <li style="margin-bottom: 0.5rem;">📱 Réseaux sociaux : 
+                                        <a href="#" style="margin-right: 0.5rem;">Instagram</a>
+                                        <a href="#">Facebook</a>
+                                    </li>
+                                </ul>
+                                <p>Ou utilisez le <a href="#contact" @click="scrollToContact">formulaire de contact</a> ci-dessous.</p>
                             </div>
 
-                            <div class="form-group">
-                                <label for="animalName">Nom de l'animal</label>
-                                <input type="text" id="animalName" v-model="appointmentForm.animalName" required>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="phone">Numéro de téléphone</label>
-                                <input type="tel" id="phone" v-model="appointmentForm.phone" 
-                                       pattern="[0-9]{10}" 
-                                       placeholder="0612345678" 
-                                       required>
-                                <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
-                            </div>
-
-                            <div class="form-group">
-                                <label for="appointmentDate">Date du rendez-vous</label>
-                                <select id="appointmentDate" 
-                                        v-model="appointmentForm.date" 
-                                        required
-                                        :disabled="isLoadingDates">
-                                    <option value="">Sélectionnez une date</option>
-                                    <option v-for="date in availableDates" 
-                                            :key="date" 
-                                            :value="date">
-                                        {{ formatDateFr(date) }}
-                                    </option>
-                                </select>
-                                <div v-if="isLoadingDates" class="loading-message">
-                                    Chargement des dates disponibles...
+                            <!-- Formulaire pour consultation de suivi -->
+                            <template v-if="appointmentForm.consultationType === 'suivi'">
+                                <div class="form-group">
+                                    <label for="animalSelect">Sélectionner un animal</label>
+                                    <select id="animalSelect" v-model="appointmentForm.selectedAnimalId" @change="onAnimalSelected" required>
+                                        <option value="">Sélectionnez un animal</option>
+                                        <option v-for="animal in animals" :key="animal.id" :value="animal.id">
+                                            {{ animal.name }} ({{ animal.type }})
+                                        </option>
+                                        <option value="autre">Autre animal</option>
+                                    </select>
                                 </div>
-                                <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message">
-                                    Aucune date disponible pour les 30 prochains jours.
-                                </div>
-                                <small class="info-message" style="color: var(--accent-color); display: block; margin-top: 0.5rem;">
-                                    Note : Les rendez-vous doivent être pris au moins un jour à l'avance.
-                                </small>
-                            </div>
 
-                            <div class="form-group">
-                                <label>Heure du rendez-vous</label>
-                                <div v-if="displayedTimeSlots.length === 0" class="no-slots-message">
-                                    Aucun créneau disponible pour cette date.
+                                <!-- Message pour "Autre animal" -->
+                                <div v-if="appointmentForm.selectedAnimalId === 'autre'" class="info-message" style="background: var(--light-bg); padding: 1.5rem; border-radius: 10px; margin: 1rem 0;">
+                                    <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Nouvel animal</h3>
+                                    <p style="margin-bottom: 1rem;">Pour un nouvel animal, merci de me contacter directement via :</p>
+                                    <ul style="list-style: none; margin-bottom: 1rem;">
+                                        <li style="margin-bottom: 0.5rem;">📞 Téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
+                                        <li style="margin-bottom: 0.5rem;">📱 Réseaux sociaux : 
+                                            <a href="#" style="margin-right: 0.5rem;">Instagram</a>
+                                            <a href="#">Facebook</a>
+                                        </li>
+                                    </ul>
+                                    <p>Ou utilisez le <a href="#contact" @click="scrollToContact">formulaire de contact</a> ci-dessous.</p>
                                 </div>
-                                <div v-else class="time-slots">
-                                    <div v-for="slot in displayedTimeSlots" 
-                                         :key="slot"
-                                         class="time-slot"
-                                         :class="{ 'selected': appointmentForm.time === slot }"
-                                         @click="appointmentForm.time = slot">
-                                        {{ slot }}
+
+                                <!-- Formulaire de rendez-vous pour un animal existant -->
+                                <template v-if="appointmentForm.selectedAnimalId && appointmentForm.selectedAnimalId !== 'autre'">
+                                    <div class="form-group">
+                                        <label for="phone">Numéro de téléphone</label>
+                                        <input type="tel" id="phone" v-model="appointmentForm.phone" 
+                                               pattern="[0-9]{10}" 
+                                               placeholder="0612345678" 
+                                               required>
+                                        <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div class="form-group">
-                                <label for="notes">Notes supplémentaires</label>
-                                <textarea id="notes" v-model="appointmentForm.notes" rows="3"></textarea>
-                            </div>
+                                    <div class="form-group">
+                                        <label for="appointmentDate">Date du rendez-vous</label>
+                                        <select id="appointmentDate" 
+                                                v-model="appointmentForm.date" 
+                                                required
+                                                :disabled="isLoadingDates">
+                                            <option value="">Sélectionnez une date</option>
+                                            <option v-for="date in availableDates" 
+                                                    :key="date" 
+                                                    :value="date">
+                                                {{ formatDateFr(date) }}
+                                            </option>
+                                        </select>
+                                        <div v-if="isLoadingDates" class="loading-message">
+                                            Chargement des dates disponibles...
+                                        </div>
+                                        <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message">
+                                            Aucune date disponible pour les 30 prochains jours.
+                                        </div>
+                                        <small class="info-message" style="color: var(--accent-color); display: block; margin-top: 0.5rem;">
+                                            Note : Les rendez-vous doivent être pris au moins un jour à l'avance.
+                                        </small>
+                                    </div>
 
-                            <button type="submit" class="btn primary">Confirmer le rendez-vous</button>
+                                    <div class="form-group">
+                                        <label>Heure du rendez-vous</label>
+                                        <div v-if="displayedTimeSlots.length === 0" class="no-slots-message">
+                                            Aucun créneau disponible pour cette date.
+                                        </div>
+                                        <div v-else class="time-slots">
+                                            <div v-for="slot in displayedTimeSlots" 
+                                                 :key="slot"
+                                                 class="time-slot"
+                                                 :class="{ 'selected': appointmentForm.time === slot }"
+                                                 @click="appointmentForm.time = slot">
+                                                {{ slot }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="notes">Notes supplémentaires</label>
+                                        <textarea id="notes" v-model="appointmentForm.notes" rows="3"></textarea>
+                                    </div>
+
+                                    <button type="submit" class="btn primary">Confirmer le rendez-vous</button>
+                                </template>
+                            </template>
                         </form>
                     </div>
                 </section>
@@ -3588,6 +3617,7 @@
                         message: ''
                     },
                     appointmentForm: {
+                        consultationType: '',
                         animalType: '',
                         animalName: '',
                         date: '',
@@ -4232,6 +4262,7 @@
 
                         // Réinitialiser le formulaire
                         this.appointmentForm = {
+                            consultationType: '',
                             animalType: '',
                             animalName: '',
                             date: '',
@@ -4251,12 +4282,22 @@
                     }
                 },
                 onAnimalSelected() {
-                    if (this.appointmentForm.selectedAnimalId) {
+                    if (this.appointmentForm.selectedAnimalId && this.appointmentForm.selectedAnimalId !== 'autre') {
                         const selectedAnimal = this.animals.find(a => a.id === this.appointmentForm.selectedAnimalId);
                         if (selectedAnimal) {
                             this.appointmentForm.animalName = selectedAnimal.name;
                             this.appointmentForm.animalType = selectedAnimal.type;
                         }
+                    } else if (this.appointmentForm.selectedAnimalId === 'autre') {
+                        // Réinitialiser les champs si "autre" est sélectionné
+                        this.appointmentForm.animalName = '';
+                        this.appointmentForm.animalType = '';
+                    }
+                },
+                scrollToContact() {
+                    const contactSection = document.getElementById('contact');
+                    if (contactSection) {
+                        contactSection.scrollIntoView({ behavior: 'smooth' });
                     }
                 },
                 navigateTo(page) {
@@ -5876,7 +5917,7 @@
                             alert('Erreur lors de la suppression de l\'article');
                         }
                     }
-                }
+                },
             },
             mounted() {
                 // Gestion de la navigation par hash
