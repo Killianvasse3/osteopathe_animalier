@@ -2625,6 +2625,108 @@
                 padding: 0;
             }
         }
+
+        .animal-details-section {
+            margin: 1.5rem 0;
+            padding: 1.5rem;
+            background: var(--light-bg);
+            border-radius: 10px;
+        }
+
+        .animal-details-section h3 {
+            color: var(--primary-color);
+            margin-bottom: 1rem;
+            font-family: 'Playfair Display', serif;
+        }
+
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .detail-item {
+            background: white;
+            padding: 1rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .detail-item h4 {
+            color: var(--secondary-color);
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+        }
+
+        .detail-item p {
+            color: var(--text-color);
+            font-size: 0.95rem;
+            line-height: 1.5;
+        }
+
+        @media (max-width: 768px) {
+            .details-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Styles pour les boutons radio */
+        .radio-group {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            margin: 0;
+            cursor: pointer;
+        }
+
+        /* Styles pour le select d'activité */
+        select + textarea {
+            margin-top: 0.8rem;
+        }
+
+        select {
+            width: 100%;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-family: inherit;
+            background-color: white;
+            cursor: pointer;
+            transition: border-color 0.3s;
+        }
+
+        select:focus {
+            outline: none;
+            border-color: var(--primary-color);
+        }
+
+        /* Styles pour les options du select */
+        select option {
+            padding: 0.8rem;
+        }
+
+        /* Ajustement de l'espacement pour les groupes de formulaire */
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-color);
+            font-weight: 500;
+        }
     </style>
 </head>
 <body>
@@ -2818,7 +2920,7 @@
                                     <select id="animalSelect" v-model="appointmentForm.selectedAnimalId" @change="onAnimalSelected" required>
                                         <option value="">Sélectionnez un animal</option>
                                         <option v-for="animal in animals" :key="animal.id" :value="animal.id">
-                                            {{ animal.name }} ({{ animal.type }})
+                                            {{ animal.name }} ({{ animal.species }})
                                         </option>
                                         <option value="autre">Autre animal</option>
                                     </select>
@@ -2928,7 +3030,7 @@
                                         <span>Pas de photo</span>
                                     </div>
                                     <h3>{{ animal.name }}</h3>
-                                    <p class="animal-type">{{ animal.type }}</p>
+                                    <p class="animal-type">{{ animal.species }}</p>
                                     <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
                                 </div>
                                 <div class="animal-actions">
@@ -2951,9 +3053,9 @@
                                     <input type="text" id="newAnimalName" v-model="newAnimal.name" required>
                                 </div>
                                 <div class="form-group">
-                                    <label for="newAnimalType">Type d'animal</label>
-                                    <select id="newAnimalType" v-model="newAnimal.type" required>
-                                        <option value="">Sélectionnez un type</option>
+                                    <label for="newAnimalSpecies">Espèce</label>
+                                    <select id="newAnimalSpecies" v-model="newAnimal.species" required>
+                                        <option value="">Sélectionnez une espèce</option>
                                         <option value="chien">Chien</option>
                                         <option value="chat">Chat</option>
                                         <option value="cheval">Cheval</option>
@@ -2961,11 +3063,61 @@
                                     </select>
                                 </div>
                                 <div class="form-group">
+                                    <label for="newAnimalRace">Race</label>
+                                    <input type="text" id="newAnimalRace" v-model="newAnimal.race">
+                                </div>
+                                <div class="form-group">
                                     <label for="newAnimalBirthdate">Date de naissance</label>
                                     <input type="date" id="newAnimalBirthdate" v-model="newAnimal.birthdate" required>
                                 </div>
+                                <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
+                                    <label style="margin-bottom: 0;">Stérilisation :</label>
+                                    <div class="radio-group" style="display: flex; gap: 1.5rem;">
+                                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <input type="radio" v-model="newAnimal.sterilization" :value="true">
+                                            Oui
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                            <input type="radio" v-model="newAnimal.sterilization" :value="false">
+                                            Non
+                                        </label>
+                                    </div>
+                                </div>
                                 <div class="form-group">
-                                    <label for="newAnimalNotes">Notes</label>
+                                    <label for="newAnimalDiet">Alimentation</label>
+                                    <textarea id="newAnimalDiet" v-model="newAnimal.diet" rows="2" 
+                                            placeholder="Type d'alimentation, fréquence des repas, etc."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newAnimalActivity">Activité</label>
+                                    <select id="newAnimalActivity" v-model="newAnimal.activity" required>
+                                        <option value="">Sélectionnez le niveau d'activité</option>
+                                        <option value="sédentaire">Sédentaire (très peu d'activité)</option>
+                                        <option value="peu_actif">Peu actif (activité occasionnelle)</option>
+                                        <option value="actif">Actif (activité régulière)</option>
+                                        <option value="très_actif">Très actif (activité intense et fréquente)</option>
+                                        <option value="sportif">Sportif/Compétition</option>
+                                    </select>
+                                    <textarea id="newAnimalActivityDetails" v-model="newAnimal.activityDetails" rows="2"
+                                            placeholder="Détails sur le type d'activité (promenades, sport, etc.)"></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newAnimalMedicalHistory">Antécédents médicaux</label>
+                                    <textarea id="newAnimalMedicalHistory" v-model="newAnimal.medicalHistory" rows="3"
+                                            placeholder="Maladies, opérations, blessures passées, etc."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newAnimalTreatment">Traitement en cours</label>
+                                    <textarea id="newAnimalTreatment" v-model="newAnimal.treatment" rows="2"
+                                            placeholder="Médicaments, posologie, durée, etc."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newAnimalBehavior">Particularités comportementales</label>
+                                    <textarea id="newAnimalBehavior" v-model="newAnimal.behavior" rows="2"
+                                            placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label for="newAnimalNotes">Notes supplémentaires</label>
                                     <textarea id="newAnimalNotes" v-model="newAnimal.notes" rows="3"></textarea>
                                 </div>
                                 <div class="form-group">
@@ -3045,7 +3197,7 @@
                             <tbody>
                                 <tr v-for="animal in filteredAnimals" :key="animal.id">
                                     <td>{{ animal.name }}</td>
-                                    <td>{{ animal.type }}</td>
+                                    <td>{{ animal.species }}</td>
                                     <td>{{ getUserFullName(animal.userId) }}</td>
                                     <td>{{ formatDate(animal.birthdate) }}</td>
                                     <td>
@@ -3512,7 +3664,7 @@
                                 <span>Pas de photo</span>
                             </div>
                             <h3>{{ animal.name }}</h3>
-                            <p class="animal-type">{{ animal.type }}</p>
+                            <p class="animal-type">{{ animal.species }}</p>
                             <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
                             <p v-if="animal.notes" class="animal-notes">{{ animal.notes }}</p>
                         </div>
@@ -3652,8 +3804,16 @@
                     showAddAnimalModal: false,
                     newAnimal: {
                         name: '',
-                        type: '',
+                        species: '',
+                        race: '',
                         birthdate: '',
+                        sterilization: false,
+                        diet: '',
+                        activity: '',
+                        activityDetails: '',
+                        medicalHistory: '',
+                        treatment: '',
+                        behavior: '',
                         notes: '',
                         photoUrl: '',
                         photoPreview: '',
@@ -3777,7 +3937,7 @@
                     const search = this.adminSearch.toLowerCase();
                     return this.allAnimals.filter(animal => 
                         animal.name.toLowerCase().includes(search) ||
-                        animal.type.toLowerCase().includes(search) ||
+                        animal.species.toLowerCase().includes(search) ||
                         this.getUserFullName(animal.userId).toLowerCase().includes(search)
                     );
                 },
@@ -4305,7 +4465,7 @@
                         const selectedAnimal = this.animals.find(a => a.id === this.appointmentForm.selectedAnimalId);
                         if (selectedAnimal) {
                             this.appointmentForm.animalName = selectedAnimal.name;
-                            this.appointmentForm.animalType = selectedAnimal.type;
+                            this.appointmentForm.animalType = selectedAnimal.species;
                         }
                     } else if (this.appointmentForm.selectedAnimalId === 'autre') {
                         // Réinitialiser les champs si "autre" est sélectionné
@@ -4378,7 +4538,7 @@
                     }
                 },
                 addAnimal() {
-                    if (!this.newAnimal.name || !this.newAnimal.type || !this.newAnimal.birthdate) {
+                    if (!this.newAnimal.name || !this.newAnimal.species || !this.newAnimal.birthdate) {
                         alert('Veuillez remplir tous les champs obligatoires');
                         return;
                     }
@@ -4389,14 +4549,22 @@
                         return;
                     }
 
-                        const animalData = {
+                    const animalData = {
                         name: this.newAnimal.name,
-                            type: this.newAnimal.type,
-                            birthdate: this.newAnimal.birthdate,
+                        species: this.newAnimal.species,
+                        race: this.newAnimal.race || '',
+                        birthdate: this.newAnimal.birthdate,
+                        sterilization: this.newAnimal.sterilization || false,
+                        diet: this.newAnimal.diet || '',
+                        activity: this.newAnimal.activity || '',
+                        activityDetails: this.newAnimal.activityDetails || '',
+                        medicalHistory: this.newAnimal.medicalHistory || '',
+                        treatment: this.newAnimal.treatment || '',
+                        behavior: this.newAnimal.behavior || '',
                         notes: this.newAnimal.notes || '',
                         userId: currentUser.uid,
-                        createdAt: new Date(),
-                        updatedAt: new Date()
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                     };
 
                     // Si une photo a été sélectionnée, l'ajouter aux données
@@ -4408,17 +4576,24 @@
                     firebase.firestore().collection('animals').add(animalData)
                         .then(() => {
                             this.showAddAnimalModal = false;
-                        this.newAnimal = {
-                            name: '',
-                            type: '',
-                            birthdate: '',
+                            this.newAnimal = {
+                                name: '',
+                                species: '',
+                                race: '',
+                                birthdate: '',
+                                sterilization: false,
+                                diet: '',
+                                activity: '',
+                                medicalHistory: '',
+                                treatment: '',
+                                behavior: '',
                                 notes: '',
-                                photoFile: null,
+                                photoUrl: '',
                                 photoPreview: null,
                                 photoBase64: null
                             };
                             this.loadAnimals();
-                        alert('Animal ajouté avec succès !');
+                            alert('Animal ajouté avec succès !');
                         })
                         .catch(error => {
                             console.error('Erreur lors de l\'ajout de l\'animal:', error);
@@ -4449,21 +4624,54 @@
                                     ${animal.photoBase64 ? `<img src="${animal.photoBase64}" alt="${animal.name}" class="animal-photo" id="animal-photo-preview">` : ''}
                                 </div>
                                 <div class="animal-basic-info-right">
-                                    <p><strong>Type :</strong> <span id="animal-type">${animal.type}</span></p>
+                                    <p><strong>Espèce :</strong> <span id="animal-species">${animal.species}</span></p>
+                                    <p><strong>Race :</strong> <span id="animal-race">${animal.race || 'Non renseignée'}</span></p>
                                     <p><strong>Date de naissance :</strong> <span id="animal-birthdate">${this.formatDate(animal.birthdate)}</span></p>
+                                    <p><strong>Stérilisation :</strong> <span id="animal-sterilization">${animal.sterilization ? 'Oui' : 'Non'}</span></p>
                                 </div>
                             </div>
-                            <div class="animal-notes">
-                                ${animal.notes ? `<p><strong>Notes:</strong> <span id="animal-notes">${animal.notes}</span></p>` : ''}
+                            <div class="animal-details-section">
+                                <h3>Informations générales</h3>
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <h4>Alimentation</h4>
+                                        <p>${animal.diet || 'Non renseignée'}</p>
+                                    </div>
+                                    <div class="detail-item">
+                                        <h4>Activité</h4>
+                                        <p>${animal.activity || 'Non renseignée'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="animal-details-section">
+                                <h3>Informations médicales</h3>
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <h4>Antécédents médicaux</h4>
+                                        <p>${animal.medicalHistory || 'Aucun antécédent renseigné'}</p>
+                                    </div>
+                                    <div class="detail-item">
+                                        <h4>Traitement en cours</h4>
+                                        <p>${animal.treatment || 'Aucun traitement en cours'}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="animal-details-section">
+                                <h3>Comportement</h3>
+                                <p>${animal.behavior || 'Aucune particularité comportementale renseignée'}</p>
+                            </div>
+                            <div class="animal-details-section">
+                                <h3>Notes supplémentaires</h3>
+                                <p>${animal.notes || 'Aucune note supplémentaire'}</p>
                             </div>
                             <div class="body-map-container">
                                 <h3>Plan du corps</h3>
                                 <div class="body-map" id="bodyMap-${animal.id}">
-                                    <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
+                                    <img src="images/body_map_${animal.species}.svg" alt="Plan du corps ${animal.species}" style="width: 100%; height: 100%; object-fit: contain;">
                                 </div>
                                 <div class="body-map-annotations-list" id="annotations-list-${animal.id}">
-                                  <h4>Annotations du plan du corps :</h4>
-                                  <ul></ul>
+                                    <h4>Annotations du plan du corps :</h4>
+                                    <ul></ul>
                                 </div>
                                 <button class="btn btn-add-annotation">
                                     Ajouter une annotation
@@ -4539,21 +4747,77 @@
                                     <input type="file" id="edit-animal-photo" accept="image/*" style="margin-top:1rem;">
                                 </div>
                                 <div class="animal-basic-info-right">
-                                    <label>Type :</label>
-                                    <select id="edit-animal-type" required>
-                                        <option value="chien" ${animal.type === 'chien' ? 'selected' : ''}>Chien</option>
-                                        <option value="chat" ${animal.type === 'chat' ? 'selected' : ''}>Chat</option>
-                                        <option value="cheval" ${animal.type === 'cheval' ? 'selected' : ''}>Cheval</option>
-                                        <option value="autre" ${animal.type === 'autre' ? 'selected' : ''}>Autre</option>
+                                    <label>Nom :</label>
+                                    <input type="text" id="edit-animal-name" value="${animal.name}" required>
+                                    
+                                    <label>Espèce :</label>
+                                    <select id="edit-animal-species" required>
+                                        <option value="chien" ${animal.species === 'chien' ? 'selected' : ''}>Chien</option>
+                                        <option value="chat" ${animal.species === 'chat' ? 'selected' : ''}>Chat</option>
+                                        <option value="cheval" ${animal.species === 'cheval' ? 'selected' : ''}>Cheval</option>
+                                        <option value="autre" ${animal.species === 'autre' ? 'selected' : ''}>Autre</option>
                                     </select>
+
+                                    <label>Race :</label>
+                                    <input type="text" id="edit-animal-race" value="${animal.race || ''}">
+                                    
                                     <label>Date de naissance :</label>
                                     <input type="date" id="edit-animal-birthdate" value="${animal.birthdate}" required>
+
+                                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+                                        <label style="margin-bottom: 0;">Stérilisation :</label>
+                                        <div class="radio-group" style="display: flex; gap: 1.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="radio" name="sterilization" value="true" ${animal.sterilization ? 'checked' : ''}>
+                                                Oui
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="radio" name="sterilization" value="false" ${!animal.sterilization ? 'checked' : ''}>
+                                                Non
+                                            </label>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
-                            <div class="animal-notes">
-                                <label>Notes :</label>
+
+                            <div class="form-group">
+                                <label>Alimentation :</label>
+                                <textarea id="edit-animal-diet" rows="2" placeholder="Type d'alimentation, fréquence des repas, etc.">${animal.diet || ''}</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Activité :</label>
+                                <select id="edit-animal-activity" required>
+                                    <option value="">Sélectionnez le niveau d'activité</option>
+                                    <option value="sédentaire" ${animal.activity === 'sédentaire' ? 'selected' : ''}>Sédentaire (très peu d'activité)</option>
+                                    <option value="peu_actif" ${animal.activity === 'peu_actif' ? 'selected' : ''}>Peu actif (activité occasionnelle)</option>
+                                    <option value="actif" ${animal.activity === 'actif' ? 'selected' : ''}>Actif (activité régulière)</option>
+                                    <option value="très_actif" ${animal.activity === 'très_actif' ? 'selected' : ''}>Très actif (activité intense et fréquente)</option>
+                                    <option value="sportif" ${animal.activity === 'sportif' ? 'selected' : ''}>Sportif/Compétition</option>
+                                </select>
+                                <textarea id="edit-animal-activity-details" rows="2" placeholder="Détails sur le type d'activité (promenades, sport, etc.)">${animal.activityDetails || ''}</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Antécédents médicaux :</label>
+                                <textarea id="edit-animal-medical-history" rows="3" placeholder="Maladies, opérations, blessures passées, etc.">${animal.medicalHistory || ''}</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Traitement en cours :</label>
+                                <textarea id="edit-animal-treatment" rows="2" placeholder="Médicaments, posologie, durée, etc.">${animal.treatment || ''}</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Particularités comportementales :</label>
+                                <textarea id="edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc.">${animal.behavior || ''}</textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <label>Notes supplémentaires :</label>
                                 <textarea id="edit-animal-notes" rows="3">${animal.notes || ''}</textarea>
                             </div>
+
                             <div class="modal-actions">
                                 <button type="submit" class="btn primary">Enregistrer</button>
                                 <button type="button" class="btn secondary" id="cancel-edit-animal">Annuler</button>
@@ -4597,11 +4861,20 @@
                     modal.querySelector('#edit-animal-form').onsubmit = async (e) => {
                         e.preventDefault();
                         const updatedAnimal = {
-                            type: modal.querySelector('#edit-animal-type').value,
+                            name: modal.querySelector('#edit-animal-name').value,
+                            species: modal.querySelector('#edit-animal-species').value,
+                            race: modal.querySelector('#edit-animal-race').value,
                             birthdate: modal.querySelector('#edit-animal-birthdate').value,
+                            sterilization: modal.querySelector('input[name="sterilization"]:checked').value === 'true',
+                            diet: modal.querySelector('#edit-animal-diet').value,
+                            activity: modal.querySelector('#edit-animal-activity').value,
+                            activityDetails: modal.querySelector('#edit-animal-activity-details').value,
+                            medicalHistory: modal.querySelector('#edit-animal-medical-history').value,
+                            treatment: modal.querySelector('#edit-animal-treatment').value,
+                            behavior: modal.querySelector('#edit-animal-behavior').value,
                             notes: modal.querySelector('#edit-animal-notes').value,
                             photoBase64: newPhotoBase64,
-                            updatedAt: new Date()
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
                         try {
                             await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
@@ -4775,32 +5048,75 @@
                                     <div class="animal-basic-info-right">
                                         <label>Nom :</label>
                                         <input type="text" id="admin-edit-animal-name" value="${animal.name}" required>
-                                        <label>Type :</label>
-                                        <select id="admin-edit-animal-type" required>
-                                            <option value="chien" ${animal.type === 'chien' ? 'selected' : ''}>Chien</option>
-                                            <option value="chat" ${animal.type === 'chat' ? 'selected' : ''}>Chat</option>
-                                            <option value="cheval" ${animal.type === 'cheval' ? 'selected' : ''}>Cheval</option>
-                                            <option value="autre" ${animal.type === 'autre' ? 'selected' : ''}>Autre</option>
+                                        
+                                        <label>Espèce :</label>
+                                        <select id="admin-edit-animal-species" required>
+                                            <option value="chien" ${animal.species === 'chien' ? 'selected' : ''}>Chien</option>
+                                            <option value="chat" ${animal.species === 'chat' ? 'selected' : ''}>Chat</option>
+                                            <option value="cheval" ${animal.species === 'cheval' ? 'selected' : ''}>Cheval</option>
+                                            <option value="autre" ${animal.species === 'autre' ? 'selected' : ''}>Autre</option>
                                         </select>
+
+                                        <label>Race :</label>
+                                        <input type="text" id="admin-edit-animal-race" value="${animal.race || ''}">
+                                        
                                         <label>Date de naissance :</label>
                                         <input type="date" id="admin-edit-animal-birthdate" value="${animal.birthdate}" required>
+
+                                        <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
+                                            <label style="margin-bottom: 0;">Stérilisation :</label>
+                                            <div class="radio-group" style="display: flex; gap: 1.5rem;">
+                                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                    <input type="radio" name="admin-sterilization" value="true" ${animal.sterilization ? 'checked' : ''}>
+                                                    Oui
+                                                </label>
+                                                <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                    <input type="radio" name="admin-sterilization" value="false" ${!animal.sterilization ? 'checked' : ''}>
+                                                    Non
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <div class="animal-notes">
-                                    <label>Notes :</label>
+
+                                <div class="form-group">
+                                    <label>Alimentation :</label>
+                                    <textarea id="admin-edit-animal-diet" rows="2" placeholder="Type d'alimentation, fréquence des repas, etc.">${animal.diet || ''}</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Activité :</label>
+                                    <select id="admin-edit-animal-activity" required>
+                                        <option value="">Sélectionnez le niveau d'activité</option>
+                                        <option value="sédentaire" ${animal.activity === 'sédentaire' ? 'selected' : ''}>Sédentaire (très peu d'activité)</option>
+                                        <option value="peu_actif" ${animal.activity === 'peu_actif' ? 'selected' : ''}>Peu actif (activité occasionnelle)</option>
+                                        <option value="actif" ${animal.activity === 'actif' ? 'selected' : ''}>Actif (activité régulière)</option>
+                                        <option value="très_actif" ${animal.activity === 'très_actif' ? 'selected' : ''}>Très actif (activité intense et fréquente)</option>
+                                        <option value="sportif" ${animal.activity === 'sportif' ? 'selected' : ''}>Sportif/Compétition</option>
+                                    </select>
+                                    <textarea id="admin-edit-animal-activity-details" rows="2" placeholder="Détails sur le type d'activité (promenades, sport, etc.)">${animal.activityDetails || ''}</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Antécédents médicaux :</label>
+                                    <textarea id="admin-edit-animal-medical-history" rows="3" placeholder="Maladies, opérations, blessures passées, etc.">${animal.medicalHistory || ''}</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Traitement en cours :</label>
+                                    <textarea id="admin-edit-animal-treatment" rows="2" placeholder="Médicaments, posologie, durée, etc.">${animal.treatment || ''}</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Particularités comportementales :</label>
+                                    <textarea id="admin-edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc.">${animal.behavior || ''}</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Notes supplémentaires :</label>
                                     <textarea id="admin-edit-animal-notes" rows="3">${animal.notes || ''}</textarea>
                                 </div>
-                                <div class="body-map-container">
-                                    <h3>Plan du corps</h3>
-                                    <div class="body-map" id="bodyMap-${animal.id}">
-                                        <img src="images/body_map_${animal.type}.svg" alt="Plan du corps ${animal.type}" style="width: 100%; height: 100%; object-fit: contain;">
-                                    </div>
-                                    <div class="body-map-annotations-list" id="annotations-list-${animal.id}">
-                                      <h4>Annotations du plan du corps :</h4>
-                                      <ul></ul>
-                                    </div>
-                                    <button class="btn btn-add-annotation" type="button">Ajouter une annotation</button>
-                                </div>
+
                                 <div class="modal-actions">
                                     <button type="submit" class="btn primary">Enregistrer</button>
                                     <button type="button" class="btn secondary" id="admin-cancel-edit-animal">Annuler</button>
@@ -4846,11 +5162,19 @@
                         e.preventDefault();
                         const updatedAnimal = {
                             name: modal.querySelector('#admin-edit-animal-name').value,
-                            type: modal.querySelector('#admin-edit-animal-type').value,
+                            species: modal.querySelector('#admin-edit-animal-species').value,
+                            race: modal.querySelector('#admin-edit-animal-race').value,
                             birthdate: modal.querySelector('#admin-edit-animal-birthdate').value,
+                            sterilization: modal.querySelector('input[name="admin-sterilization"]:checked').value === 'true',
+                            diet: modal.querySelector('#admin-edit-animal-diet').value,
+                            activity: modal.querySelector('#admin-edit-animal-activity').value,
+                            activityDetails: modal.querySelector('#admin-edit-animal-activity-details').value,
+                            medicalHistory: modal.querySelector('#admin-edit-animal-medical-history').value,
+                            treatment: modal.querySelector('#admin-edit-animal-treatment').value,
+                            behavior: modal.querySelector('#admin-edit-animal-behavior').value,
                             notes: modal.querySelector('#admin-edit-animal-notes').value,
                             photoBase64: newPhotoBase64,
-                            updatedAt: new Date()
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
                         try {
                             await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
@@ -4876,8 +5200,16 @@
                     try {
                         await db.collection('animals').doc(this.editingAnimal.id).update({
                             name: this.editingAnimal.name,
-                            type: this.editingAnimal.type,
+                            species: this.editingAnimal.species,
+                            race: this.editingAnimal.race,
                             birthdate: this.editingAnimal.birthdate,
+                            sterilization: this.editingAnimal.sterilization,
+                            diet: this.editingAnimal.diet,
+                            activity: this.editingAnimal.activity,
+                            activityDetails: this.editingAnimal.activityDetails,
+                            medicalHistory: this.editingAnimal.medicalHistory,
+                            treatment: this.editingAnimal.treatment,
+                            behavior: this.editingAnimal.behavior,
                             notes: this.editingAnimal.notes,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
@@ -5311,13 +5643,6 @@
                 async handlePhotoUpload(event) {
                     const file = event.target.files[0];
                     if (file) {
-                        // Vérifier la taille du fichier (max 5MB)
-                        if (file.size > 5 * 1024 * 1024) {
-                            alert('La photo ne doit pas dépasser 5MB');
-                            event.target.value = '';
-                            return;
-                        }
-
                         // Vérifier le type de fichier
                         if (!file.type.startsWith('image/')) {
                             alert('Le fichier doit être une image');
@@ -5325,13 +5650,63 @@
                             return;
                         }
 
-                        // Créer un aperçu de l'image
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
-                            this.newAnimal.photoPreview = e.target.result;
-                            this.newAnimal.photoBase64 = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
+                        try {
+                            // Créer un aperçu de l'image
+                            const reader = new FileReader();
+                            reader.onload = async (e) => {
+                                // Créer une image pour le redimensionnement
+                                const img = new Image();
+                                img.onload = async () => {
+                                    // Créer un canvas pour le redimensionnement
+                                    const canvas = document.createElement('canvas');
+                                    let width = img.width;
+                                    let height = img.height;
+                                    
+                                    // Calculer les nouvelles dimensions en gardant le ratio
+                                    const MAX_WIDTH = 800;
+                                    const MAX_HEIGHT = 800;
+                                    
+                                    if (width > height) {
+                                        if (width > MAX_WIDTH) {
+                                            height *= MAX_WIDTH / width;
+                                            width = MAX_WIDTH;
+                                        }
+                                    } else {
+                                        if (height > MAX_HEIGHT) {
+                                            width *= MAX_HEIGHT / height;
+                                            height = MAX_HEIGHT;
+                                        }
+                                    }
+                                    
+                                    canvas.width = width;
+                                    canvas.height = height;
+                                    
+                                    // Dessiner l'image redimensionnée
+                                    const ctx = canvas.getContext('2d');
+                                    ctx.drawImage(img, 0, 0, width, height);
+                                    
+                                    // Convertir en base64 avec compression
+                                    const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                                    
+                                    // Vérifier la taille finale
+                                    const base64Size = resizedBase64.length * 3 / 4;
+                                    if (base64Size > 900000) { // ~900KB pour avoir une marge
+                                        alert('L\'image est trop grande même après compression. Veuillez choisir une image plus petite.');
+                                        event.target.value = '';
+                                        return;
+                                    }
+                                    
+                                    this.newAnimal.photoPreview = resizedBase64;
+                                    this.newAnimal.photoBase64 = resizedBase64;
+                                };
+                                img.src = e.target.result;
+                            };
+                            reader.readAsDataURL(file);
+                        } catch (error) {
+                            console.error('Erreur lors du traitement de l\'image:', error);
+                            alert('Erreur lors du traitement de l\'image. Veuillez réessayer avec une autre image.');
+                            event.target.value = '';
+                        }
                     }
                 },
                 // Ajout d'une méthode pour gérer les annotations sur le plan du corps
