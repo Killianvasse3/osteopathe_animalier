@@ -1533,7 +1533,7 @@
         }
 
         .no-slots-message {
-            color: var(--accent-color);
+            color: var(--text-color);
             font-style: italic;
             margin-top: 0.5rem;
             font-size: 0.9rem;
@@ -2777,8 +2777,11 @@
                     </div>
 
                     <div class="appointment-form">
-                        <div v-if="appointmentSuccess" class="success-message">
-                            Votre rendez-vous a été confirmé ! Un email de confirmation vous a été envoyé.
+                        <div v-if="appointmentSuccess" class="success-message" style="background: var(--light-bg); color: var(--text-color); padding: 1.5rem; border-radius: 10px; margin-bottom: 2rem;">
+                            <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Demande de rendez-vous enregistrée</h3>
+                            <p style="margin-bottom: 0.8rem;">Votre demande de rendez-vous a bien été prise en compte. Cependant, elle doit encore être validée.</p>
+                            <p style="margin-bottom: 0.8rem;">Vous recevrez prochainement une confirmation par SMS ou par email. Le rendez-vous ne sera définitif qu'après cette confirmation de notre part.</p>
+                            <p>En cas de question, n'hésitez pas à nous contacter directement.</p>
                         </div>
                         <div v-if="appointmentError" class="error-message">
                             {{ appointmentError }}
@@ -2862,12 +2865,9 @@
                                         <div v-if="isLoadingDates" class="loading-message">
                                             Chargement des dates disponibles...
                                         </div>
-                                        <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message">
+                                        <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message" style="color: var(--text-color);">
                                             Aucune date disponible pour les 30 prochains jours.
                                         </div>
-                                        <small class="info-message" style="color: var(--accent-color); display: block; margin-top: 0.5rem;">
-                                            Note : Les rendez-vous doivent être pris au moins un jour à l'avance.
-                                        </small>
                                     </div>
 
                                     <div class="form-group">
@@ -2883,6 +2883,13 @@
                                                  @click="appointmentForm.time = slot">
                                                 {{ slot }}
                                             </div>
+                                        </div>
+                                        <div class="info-message" style="margin-top: 1rem; color: var(--text-color); font-style: italic; background: var(--light-bg); padding: 1rem; border-radius: 8px;">
+                                            D'autres créneaux peuvent être disponibles. N'hésitez pas à me contacter directement :
+                                            <ul style="list-style: none; margin-top: 0.5rem;">
+                                                <li style="margin-bottom: 0.3rem;">📞 Par téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
+                                                <li>💬 Par message : <a href="#contact" @click="scrollToContact">formulaire de contact</a></li>
+                                            </ul>
                                         </div>
                                     </div>
 
