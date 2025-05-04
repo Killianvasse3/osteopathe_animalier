@@ -2768,6 +2768,44 @@
         .modal-content img {
             transition: transform 0.3s ease-in-out;
         }
+        .document-card {
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        .document-card:hover {
+            transform: scale(1.02);
+        }
+        .modal {
+            z-index: 1000;
+        }
+        .modal-content {
+            transition: transform 0.3s ease-in-out;
+        }
+        .modal-content img {
+            transition: transform 0.3s ease-in-out;
+        }
+        .btn.secondary {
+            transition: all 0.2s ease-in-out;
+        }
+        .btn.secondary:hover {
+            background: var(--primary-color);
+            color: white;
+        }
+        /* Personnalisation de la barre de défilement */
+        .modal-content div::-webkit-scrollbar {
+            width: 8px;
+        }
+        .modal-content div::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+        .modal-content div::-webkit-scrollbar-thumb {
+            background: var(--secondary-color);
+            border-radius: 4px;
+        }
+        .modal-content div::-webkit-scrollbar-thumb:hover {
+            background: var(--primary-color);
+        }
     </style>
 </head>
 <body>
@@ -4775,20 +4813,39 @@
                         if (selectedDoc) {
                             const fullscreenModal = window.document.createElement('div');
                             fullscreenModal.className = 'modal';
-                            fullscreenModal.style.zIndex = '1001'; // Pour être au-dessus de la modal des détails
+                            fullscreenModal.style.cssText = 'z-index: 1001; display: flex; align-items: flex-start; justify-content: center; padding: 60px 20px 20px 20px; overflow-y: auto;';
                             fullscreenModal.innerHTML = `
-                                <div class="modal-content" style="max-width: 90vw; max-height: 90vh; padding: 1rem;">
+                                <div class="modal-content" style="max-width: 90vw; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 1.5rem; position: relative;">
                                     <div style="position: relative;">
-                                        <img src="${selectedDoc.data}" alt="${selectedDoc.name}" style="max-width: 100%; max-height: calc(90vh - 100px); object-fit: contain;">
-                                        <button class="btn secondary" style="position: absolute; top: 10px; right: 10px;" onclick="this.closest('.modal').remove()">Fermer</button>
-                                    </div>
-                                    <div style="margin-top: 1rem;">
-                                        <h3 style="margin: 0;">${selectedDoc.name}</h3>
-                                        <p style="margin: 0.5rem 0 0 0; color: var(--secondary-color);">Ajouté le ${this.formatDate(selectedDoc.date)}</p>
+                                        <div style="display: flex; justify-content: center; min-height: 200px; max-height: calc(90vh - 100px); overflow-y: auto;">
+                                            <img src="${selectedDoc.data}" alt="${selectedDoc.name}" style="width: auto; max-width: 100%; height: auto; object-fit: contain;">
+                                        </div>
+                                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                                            <h3 style="margin: 0; color: var(--primary-color);">${selectedDoc.name}</h3>
+                                            <p style="margin: 0.5rem 0 0 0; color: var(--secondary-color);">Ajouté le ${this.formatDate(selectedDoc.date)}</p>
+                                        </div>
+                                        <button class="btn secondary" style="position: absolute; top: -10px; right: -10px; border-radius: 50%; width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="this.closest('.modal').remove()">×</button>
                                     </div>
                                 </div>
                             `;
                             window.document.body.appendChild(fullscreenModal);
+
+                            // Ajouter un gestionnaire pour fermer avec la touche Echap
+                            const handleEscape = (event) => {
+                                if (event.key === 'Escape') {
+                                    fullscreenModal.remove();
+                                    window.removeEventListener('keydown', handleEscape);
+                                }
+                            };
+                            window.addEventListener('keydown', handleEscape);
+
+                            // Fermer en cliquant en dehors de l'image
+                            fullscreenModal.addEventListener('click', (event) => {
+                                if (event.target === fullscreenModal) {
+                                    fullscreenModal.remove();
+                                    window.removeEventListener('keydown', handleEscape);
+                                }
+                            });
                         }
                     });
 
