@@ -3334,6 +3334,7 @@
                 <template v-if="!isLogin">
                     <input type="text" v-model="firstName" placeholder="Prénom" required>
                     <input type="text" v-model="lastName" placeholder="Nom" required>
+                    <textarea v-model="address" placeholder="Adresse complète" rows="3" required style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
                 </template>
                 <input type="email" v-model="email" placeholder="Email">
                 <input type="password" v-model="password" placeholder="Mot de passe">
@@ -3486,6 +3487,10 @@
                         <label for="editClientEmail">Email</label>
                         <input type="email" id="editClientEmail" v-model="editingClient.email" required>
                     </div>
+                    <div class="edit-form-group">
+                        <label for="editClientAddress">Adresse</label>
+                        <textarea id="editClientAddress" v-model="editingClient.address" rows="3" required></textarea>
+                    </div>
                     <div class="edit-modal-actions">
                         <button type="button" class="btn secondary" @click="showEditClientModal = false">Annuler</button>
                         <button type="submit" class="btn primary">Enregistrer</button>
@@ -3612,6 +3617,9 @@
                     message: 'Ostéopathe Animalier',
                     email: '',
                     password: '',
+                    firstName: '',
+                    lastName: '',
+                    address: '',
                     error: '',
                     isAuthenticated: false,
                     userEmail: '',
@@ -3682,8 +3690,6 @@
                     unsubscribeAppointments: null,
                     unsubscribeAdminSlots: null,
                     unsubscribeAvailableDates: null,
-                    firstName: '',
-                    lastName: '',
                     editingClient: null,
                     showEditClientModal: false,
                     showClientAnimalsModal: false,
@@ -3909,6 +3915,10 @@
                             this.error = 'Le nom et le prénom sont requis';
                             return;
                         }
+                        if (!this.address) {
+                            this.error = 'L\'adresse est requise';
+                            return;
+                        }
                         const userCredential = await firebase.auth().createUserWithEmailAndPassword(this.email, this.password);
                         
                         // Liste des IDs administrateurs
@@ -3919,6 +3929,7 @@
                             email: userCredential.user.email,
                             firstName: this.firstName,
                             lastName: this.lastName,
+                            address: this.address,
                             role: adminIds.includes(userCredential.user.uid) ? 'admin' : 'user',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
@@ -3931,6 +3942,7 @@
                         // Réinitialiser les champs
                         this.firstName = '';
                         this.lastName = '';
+                        this.address = '';
                         this.email = '';
                         this.password = '';
 
@@ -4705,6 +4717,7 @@
                                 email: doc.data().email,
                                 firstName: doc.data().firstName || '',
                                 lastName: doc.data().lastName || '',
+                                address: doc.data().address || '',
                                 role: doc.data().role
                             };
                         });
@@ -4731,7 +4744,8 @@
                                 firstName: doc.data().firstName || '',
                                 lastName: doc.data().lastName || '',
                                 email: doc.data().email,
-                                createdAt: doc.data().createdAt || firebase.firestore.Timestamp.now(),
+                                address: doc.data().address || '',
+                                createdAt: doc.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
                                 animalsCount: this.allAnimals.filter(animal => animal.userId === doc.id).length
                             }));
 
@@ -5476,7 +5490,10 @@
                     });
                 },
                 async editClient(client) {
-                    this.editingClient = { ...client };
+                    this.editingClient = { 
+                        ...client,
+                        address: client.address || '' // S'assurer que l'adresse est définie
+                    };
                     this.showEditClientModal = true;
                 },
                 async updateClient() {
@@ -5485,6 +5502,7 @@
                             firstName: this.editingClient.firstName,
                             lastName: this.editingClient.lastName,
                             email: this.editingClient.email,
+                            address: this.editingClient.address,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                         this.showEditClientModal = false;
