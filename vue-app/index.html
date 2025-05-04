@@ -3071,7 +3071,7 @@
                                                 <li style="margin-bottom: 0.3rem;">📞 Par téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
                                                 <li>💬 Par message : <a href="#contact" @click="scrollToContact">formulaire de contact</a></li>
                                             </ul>
-                                        </div>
+                                </div>
                             </div>
 
                             <div class="form-group">
@@ -4960,7 +4960,7 @@
 
                             <div class="form-group">
                                 <label>Particularités comportementales :</label>
-                                <textarea id="edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc.">${animal.behavior || ''}</textarea>
+                                <textarea id="edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
                             </div>
 
                             <div class="form-group">
@@ -5482,12 +5482,33 @@
 
                                 <div class="form-group">
                                     <label>Particularités comportementales :</label>
-                                    <textarea id="admin-edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc.">${animal.behavior || ''}</textarea>
+                                    <textarea id="admin-edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
                                 </div>
 
                                 <div class="form-group">
                                     <label>Notes supplémentaires :</label>
                                     <textarea id="admin-edit-animal-notes" rows="3">${animal.notes || ''}</textarea>
+                                </div>
+
+                                <div class="form-group">
+                                    <label>Documents :</label>
+                                    <div class="documents-grid">
+                                        ${animal.documents && animal.documents.length > 0 
+                                            ? animal.documents.map(doc => `
+                                                <div class="document-card" style="cursor: pointer;" onclick="this.dispatchEvent(new CustomEvent('view-document', {detail: '${doc.id}', bubbles: true}))">
+                                                    <img src="${doc.data}" alt="${doc.name}">
+                                                    <p>${doc.name}</p>
+                                                    <p>${this.formatDate(doc.date)}</p>
+                                                    <button type="button" class="btn-delete" onclick="event.stopPropagation(); this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
+                                                        Supprimer
+                                                    </button>
+                                                </div>
+                                            `).join('')
+                                            : '<p>Aucun document</p>'
+                                        }
+                                    </div>
+                                    <input type="file" id="admin-edit-animal-documents" accept="image/*" style="margin-top: 1rem;">
+                                    <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : JPG, PNG</small>
                                 </div>
 
                                 <div class="modal-actions">
@@ -5525,6 +5546,178 @@
                         }
                     });
 
+                    // Gestion des documents
+                    const documentsInput = modal.querySelector('#admin-edit-animal-documents');
+                    documentsInput.addEventListener('change', async (e) => {
+                        const file = e.target.files[0];
+                        if (file) {
+                            try {
+                                if (!file.type.startsWith('image/')) {
+                                    alert('Le fichier doit être une image');
+                                    e.target.value = '';
+                                    return;
+                                }
+
+                                const reader = new FileReader();
+                                reader.onload = async (e) => {
+                                    const img = new Image();
+                                    img.onload = async () => {
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+                                        
+                                        const MAX_WIDTH = 1400;
+                                        const MAX_HEIGHT = 1400;
+                                        
+                                        if (width > MAX_WIDTH) {
+                                            height *= MAX_WIDTH / width;
+                                            width = MAX_WIDTH;
+                                        }
+                                        
+                                        if (height > MAX_HEIGHT) {
+                                            width *= MAX_HEIGHT / height;
+                                            height = MAX_HEIGHT;
+                                        }
+                                        
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        
+                                        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                                        
+                                        const newDocument = {
+                                            id: Date.now().toString(),
+                                            name: file.name,
+                                            date: new Date().toISOString(),
+                                            data: resizedBase64
+                                        };
+
+                                        // Récupérer les documents actuels
+                                        const animalDoc = await firebase.firestore().collection('animals').doc(animal.id).get();
+                                        const currentAnimal = animalDoc.data();
+                                        const documents = currentAnimal.documents || [];
+                                        documents.push(newDocument);
+
+                                        // Mettre à jour l'animal avec le nouveau document
+                                        await firebase.firestore().collection('animals').doc(animal.id).update({
+                                            documents: documents,
+                                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                        });
+
+                                        // Mettre à jour l'affichage
+                                        const documentsGrid = modal.querySelector('.documents-grid');
+                                        documentsGrid.innerHTML = documents.map(doc => `
+                                            <div class="document-card" style="cursor: pointer;" onclick="this.dispatchEvent(new CustomEvent('view-document', {detail: '${doc.id}', bubbles: true}))">
+                                                <img src="${doc.data}" alt="${doc.name}">
+                                                <p>${doc.name}</p>
+                                                <p>${this.formatDate(doc.date)}</p>
+                                                <button type="button" class="btn-delete" onclick="event.stopPropagation(); this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        `).join('');
+
+                                        // Réinitialiser l'input
+                                        e.target.value = '';
+                                    };
+                                    img.src = e.target.result;
+                                };
+                                reader.readAsDataURL(file);
+                            } catch (error) {
+                                console.error('Erreur lors du traitement du document:', error);
+                                alert('Erreur lors du traitement du document. Veuillez réessayer.');
+                                e.target.value = '';
+                            }
+                        }
+                    });
+
+                    // Gestion de la suppression des documents
+                    modal.addEventListener('delete-document', async (e) => {
+                        const documentId = e.detail;
+                        try {
+                            // Récupérer l'animal actuel
+                            const animalDoc = await firebase.firestore().collection('animals').doc(animal.id).get();
+                            const currentAnimal = animalDoc.data();
+                            
+                            // Filtrer les documents pour retirer celui qu'on veut supprimer
+                            const updatedDocuments = currentAnimal.documents.filter(doc => doc.id !== documentId);
+                            
+                            // Mettre à jour l'animal avec la nouvelle liste de documents
+                            await firebase.firestore().collection('animals').doc(animal.id).update({
+                                documents: updatedDocuments,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+
+                            // Mettre à jour l'affichage
+                            const documentsGrid = modal.querySelector('.documents-grid');
+                            if (updatedDocuments.length > 0) {
+                                documentsGrid.innerHTML = updatedDocuments.map(doc => `
+                                    <div class="document-card" style="cursor: pointer;" onclick="this.dispatchEvent(new CustomEvent('view-document', {detail: '${doc.id}', bubbles: true}))">
+                                        <img src="${doc.data}" alt="${doc.name}">
+                                        <p>${doc.name}</p>
+                                        <p>${this.formatDate(doc.date)}</p>
+                                        <button type="button" class="btn-delete" onclick="event.stopPropagation(); this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
+                                            Supprimer
+                                        </button>
+                                    </div>
+                                `).join('');
+                            } else {
+                                documentsGrid.innerHTML = '<p>Aucun document</p>';
+                            }
+
+                            // Mettre à jour la référence locale
+                            animal.documents = updatedDocuments;
+                        } catch (error) {
+                            console.error('Erreur lors de la suppression du document:', error);
+                            alert('Erreur lors de la suppression du document. Veuillez réessayer.');
+                        }
+                    });
+
+                    // Visualisation des documents en grand format
+                    modal.addEventListener('view-document', (e) => {
+                        const documentId = e.detail;
+                        const selectedDoc = animal.documents.find(doc => doc.id === documentId);
+                        if (selectedDoc) {
+                            const fullscreenModal = window.document.createElement('div');
+                            fullscreenModal.className = 'modal';
+                            fullscreenModal.style.cssText = 'z-index: 1001; display: flex; align-items: flex-start; justify-content: center; padding: 60px 20px 20px 20px; overflow-y: auto;';
+                            fullscreenModal.innerHTML = `
+                                <div class="modal-content" style="max-width: 90vw; background: white; border-radius: 12px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); padding: 1.5rem; position: relative;">
+                                    <div style="position: relative;">
+                                        <div style="display: flex; justify-content: center; min-height: 200px; max-height: calc(90vh - 100px); overflow-y: auto;">
+                                            <img src="${selectedDoc.data}" alt="${selectedDoc.name}" style="width: auto; max-width: 100%; height: auto; object-fit: contain;">
+                                        </div>
+                                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                                            <h3 style="margin: 0; color: var(--primary-color);">${selectedDoc.name}</h3>
+                                            <p style="margin: 0.5rem 0 0 0; color: var(--secondary-color);">Ajouté le ${this.formatDate(selectedDoc.date)}</p>
+                                        </div>
+                                        <button class="btn secondary" style="position: absolute; top: -10px; right: -10px; border-radius: 50%; width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="this.closest('.modal').remove()">×</button>
+                                    </div>
+                                </div>
+                            `;
+                            window.document.body.appendChild(fullscreenModal);
+
+                            // Ajouter un gestionnaire pour fermer avec la touche Echap
+                            const handleEscape = (event) => {
+                                if (event.key === 'Escape') {
+                                    fullscreenModal.remove();
+                                    window.removeEventListener('keydown', handleEscape);
+                                }
+                            };
+                            window.addEventListener('keydown', handleEscape);
+
+                            // Fermer en cliquant en dehors de l'image
+                            fullscreenModal.addEventListener('click', (event) => {
+                                if (event.target === fullscreenModal) {
+                                    fullscreenModal.remove();
+                                    window.removeEventListener('keydown', handleEscape);
+                                }
+                            });
+                        }
+                    });
+
                     // Annuler l'édition
                     modal.querySelector('#admin-cancel-edit-animal').onclick = () => {
                         modal.remove();
@@ -5558,16 +5751,6 @@
                             alert('Erreur lors de la sauvegarde : ' + err.message);
                         }
                     };
-
-                    // Ajout de la logique pour l'annotation
-                    modal.querySelector('.btn-add-annotation').onclick = () => {
-                        this.addBodyAnnotation(animal.id);
-                    };
-
-                    // Afficher les annotations après que le DOM du body map est prêt
-                    setTimeout(() => {
-                        this.displayBodyAnnotations(animal.id);
-                    }, 0);
                 },
                 async updateAnimal() {
                     try {
