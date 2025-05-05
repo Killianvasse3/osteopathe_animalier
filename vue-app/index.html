@@ -3191,6 +3191,11 @@
                                             placeholder="Médicaments, posologie, durée, etc."></textarea>
                                 </div>
                                 <div class="form-group">
+                                    <label for="newAnimalTravelTime">Temps de trajet</label>
+                                    <input type="text" id="newAnimalTravelTime" v-model="newAnimal.travelTime"
+                                           placeholder="Ex: 30 minutes">
+                                </div>
+                                <div class="form-group">
                                     <label for="newAnimalBehavior">Particularités comportementales</label>
                                     <textarea id="newAnimalBehavior" v-model="newAnimal.behavior" rows="2"
                                             placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
@@ -3903,7 +3908,8 @@
                         photoPreview: '',
                         photoBase64: null,
                         documents: [],
-                        appointments: []
+                        appointments: [],
+                        travelTime: '' // Ajout du champ temps de trajet
                     },
                     unsubscribeAnimals: null,
                     isAdmin: false,
@@ -4248,16 +4254,16 @@
                     }
 
                     try {
-                        const messageData = {
-                            name: this.contactForm.name,
-                            email: this.contactForm.email,
-                            message: this.contactForm.message,
-                            status: 'unread',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                            userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null
-                        };
+                    const messageData = {
+                        name: this.contactForm.name,
+                        email: this.contactForm.email,
+                        message: this.contactForm.message,
+                        status: 'unread',
+                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                        userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null
+                    };
 
-                        // Sauvegarder le message dans Firebase
+                    // Sauvegarder le message dans Firebase
                         const messageRef = await db.collection('contact_messages').add(messageData);
 
                         // Envoyer une notification aux administrateurs via OneSignal
@@ -4287,15 +4293,15 @@
                             body: JSON.stringify(notificationData)
                         });
 
-                        alert('Message envoyé ! Nous vous contacterons bientôt.');
-                        this.contactForm = {
-                            name: '',
-                            email: '',
-                            message: ''
-                        };
+                            alert('Message envoyé ! Nous vous contacterons bientôt.');
+                            this.contactForm = {
+                                name: '',
+                                email: '',
+                                message: ''
+                            };
                     } catch (error) {
-                        console.error('Error sending message:', error);
-                        alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
+                            console.error('Error sending message:', error);
+                            alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
                     }
                 },
                 async loadUnavailableSlots() {
@@ -4448,13 +4454,13 @@
 
                         const timeSlotId = timeSlotSnapshot.docs[0].id;
 
-                        // Marquer le créneau comme indisponible
-                        await db.collection('timeSlots')
+                            // Marquer le créneau comme indisponible
+                            await db.collection('timeSlots')
                             .doc(timeSlotId)
-                            .update({
-                                unavailable: true,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
+                                .update({
+                                    unavailable: true,
+                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
 
                         // Créer le rendez-vous
                         const appointmentData = {
@@ -4594,6 +4600,18 @@
                             throw new Error('Erreur de connexion à la base de données');
                         }
 
+                        // Charger d'abord les informations de l'utilisateur
+                        const userDoc = await db.collection('users').doc(userId).get();
+                        if (userDoc.exists) {
+                            this.userEmails[userId] = {
+                                email: userDoc.data().email,
+                                firstName: userDoc.data().firstName || '',
+                                lastName: userDoc.data().lastName || '',
+                                address: userDoc.data().address || '',
+                                role: userDoc.data().role
+                            };
+                        }
+
                         // Utiliser onSnapshot pour les mises à jour en temps réel
                         this.unsubscribeAnimals = db.collection('animals')
                             .where('userId', '==', userId)
@@ -4650,6 +4668,7 @@
                         treatment: this.newAnimal.treatment || '',
                         behavior: this.newAnimal.behavior || '',
                         notes: this.newAnimal.notes || '',
+                        travelTime: this.newAnimal.travelTime || '',
                         userId: currentUser.uid,
                         createdAt: firebase.firestore.FieldValue.serverTimestamp(),
                         updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -4720,6 +4739,23 @@
                                     <p><strong>Race :</strong> <span id="animal-race">${animal.race || 'Non renseignée'}</span></p>
                                     <p><strong>Date de naissance :</strong> <span id="animal-birthdate">${this.formatDate(animal.birthdate)}</span></p>
                                     <p><strong>Stérilisation :</strong> <span id="animal-sterilization">${animal.sterilization ? 'Oui' : 'Non'}</span></p>
+                                </div>
+                            </div>
+                            <div class="animal-details-section">
+                                <h3>Informations du propriétaire</h3>
+                                <div class="details-grid">
+                                    <div class="detail-item">
+                                        <h4>Propriétaire</h4>
+                                        <p>${this.getUserFullName(animal.userId)}</p>
+                                    </div>
+                                    <div class="detail-item">
+                                        <h4>Adresse</h4>
+                                        <p>${this.userEmails[animal.userId]?.address || 'Non renseignée'}</p>
+                                    </div>
+                                    <div class="detail-item">
+                                        <h4>Temps de trajet</h4>
+                                        <p>${animal.travelTime || 'Non renseigné'}</p>
+                                    </div>
                                 </div>
                             </div>
                             <div class="animal-details-section">
@@ -4959,6 +4995,11 @@
                             </div>
 
                             <div class="form-group">
+                                <label>Temps de trajet :</label>
+                                <input type="text" id="edit-animal-travel-time" value="${animal.travelTime || ''}" placeholder="Ex: 30 minutes">
+                            </div>
+
+                            <div class="form-group">
                                 <label>Particularités comportementales :</label>
                                 <textarea id="edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
                             </div>
@@ -5044,6 +5085,7 @@
                             treatment: modal.querySelector('#edit-animal-treatment').value,
                             behavior: modal.querySelector('#edit-animal-behavior').value,
                             notes: modal.querySelector('#edit-animal-notes').value,
+                            travelTime: modal.querySelector('#edit-animal-travel-time').value,
                             photoBase64: newPhotoBase64,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
@@ -5481,6 +5523,11 @@
                                 </div>
 
                                 <div class="form-group">
+                                    <label>Temps de trajet :</label>
+                                    <input type="text" id="admin-edit-animal-travel-time" value="${animal.travelTime || ''}" placeholder="Ex: 30 minutes">
+                                </div>
+
+                                <div class="form-group">
                                     <label>Particularités comportementales :</label>
                                     <textarea id="admin-edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
                                 </div>
@@ -5502,7 +5549,7 @@
                                                     <button type="button" class="btn-delete" onclick="event.stopPropagation(); this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
                                                         Supprimer
                                                     </button>
-                                                </div>
+                                    </div>
                                             `).join('')
                                             : '<p>Aucun document</p>'
                                         }
@@ -5739,6 +5786,7 @@
                             treatment: modal.querySelector('#admin-edit-animal-treatment').value,
                             behavior: modal.querySelector('#admin-edit-animal-behavior').value,
                             notes: modal.querySelector('#admin-edit-animal-notes').value,
+                            travelTime: modal.querySelector('#admin-edit-animal-travel-time').value,
                             photoBase64: newPhotoBase64,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
@@ -5946,7 +5994,7 @@
                         const slotsToAdd = [];
                         const startDate = new Date(this.newSlot.date);
                         const endDate = this.newSlot.recurrence !== 'none' ? new Date(this.newSlot.endDate) : startDate;
-
+                        
                         // Validation de base
                         if (!this.newSlot.time || !this.newSlot.date) {
                             throw new Error('La date et l\'heure sont requises');
@@ -5991,7 +6039,7 @@
                                 }
                             }
                         }
-
+                        
                         // Vérifier les doublons pour tous les créneaux d'un coup
                         const conflictingSlots = [];
                         for (const slot of slotsToAdd) {
@@ -6114,30 +6162,30 @@
                         for (let i = 0; i < appointments.length; i += 10) {
                             const batch = appointments.slice(i, i + 10);
                             await Promise.all(batch.map(async (appointmentDoc) => {
-                                const appointment = appointmentDoc.data();
-                                const appointmentDate = new Date(appointment.date);
-                                const startOfDay = new Date(appointmentDate);
-                                startOfDay.setHours(0, 0, 0, 0);
-                                const endOfDay = new Date(appointmentDate);
-                                endOfDay.setHours(23, 59, 59, 999);
+                            const appointment = appointmentDoc.data();
+                            const appointmentDate = new Date(appointment.date);
+                            const startOfDay = new Date(appointmentDate);
+                            startOfDay.setHours(0, 0, 0, 0);
+                            const endOfDay = new Date(appointmentDate);
+                            endOfDay.setHours(23, 59, 59, 999);
 
                                 try {
-                                    // Trouver le créneau correspondant
-                                    const timeSlotSnapshot = await db.collection('timeSlots')
-                                        .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
-                                        .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
-                                        .where('time', '==', appointment.time)
-                                        .get();
+                            // Trouver le créneau correspondant
+                            const timeSlotSnapshot = await db.collection('timeSlots')
+                                .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                                .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                                .where('time', '==', appointment.time)
+                                .get();
 
-                                    if (!timeSlotSnapshot.empty) {
-                                        // Mettre à jour le créneau
-                                        await db.collection('timeSlots')
-                                            .doc(timeSlotSnapshot.docs[0].id)
-                                            .update({
-                                                unavailable: true,
-                                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                                            });
-                                    }
+                            if (!timeSlotSnapshot.empty) {
+                                // Mettre à jour le créneau
+                                await db.collection('timeSlots')
+                                    .doc(timeSlotSnapshot.docs[0].id)
+                                    .update({
+                                        unavailable: true,
+                                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                    });
+                            }
                                 } catch (error) {
                                     console.warn(`Erreur lors de la mise à jour du créneau pour le rendez-vous ${appointmentDoc.id}:`, error);
                                 }
@@ -6149,7 +6197,7 @@
                         if (error.code === 'permission-denied') {
                             console.warn('Synchronisation des créneaux ignorée : permissions insuffisantes');
                         } else {
-                            console.error('Erreur lors de la synchronisation des créneaux:', error);
+                        console.error('Erreur lors de la synchronisation des créneaux:', error);
                         }
                     }
                 },
@@ -6974,14 +7022,14 @@
                             this.currentPage = 'appointment';
                             if (this.isAuthenticated) {
                                 this.loadAnimals();
-                                this.syncTimeSlots();
+                            this.syncTimeSlots();
                                 this.loadAvailableDates();
                             }
                             break;
                         case 'dossier':
                             this.currentPage = 'dossier';
                             if (this.isAuthenticated) {
-                                this.loadAnimals();
+                            this.loadAnimals();
                             }
                             break;
                         case 'admin':
