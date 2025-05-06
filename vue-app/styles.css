@@ -2510,6 +2510,22 @@ body {
     box-shadow: 0 4px 6px rgba(75, 108, 193, 0.2);
 }
 
+.time-slot.unavailable {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: #F3F4F6;
+    border-color: #E5E7EB;
+    color: #9CA3AF;
+    box-shadow: none;
+}
+
+.time-slot.unavailable:hover {
+    transform: none;
+    background-color: #F3F4F6;
+    border-color: #E5E7EB;
+    box-shadow: none;
+}
+
 /* Styles pour le select des dates */
 select#appointmentDate {
     width: 100%;
@@ -2638,5 +2654,26 @@ select:disabled {
 
     .time-slot {
         min-width: calc(50% - 0.5rem);
+    }
+}
+
+/* Styles pour la modal d'édition */
+.edit-modal .time-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 0.5rem;
+}
+
+.edit-modal .time-slot {
+    min-width: 100px;
+    flex: 1;
+}
+
+@media (max-width: 768px) {
+    .edit-modal .time-slot {
+        min-width: calc(33.33% - 0.5rem);
+        flex: none;
     }
 } 

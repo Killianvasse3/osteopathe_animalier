@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=1.1">
+    <link rel="stylesheet" href="styles.css?v=1.2">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -862,8 +862,9 @@
                     <div class="edit-form-group">
                         <label>Heure</label>
                         <div class="time-slots">
-                            <div v-for="slot in timeSlots" 
+                            <button v-for="slot in timeSlots" 
                                  :key="slot"
+                                 type="button"
                                  class="time-slot"
                                  :class="{ 
                                      'selected': editingAppointment.time === slot,
@@ -871,7 +872,7 @@
                                  }"
                                  @click="!isTimeSlotUnavailable(slot) && (editingAppointment.time = slot)">
                                 {{ slot }}
-                            </div>
+                            </button>
                         </div>
                     </div>
                     <div class="edit-form-group">
