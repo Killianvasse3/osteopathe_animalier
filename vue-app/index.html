@@ -557,6 +557,9 @@
                                     v-model="adminSearch" 
                                     placeholder="Rechercher un rendez-vous...">
                             </div>
+                            <button class="btn primary" @click="showAdminNewAppointmentModal = true">
+                                Nouveau rendez-vous
+                            </button>
                             <div class="view-toggle">
                                 <button 
                                     :class="['btn', appointmentsView === 'list' ? 'primary' : 'secondary']"
@@ -673,6 +676,116 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Modal de nouveau rendez-vous admin -->
+                        <div v-if="showAdminNewAppointmentModal" class="modal">
+                            <div class="modal-content appointment-form-modal">
+                                <h2>Nouveau rendez-vous</h2>
+                                <form @submit.prevent="submitAdminAppointment">
+                                    <div class="form-group">
+                                        <label for="adminAppointmentClient">Client</label>
+                                        <select 
+                                            id="adminAppointmentClient" 
+                                            v-model="adminAppointmentForm.userId"
+                                            required
+                                            @change="loadClientAnimals">
+                                            <option value="">Sélectionnez un client</option>
+                                            <option v-for="client in allClients" 
+                                                    :key="client.id" 
+                                                    :value="client.id">
+                                                {{ client.firstName }} {{ client.lastName }} ({{ client.email }})
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div v-if="adminAppointmentForm.userId" class="form-group">
+                                        <label for="adminAppointmentAnimal">Animal</label>
+                                        <select 
+                                            id="adminAppointmentAnimal" 
+                                            v-model="adminAppointmentForm.selectedAnimalId"
+                                            required>
+                                            <option value="">Sélectionnez un animal</option>
+                                            <option v-for="animal in clientAnimals" 
+                                                    :key="animal.id" 
+                                                    :value="animal.id">
+                                                {{ animal.name }} ({{ animal.species }})
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="adminAppointmentPhone">Numéro de téléphone</label>
+                                        <input 
+                                            type="tel" 
+                                            id="adminAppointmentPhone" 
+                                            v-model="adminAppointmentForm.phone"
+                                            pattern="[0-9]{10}"
+                                            placeholder="0612345678"
+                                            required>
+                                        <small>Format: 10 chiffres (ex: 0612345678)</small>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="adminAppointmentDate">Date du rendez-vous</label>
+                                        <div v-if="isLoadingDates" class="loading-message">
+                                            Chargement des dates disponibles...
+                                        </div>
+                                        <div v-else-if="availableDates.length === 0" class="no-slots-message">
+                                            Aucune date disponible pour les 30 prochains jours.
+                                        </div>
+                                        <select v-else
+                                            id="adminAppointmentDate" 
+                                            v-model="adminAppointmentForm.date" 
+                                            required>
+                                            <option value="">Sélectionnez une date</option>
+                                            <option v-for="date in availableDates" 
+                                                    :key="date" 
+                                                    :value="date">
+                                                {{ formatDateFr(date) }}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Heure du rendez-vous</label>
+                                        <div v-if="displayedTimeSlots.length === 0" class="no-slots-message">
+                                            Aucun créneau disponible pour cette date.
+                                        </div>
+                                        <div v-else class="time-slots">
+                                            <button v-for="slot in displayedTimeSlots" 
+                                                 :key="slot"
+                                                 type="button"
+                                                 class="time-slot"
+                                                 :class="{ 'selected': adminAppointmentForm.time === slot }"
+                                                 @click="adminAppointmentForm.time = slot">
+                                                {{ slot }}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="adminAppointmentNotes">Notes</label>
+                                        <textarea 
+                                            id="adminAppointmentNotes" 
+                                            v-model="adminAppointmentForm.notes" 
+                                            rows="3">
+                                        </textarea>
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <button type="button" 
+                                                class="btn secondary" 
+                                                @click="cancelAdminAppointment">
+                                            Annuler
+                                        </button>
+                                        <button type="submit" 
+                                                class="btn primary">
+                                            Confirmer le rendez-vous
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -1355,7 +1468,16 @@
                     editingPost: null,
                     appointmentsView: 'list',
                     sortField: 'date',
-                    sortOrder: 'asc'
+                    sortOrder: 'asc',
+                    showAdminNewAppointmentModal: false,
+                    adminAppointmentForm: {
+                        userId: '',
+                        selectedAnimalId: '',
+                        phone: '',
+                        date: '',
+                        time: '',
+                        notes: ''
+                    }
                 }
             },
             computed: {
@@ -1427,7 +1549,9 @@
                     return days;
                 },
                 displayedTimeSlots() {
-                    if (!this.appointmentForm.date) return [];
+                    // Utiliser la date du formulaire actif (admin ou client)
+                    const selectedDate = this.adminAppointmentForm.date || this.appointmentForm.date;
+                    if (!selectedDate) return [];
                     return this.availableSlots;
                 },
                 filteredMessages() {
@@ -1507,7 +1631,14 @@
                     immediate: true,
                     async handler(newDate) {
                         if (newDate) {
-                            console.log('DEBUG - Date changed to:', newDate);
+                            await this.loadUnavailableSlots();
+                        }
+                    }
+                },
+                'adminAppointmentForm.date': {
+                    immediate: true,
+                    async handler(newDate) {
+                        if (newDate) {
                             await this.loadUnavailableSlots();
                         }
                     }
@@ -1693,24 +1824,21 @@
                     }
                 },
                 async loadUnavailableSlots() {
-                    if (!this.appointmentForm.date) {
-                        console.log('DEBUG - No date selected');
+                    // Déterminer quelle date utiliser en fonction du formulaire actif
+                    const selectedDate = this.adminAppointmentForm.date || this.appointmentForm.date;
+                    
+                    if (!selectedDate) {
                         this.availableSlots = [];
                         return;
                     }
                     
                     try {
                         // Créer les dates de début et fin de la journée sélectionnée
-                        const selectedDate = new Date(this.appointmentForm.date);
-                        const startOfDay = new Date(selectedDate);
+                        const dateObj = new Date(selectedDate);
+                        const startOfDay = new Date(dateObj);
                         startOfDay.setHours(0, 0, 0, 0);
-                        const endOfDay = new Date(selectedDate);
+                        const endOfDay = new Date(dateObj);
                         endOfDay.setHours(23, 59, 59, 999);
-
-                        console.log('DEBUG - Loading slots...');
-                        console.log('DEBUG - Selected date:', this.appointmentForm.date);
-                        console.log('DEBUG - Start of day:', startOfDay);
-                        console.log('DEBUG - End of day:', endOfDay);
 
                         // Utiliser onSnapshot pour les créneaux
                         if (this.unsubscribeSlots) {
@@ -1720,28 +1848,17 @@
                         this.unsubscribeSlots = db.collection('timeSlots')
                             .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
                             .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
-                            .onSnapshot(async (slotsSnapshot) => {
-                                console.log('DEBUG - Query executed');
-                                console.log('DEBUG - Number of slots found:', slotsSnapshot.size);
-
+                            .onSnapshot((slotsSnapshot) => {
                                 // Si aucun créneau n'est défini pour cette date
                                 if (slotsSnapshot.empty) {
-                                    console.log('DEBUG - No slots found for this date');
                                     this.availableSlots = [];
                                     return;
                                 }
 
                                 // Récupérer les créneaux disponibles
                                 let availableSlots = slotsSnapshot.docs
-                                    .filter(doc => {
-                                        const data = doc.data();
-                                        console.log('DEBUG - Filtering slot:', data.time);
-                                        console.log('DEBUG - Is unavailable:', data.unavailable);
-                                        return !data.unavailable;
-                                    })
+                                    .filter(doc => !doc.data().unavailable)
                                     .map(doc => doc.data().time);
-
-                                console.log('DEBUG - Available slots before filtering:', availableSlots);
 
                                 // Utiliser onSnapshot pour les rendez-vous
                                 if (this.unsubscribeAppointments) {
@@ -1749,27 +1866,13 @@
                                 }
 
                                 this.unsubscribeAppointments = db.collection('appointments')
-                            .where('date', '==', this.appointmentForm.date)
+                                    .where('date', '==', selectedDate)
                                     .onSnapshot((appointmentsSnapshot) => {
-                                        console.log('DEBUG - Raw appointments data:', appointmentsSnapshot.docs.map(doc => {
-                                            const data = doc.data();
-                                            return {
-                                                id: doc.id,
-                                                date: data.date,
-                                                time: data.time,
-                                                animalName: data.animalName,
-                                                createdAt: data.createdAt
-                                            };
-                                        }));
-                                        
-                                        // Filtrer les rendez-vous valides
+                                        // Récupérer les créneaux déjà réservés
                                         const bookedSlots = appointmentsSnapshot.docs
-                                            .filter(doc => doc.data().time && doc.data().time.trim() !== '')
                                             .map(doc => doc.data().time);
-                                            
-                                        console.log('DEBUG - Booked slots:', bookedSlots);
 
-                                        // Filtrer les créneaux déjà réservés et trier par heure
+                                        // Filtrer les créneaux disponibles
                                         this.availableSlots = availableSlots
                                             .filter(slot => !bookedSlots.includes(slot))
                                             .sort((a, b) => {
@@ -1777,8 +1880,6 @@
                                                 const [bHours, bMinutes] = b.split(':').map(Number);
                                                 return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
                                             });
-
-                                        console.log('DEBUG - Final available slots:', this.availableSlots);
                                     });
                             });
 
@@ -3262,7 +3363,6 @@
                 async loadAvailableDates() {
                     try {
                         this.isLoadingDates = true;
-                        console.log('DEBUG - Loading available dates...');
                         
                         // Calculer la date de début (demain)
                         const tomorrow = new Date();
@@ -3283,8 +3383,6 @@
                             .where('date', '<=', firebase.firestore.Timestamp.fromDate(thirtyDaysFromNow))
                             .where('unavailable', '==', false)
                             .onSnapshot(snapshot => {
-                                console.log('DEBUG - Found', snapshot.size, 'available slots');
-
                                 // Extraire les dates uniques des créneaux disponibles
                                 const availableDatesSet = new Set();
                                 snapshot.forEach(doc => {
@@ -3294,12 +3392,17 @@
                                 });
 
                                 this.availableDates = Array.from(availableDatesSet).sort();
-                                console.log('DEBUG - Available dates:', this.availableDates);
                                 this.isLoadingDates = false;
+                            }, error => {
+                                console.error('Error loading available dates:', error);
+                                this.isLoadingDates = false;
+                                this.availableDates = [];
                             });
+
                     } catch (error) {
-                        console.error('Error loading available dates:', error);
+                        console.error('Error setting up available dates listener:', error);
                         this.isLoadingDates = false;
+                        this.availableDates = [];
                     }
                 },
                 async handlePhotoUpload(event) {
@@ -4212,6 +4315,67 @@
                         this.sortField = field;
                         this.sortOrder = 'asc';
                     }
+                },
+                async submitAdminAppointment() {
+                    try {
+                        if (!this.adminAppointmentForm.userId || !this.adminAppointmentForm.selectedAnimalId || !this.adminAppointmentForm.phone || !this.adminAppointmentForm.date || !this.adminAppointmentForm.time) {
+                            alert('Veuillez remplir tous les champs obligatoires');
+                            return;
+                        }
+
+                        const appointmentData = {
+                            userId: this.adminAppointmentForm.userId,
+                            selectedAnimalId: this.adminAppointmentForm.selectedAnimalId,
+                            phone: this.adminAppointmentForm.phone,
+                            date: this.adminAppointmentForm.date,
+                            time: this.adminAppointmentForm.time,
+                            notes: this.adminAppointmentForm.notes,
+                            status: 'pending',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        const appointmentRef = await db.collection('appointments').add(appointmentData);
+
+                        // Mettre à jour l'historique de l'animal
+                        const animalRef = db.collection('animals').doc(this.adminAppointmentForm.selectedAnimalId);
+                        await animalRef.update({
+                            appointments: firebase.firestore.FieldValue.arrayUnion({
+                                id: appointmentRef.id,
+                                date: this.adminAppointmentForm.date,
+                                time: this.adminAppointmentForm.time,
+                                notes: this.adminAppointmentForm.notes,
+                                status: 'pending'
+                            })
+                        });
+
+                        this.showAdminNewAppointmentModal = false;
+                        this.adminAppointmentForm = {
+                            userId: '',
+                            selectedAnimalId: '',
+                            phone: '',
+                            date: '',
+                            time: '',
+                            notes: ''
+                        };
+                        alert('Rendez-vous ajouté avec succès');
+                    } catch (error) {
+                        console.error('Error submitting admin appointment:', error);
+                        alert('Erreur lors de l\'ajout du rendez-vous');
+                    }
+                },
+                cancelAdminAppointment() {
+                    this.showAdminNewAppointmentModal = false;
+                    this.adminAppointmentForm = {
+                        userId: '',
+                        selectedAnimalId: '',
+                        phone: '',
+                        date: '',
+                        time: '',
+                        notes: ''
+                    };
+                },
+                loadClientAnimals() {
+                    this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);
                 }
             },
             mounted() {
@@ -4239,14 +4403,14 @@
                             this.currentPage = 'appointment';
                             if (this.isAuthenticated) {
                                 this.loadAnimals();
-                            this.syncTimeSlots();
+                                this.syncTimeSlots();
                                 this.loadAvailableDates();
                             }
                             break;
                         case 'dossier':
                             this.currentPage = 'dossier';
                             if (this.isAuthenticated) {
-                            this.loadAnimals();
+                                this.loadAnimals();
                             }
                             break;
                         case 'admin':
@@ -4254,6 +4418,7 @@
                                 this.currentPage = 'admin';
                                 this.loadAllData();
                                 this.loadSlots();
+                                this.loadAvailableDates();
                             }
                             break;
                         default:
@@ -4285,6 +4450,7 @@
                         } else if (this.currentPage === 'admin' && this.isAdmin) {
                             await this.loadAllData();
                             await this.loadSlots();
+                            await this.loadAvailableDates();
                         }
                     } else {
                         if (this.unsubscribeAnimals) {

@@ -3126,3 +3126,96 @@ select#animalOwner option {
         font-size: 1rem;
     }
 }
+
+.appointment-form-modal {
+    max-width: 600px;
+    padding: 2rem;
+}
+
+.appointment-form-modal h2 {
+    color: var(--primary-color);
+    font-family: 'Playfair Display', serif;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.appointment-form-modal .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.appointment-form-modal label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+    font-weight: 500;
+}
+
+.appointment-form-modal select,
+.appointment-form-modal input[type="tel"],
+.appointment-form-modal textarea {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 1rem;
+    background-color: white;
+    color: var(--text-color);
+    transition: all 0.3s ease;
+}
+
+.appointment-form-modal select:focus,
+.appointment-form-modal input[type="tel"]:focus,
+.appointment-form-modal textarea:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(75, 108, 193, 0.15);
+    outline: none;
+}
+
+.appointment-form-modal small {
+    display: block;
+    margin-top: 0.5rem;
+    color: var(--secondary-color);
+    font-size: 0.85rem;
+}
+
+.appointment-form-modal .time-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.appointment-form-modal .time-slot {
+    min-width: 100px;
+    padding: 0.8rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    background-color: white;
+    color: var(--text-color);
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.appointment-form-modal .time-slot:hover {
+    background-color: var(--light-bg);
+    border-color: var(--primary-color);
+}
+
+.appointment-form-modal .time-slot.selected {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+@media (max-width: 768px) {
+    .appointment-form-modal {
+        padding: 1rem;
+        margin: 1rem;
+        width: calc(100% - 2rem);
+    }
+
+    .appointment-form-modal .time-slot {
+        min-width: calc(33.33% - 0.5rem);
+    }
+}
