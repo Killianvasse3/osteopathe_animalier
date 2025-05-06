@@ -2855,3 +2855,99 @@ select#animalOwner option {
 .edit-modal select option {
     padding: 0.5rem;
 }
+
+.dossier-page .animal-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    max-width: 320px;
+}
+
+.dossier-page .animal-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.dossier-page .animal-info {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.dossier-page .animal-photo {
+    width: 100%;
+    height: 220px;
+    object-fit: cover;
+    border-radius: 12px;
+    margin-bottom: 1rem;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+}
+
+.dossier-page .animal-photo.placeholder {
+    background: linear-gradient(135deg, var(--light-bg) 0%, #f0f0f0 100%);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-color);
+    font-style: italic;
+    border: 2px dashed var(--secondary-color);
+}
+
+.dossier-page .animal-info h3 {
+    color: var(--primary-color);
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.dossier-page .animal-birthdate {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.dossier-page .animal-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.dossier-page .animal-actions .btn {
+    width: 100%;
+    text-align: center;
+    padding: 0.8rem;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.dossier-page .animal-actions .btn.secondary {
+    background-color: var(--light-bg);
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+
+.dossier-page .animal-actions .btn.secondary:hover {
+    background-color: var(--primary-color);
+    color: white;
+}
+
+@media (max-width: 768px) {
+    .dossier-page .animals-list {
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .dossier-page .animal-card {
+        max-width: none;
+    }
+
+    .dossier-page .animal-photo {
+        height: 180px;
+    }
+}

@@ -336,11 +336,14 @@
                                         <span>Pas de photo</span>
                                     </div>
                                     <h3>{{ animal.name }}</h3>
-                                    <p class="animal-type">{{ animal.species }}</p>
                                     <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
                                 </div>
                                 <div class="animal-actions">
-                                    <button class="btn" @click="viewAnimalDetails(animal)">Voir le dossier</button>
+                                    <button v-if="animal.documents && animal.documents.length > 0" 
+                                            class="btn primary" 
+                                            @click="viewAnimalDocuments(animal)">
+                                        Voir les documents ({{ animal.documents.length }})
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1011,7 +1014,6 @@
                                 <span>Pas de photo</span>
                             </div>
                             <h3>{{ animal.name }}</h3>
-                            <p class="animal-type">{{ animal.species }}</p>
                             <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
                             <p v-if="animal.notes" class="animal-notes">{{ animal.notes }}</p>
                         </div>
@@ -3923,6 +3925,157 @@
                             alert('Erreur lors de la suppression de l\'article');
                     }
                 }
+                },
+                viewAnimalDocuments(animal) {
+                    if (!animal.documents || animal.documents.length === 0) return;
+
+                    const modal = document.createElement('div');
+                    modal.className = 'modal';
+                    modal.innerHTML = `
+                        <div class="modal-content documents-modal">
+                            <h2>Documents de ${animal.name}</h2>
+                            <div class="documents-grid">
+                                ${animal.documents.map(doc => `
+                                    <div class="document-card" onclick="this.dispatchEvent(new CustomEvent('view-document', {detail: '${doc.id}', bubbles: true}))">
+                                        <img src="${doc.data}" alt="${doc.name}">
+                                        <div class="document-info">
+                                            <p class="document-name">${doc.name}</p>
+                                            <p class="document-date">${this.formatDate(doc.date)}</p>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <div class="modal-actions">
+                                <button class="btn secondary" onclick="this.closest('.modal').remove()">Fermer</button>
+                            </div>
+                        </div>
+                    `;
+
+                    // Ajouter les styles spécifiques pour la modal des documents
+                    const style = document.createElement('style');
+                    style.textContent = `
+                        .documents-modal {
+                            max-width: 900px;
+                            padding: 2rem;
+                        }
+
+                        .documents-modal h2 {
+                            color: var(--primary-color);
+                            font-family: 'Playfair Display', serif;
+                            text-align: center;
+                            margin-bottom: 2rem;
+                        }
+
+                        .documents-grid {
+                            display: grid;
+                            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                            gap: 1.5rem;
+                            margin-bottom: 2rem;
+                        }
+
+                        .document-card {
+                            background: white;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                            cursor: pointer;
+                            transition: transform 0.3s ease;
+                        }
+
+                        .document-card:hover {
+                            transform: translateY(-5px);
+                            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+                        }
+
+                        .document-card img {
+                            width: 100%;
+                            height: 200px;
+                            object-fit: cover;
+                        }
+
+                        .document-info {
+                            padding: 1rem;
+                        }
+
+                        .document-name {
+                            color: var(--primary-color);
+                            font-weight: 500;
+                            margin-bottom: 0.5rem;
+                        }
+
+                        .document-date {
+                            color: var(--secondary-color);
+                            font-size: 0.9rem;
+                        }
+
+                        @media (max-width: 768px) {
+                            .documents-modal {
+                                padding: 1rem;
+                                margin: 1rem;
+                                width: calc(100% - 2rem);
+                            }
+
+                            .documents-grid {
+                                grid-template-columns: 1fr;
+                                gap: 1rem;
+                            }
+                        }
+                    `;
+                    modal.appendChild(style);
+
+                    // Gestion de l'affichage en plein écran des documents
+                    modal.addEventListener('view-document', (e) => {
+                        const documentId = e.detail;
+                        const selectedDoc = animal.documents.find(doc => doc.id === documentId);
+                        if (selectedDoc) {
+                            const fullscreenModal = document.createElement('div');
+                            fullscreenModal.className = 'modal';
+                            fullscreenModal.style.zIndex = '1001';
+                            fullscreenModal.innerHTML = `
+                                <div class="modal-content" style="max-width: 90vw; padding: 1.5rem; position: relative;">
+                                    <div style="position: relative;">
+                                        <div style="display: flex; justify-content: center; min-height: 200px; max-height: calc(90vh - 100px); overflow-y: auto;">
+                                            <img src="${selectedDoc.data}" alt="${selectedDoc.name}" style="width: auto; max-width: 100%; height: auto; object-fit: contain;">
+                                        </div>
+                                        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid #eee;">
+                                            <h3 style="margin: 0; color: var(--primary-color);">${selectedDoc.name}</h3>
+                                            <p style="margin: 0.5rem 0 0 0; color: var(--secondary-color);">Ajouté le ${this.formatDate(selectedDoc.date)}</p>
+                                        </div>
+                                        <button class="btn secondary" style="position: absolute; top: -10px; right: -10px; border-radius: 50%; width: 30px; height: 30px; padding: 0; display: flex; align-items: center; justify-content: center;" onclick="this.closest('.modal').remove()">×</button>
+                                    </div>
+                                </div>
+                            `;
+                            document.body.appendChild(fullscreenModal);
+
+                            // Fermer avec Échap
+                            const handleEscape = (event) => {
+                                if (event.key === 'Escape') {
+                                    fullscreenModal.remove();
+                                    window.removeEventListener('keydown', handleEscape);
+                                }
+                            };
+                            window.addEventListener('keydown', handleEscape);
+
+                            // Fermer en cliquant en dehors
+                            fullscreenModal.addEventListener('click', (event) => {
+                                if (event.target === fullscreenModal) {
+                                    fullscreenModal.remove();
+                                    window.removeEventListener('keydown', handleEscape);
+                                }
+                            });
+                        }
+                    });
+
+                    document.body.appendChild(modal);
+
+                    // Gestion de la fermeture avec Échap
+                    const handleEscape = (e) => {
+                        if (e.key === 'Escape') {
+                            modal.remove();
+                            window.removeEventListener('keydown', handleEscape);
+                        }
+                    };
+                    window.addEventListener('keydown', handleEscape);
                 },
             },
             mounted() {
