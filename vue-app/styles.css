@@ -2803,4 +2803,55 @@ select#animalOwner option {
 .btn-view:hover {
     background-color: var(--secondary-color);
     transform: translateY(-2px);
-} 
+}
+
+/* Style pour le select du propriétaire */
+#edit-animal-owner {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    color: var(--text-color);
+    background-color: white;
+    margin-bottom: 1.2rem;
+    transition: all 0.3s ease;
+}
+
+#edit-animal-owner:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(75, 108, 193, 0.15);
+    outline: none;
+}
+
+#edit-animal-owner option {
+    padding: 0.5rem;
+    font-size: 0.95rem;
+}
+
+/* Ajustement de l'espacement dans le formulaire d'édition */
+.animal-basic-info-right .form-group:first-child {
+    margin-bottom: 1.5rem;
+}
+
+.edit-modal select {
+    width: 100%;
+    padding: 0.8rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.edit-modal select:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(75, 108, 193, 0.15);
+    outline: none;
+}
+
+.edit-modal select option {
+    padding: 0.5rem;
+}
