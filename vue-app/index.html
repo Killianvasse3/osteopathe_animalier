@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=1.3">
+    <link rel="stylesheet" href="styles.css?v=1.4">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -319,13 +319,13 @@
                 <section class="dossier-page">
                     <div class="dossier-header">
                         <h1>Dossier Ostéopathique</h1>
-                        <p>Consultez et gérez les dossiers de vos animaux</p>
+                        <p>Consultez les dossiers de vos animaux</p>
                     </div>
 
                     <div class="dossier-content">
                         <div v-if="!animals.length" class="no-animals">
                             <p>Vous n'avez pas encore d'animaux enregistrés.</p>
-                            <button class="btn" @click="showAddAnimalModal = true">Ajouter un animal</button>
+                            <p>Contactez votre ostéopathe pour créer un dossier.</p>
                         </div>
 
                         <div v-else class="animals-list">
@@ -343,112 +343,6 @@
                                     <button class="btn" @click="viewAnimalDetails(animal)">Voir le dossier</button>
                                 </div>
                             </div>
-                            <button class="btn add-animal" @click="showAddAnimalModal = true">
-                                <span>+</span> Ajouter un animal
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Modal d'ajout d'animal -->
-                    <div v-if="showAddAnimalModal" class="modal">
-                        <div class="modal-content">
-                            <h2>Ajouter un animal</h2>
-                            <form @submit.prevent="addAnimal">
-                                <div class="form-group">
-                                    <label for="newAnimalName">Nom de l'animal</label>
-                                    <input type="text" id="newAnimalName" v-model="newAnimal.name" required>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalSpecies">Espèce</label>
-                                    <select id="newAnimalSpecies" v-model="newAnimal.species" required>
-                                        <option value="">Sélectionnez une espèce</option>
-                                        <option value="chien">Chien</option>
-                                        <option value="chat">Chat</option>
-                                        <option value="cheval">Cheval</option>
-                                        <option value="autre">Autre</option>
-                                    </select>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalRace">Race</label>
-                                    <input type="text" id="newAnimalRace" v-model="newAnimal.race">
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalBirthdate">Date de naissance</label>
-                                    <input type="date" id="newAnimalBirthdate" v-model="newAnimal.birthdate" required>
-                                </div>
-                                <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
-                                    <label style="margin-bottom: 0;">Stérilisation :</label>
-                                    <div class="radio-group" style="display: flex; gap: 1.5rem;">
-                                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                            <input type="radio" v-model="newAnimal.sterilization" :value="true">
-                                            Oui
-                                        </label>
-                                        <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                            <input type="radio" v-model="newAnimal.sterilization" :value="false">
-                                            Non
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalDiet">Alimentation</label>
-                                    <textarea id="newAnimalDiet" v-model="newAnimal.diet" rows="2" 
-                                            placeholder="Type d'alimentation, fréquence des repas, etc."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalActivity">Activité</label>
-                                    <select id="newAnimalActivity" v-model="newAnimal.activity" required>
-                                        <option value="">Sélectionnez le niveau d'activité</option>
-                                        <option value="sédentaire">Sédentaire (très peu d'activité)</option>
-                                        <option value="peu_actif">Peu actif (activité occasionnelle)</option>
-                                        <option value="actif">Actif (activité régulière)</option>
-                                        <option value="très_actif">Très actif (activité intense et fréquente)</option>
-                                        <option value="sportif">Sportif/Compétition</option>
-                                    </select>
-                                    <textarea id="newAnimalActivityDetails" v-model="newAnimal.activityDetails" rows="2"
-                                            placeholder="Détails sur le type d'activité (promenades, sport, etc.)"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalMedicalHistory">Antécédents médicaux</label>
-                                    <textarea id="newAnimalMedicalHistory" v-model="newAnimal.medicalHistory" rows="3"
-                                            placeholder="Maladies, opérations, blessures passées, etc."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalTreatment">Traitement en cours</label>
-                                    <textarea id="newAnimalTreatment" v-model="newAnimal.treatment" rows="2"
-                                            placeholder="Médicaments, posologie, durée, etc."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalTravelTime">Temps de trajet</label>
-                                    <input type="text" id="newAnimalTravelTime" v-model="newAnimal.travelTime"
-                                           placeholder="Ex: 30 minutes">
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalBehavior">Particularités comportementales</label>
-                                    <textarea id="newAnimalBehavior" v-model="newAnimal.behavior" rows="2"
-                                            placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalNotes">Notes supplémentaires</label>
-                                    <textarea id="newAnimalNotes" v-model="newAnimal.notes" rows="3"></textarea>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalPhoto">Photo de l'animal</label>
-                                    <input type="file" id="newAnimalPhoto" accept="image/*" @change="handlePhotoUpload">
-                                    <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB)</small>
-                                    <div v-if="newAnimal.photoPreview" class="photo-preview">
-                                        <img :src="newAnimal.photoPreview" alt="Aperçu de la photo" style="max-width: 200px; margin-top: 1rem;">
-                                    </div>
-                                </div>
-                                <div class="form-group">
-                                    <label for="newAnimalDocuments">Documents</label>
-                                    <input type="file" id="newAnimalDocuments" @change="handleDocumentUpload">
-                                    <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : PDF, JPG, PNG (max 10MB)</small>
-                                </div>
-                                <div class="modal-actions">
-                                    <button type="button" class="btn secondary" @click="showAddAnimalModal = false">Annuler</button>
-                                    <button type="submit" class="btn primary">Enregistrer</button>
-                                </div>
-                            </form>
                         </div>
                     </div>
                 </section>
@@ -493,11 +387,16 @@
 
                     <!-- Onglet Dossiers Animaux -->
                     <div v-if="adminActiveTab === 'animals'" class="admin-content">
-                        <div class="search-bar">
-                            <input 
-                                type="text" 
-                                v-model="adminSearch" 
-                                placeholder="Rechercher un animal...">
+                        <div class="admin-header-actions">
+                            <div class="search-bar">
+                                <input 
+                                    type="text" 
+                                    v-model="adminSearch" 
+                                    placeholder="Rechercher un animal...">
+                            </div>
+                            <button class="btn primary" @click="showAddAnimalModal = true">
+                                Ajouter un animal
+                            </button>
                         </div>
 
                         <table class="data-table">
@@ -518,6 +417,9 @@
                                     <td>{{ formatDate(animal.birthdate) }}</td>
                                     <td>
                                         <div class="action-buttons">
+                                            <button class="btn-view" @click="viewAnimalDetails(animal)">
+                                                Voir
+                                            </button>
                                             <button class="btn-edit" @click="editAnimal(animal)">
                                                 Modifier
                                             </button>
@@ -529,6 +431,118 @@
                                 </tr>
                             </tbody>
                         </table>
+
+                        <!-- Modal d'ajout d'animal -->
+                        <div v-if="showAddAnimalModal" class="modal">
+                            <div class="modal-content">
+                                <h2>Ajouter un animal</h2>
+                                <form @submit.prevent="addAnimal">
+                                    <div class="form-group">
+                                        <label for="animalOwner">Propriétaire</label>
+                                        <select id="animalOwner" v-model="newAnimal.userId" required>
+                                            <option value="">Sélectionnez un client</option>
+                                            <option v-for="client in allClients" :key="client.id" :value="client.id">
+                                                {{ client.firstName }} {{ client.lastName }} ({{ client.email }})
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalName">Nom de l'animal</label>
+                                        <input type="text" id="newAnimalName" v-model="newAnimal.name" required>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalSpecies">Espèce</label>
+                                        <select id="newAnimalSpecies" v-model="newAnimal.species" required>
+                                            <option value="">Sélectionnez une espèce</option>
+                                            <option value="chien">Chien</option>
+                                            <option value="chat">Chat</option>
+                                            <option value="cheval">Cheval</option>
+                                            <option value="autre">Autre</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalRace">Race</label>
+                                        <input type="text" id="newAnimalRace" v-model="newAnimal.race">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalBirthdate">Date de naissance</label>
+                                        <input type="date" id="newAnimalBirthdate" v-model="newAnimal.birthdate" required>
+                                    </div>
+                                    <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
+                                        <label style="margin-bottom: 0;">Stérilisation :</label>
+                                        <div class="radio-group" style="display: flex; gap: 1.5rem;">
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="radio" v-model="newAnimal.sterilization" :value="true">
+                                                Oui
+                                            </label>
+                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
+                                                <input type="radio" v-model="newAnimal.sterilization" :value="false">
+                                                Non
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalDiet">Alimentation</label>
+                                        <textarea id="newAnimalDiet" v-model="newAnimal.diet" rows="2" 
+                                                placeholder="Type d'alimentation, fréquence des repas, etc."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalActivity">Activité</label>
+                                        <select id="newAnimalActivity" v-model="newAnimal.activity" required>
+                                            <option value="">Sélectionnez le niveau d'activité</option>
+                                            <option value="sédentaire">Sédentaire (très peu d'activité)</option>
+                                            <option value="peu_actif">Peu actif (activité occasionnelle)</option>
+                                            <option value="actif">Actif (activité régulière)</option>
+                                            <option value="très_actif">Très actif (activité intense et fréquente)</option>
+                                            <option value="sportif">Sportif/Compétition</option>
+                                        </select>
+                                        <textarea id="newAnimalActivityDetails" v-model="newAnimal.activityDetails" rows="2"
+                                                placeholder="Détails sur le type d'activité (promenades, sport, etc.)"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalMedicalHistory">Antécédents médicaux</label>
+                                        <textarea id="newAnimalMedicalHistory" v-model="newAnimal.medicalHistory" rows="3"
+                                                placeholder="Maladies, opérations, blessures passées, etc."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalTreatment">Traitement en cours</label>
+                                        <textarea id="newAnimalTreatment" v-model="newAnimal.treatment" rows="2"
+                                                placeholder="Médicaments, posologie, durée, etc."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalTravelTime">Temps de trajet</label>
+                                        <input type="text" id="newAnimalTravelTime" v-model="newAnimal.travelTime"
+                                               placeholder="Ex: 30 minutes">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalBehavior">Particularités comportementales</label>
+                                        <textarea id="newAnimalBehavior" v-model="newAnimal.behavior" rows="2"
+                                                placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalNotes">Notes supplémentaires</label>
+                                        <textarea id="newAnimalNotes" v-model="newAnimal.notes" rows="3"></textarea>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalPhoto">Photo de l'animal</label>
+                                        <input type="file" id="newAnimalPhoto" accept="image/*" @change="handlePhotoUpload">
+                                        <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB)</small>
+                                        <div v-if="newAnimal.photoPreview" class="photo-preview">
+                                            <img :src="newAnimal.photoPreview" alt="Aperçu de la photo" style="max-width: 200px; margin-top: 1rem;">
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="newAnimalDocuments">Documents</label>
+                                        <input type="file" id="newAnimalDocuments" @change="handleDocumentUpload">
+                                        <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : PDF, JPG, PNG (max 10MB)</small>
+                                    </div>
+                                    <div class="modal-actions">
+                                        <button type="button" class="btn secondary" @click="showAddAnimalModal = false">Annuler</button>
+                                        <button type="submit" class="btn primary">Enregistrer</button>
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Onglet Rendez-vous -->
@@ -1877,77 +1891,79 @@
                         }
                     }
                 },
-                addAnimal() {
+                async addAnimal() {
                     if (!this.newAnimal.name || !this.newAnimal.species || !this.newAnimal.birthdate) {
                         alert('Veuillez remplir tous les champs obligatoires');
                         return;
                     }
 
-                    const currentUser = firebase.auth().currentUser;
-                    if (!currentUser) {
-                        alert('Vous devez être connecté pour ajouter un animal');
+                    // Vérifier si un propriétaire est sélectionné (pour l'admin)
+                    if (this.isAdmin && !this.newAnimal.userId) {
+                        alert('Veuillez sélectionner un propriétaire');
                         return;
                     }
 
-                    console.log('Début de l\'ajout de l\'animal');
-                    console.log('Documents à ajouter:', this.newAnimal.documents);
+                    try {
+                        console.log('Début de l\'ajout de l\'animal');
+                        console.log('Documents à ajouter:', this.newAnimal.documents);
 
                         const animalData = {
-                        name: this.newAnimal.name,
-                        species: this.newAnimal.species,
-                        race: this.newAnimal.race || '',
+                            name: this.newAnimal.name,
+                            species: this.newAnimal.species,
+                            race: this.newAnimal.race || '',
                             birthdate: this.newAnimal.birthdate,
-                        sterilization: this.newAnimal.sterilization || false,
-                        diet: this.newAnimal.diet || '',
-                        activity: this.newAnimal.activity || '',
-                        activityDetails: this.newAnimal.activityDetails || '',
-                        medicalHistory: this.newAnimal.medicalHistory || '',
-                        treatment: this.newAnimal.treatment || '',
-                        behavior: this.newAnimal.behavior || '',
-                        notes: this.newAnimal.notes || '',
-                        travelTime: this.newAnimal.travelTime || '',
-                        userId: currentUser.uid,
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        documents: this.newAnimal.documents || []
-                    };
+                            sterilization: this.newAnimal.sterilization || false,
+                            diet: this.newAnimal.diet || '',
+                            activity: this.newAnimal.activity || '',
+                            activityDetails: this.newAnimal.activityDetails || '',
+                            medicalHistory: this.newAnimal.medicalHistory || '',
+                            treatment: this.newAnimal.treatment || '',
+                            behavior: this.newAnimal.behavior || '',
+                            notes: this.newAnimal.notes || '',
+                            travelTime: this.newAnimal.travelTime || '',
+                            // Utiliser l'ID du client sélectionné si on est admin, sinon l'ID de l'utilisateur connecté
+                            userId: this.isAdmin ? this.newAnimal.userId : firebase.auth().currentUser.uid,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            documents: this.newAnimal.documents || []
+                        };
 
-                    console.log('Données de l\'animal préparées:', animalData);
+                        if (this.newAnimal.photoBase64) {
+                            animalData.photoBase64 = this.newAnimal.photoBase64;
+                        }
 
-                    if (this.newAnimal.photoBase64) {
-                        animalData.photoBase64 = this.newAnimal.photoBase64;
-                    }
+                        console.log('Envoi à Firestore...');
 
-                    console.log('Envoi à Firestore...');
-
-                    firebase.firestore().collection('animals').add(animalData)
-                        .then(() => {
-                            console.log('Animal ajouté avec succès');
-                            this.showAddAnimalModal = false;
+                        await firebase.firestore().collection('animals').add(animalData);
+                        console.log('Animal ajouté avec succès');
+                        
+                        // Réinitialiser le formulaire
+                        this.showAddAnimalModal = false;
                         this.newAnimal = {
                             name: '',
-                                species: '',
-                                race: '',
+                            species: '',
+                            race: '',
                             birthdate: '',
-                                sterilization: false,
-                                diet: '',
-                                activity: '',
-                                medicalHistory: '',
-                                treatment: '',
-                                behavior: '',
-                                notes: '',
-                                photoUrl: '',
-                                photoPreview: null,
-                                photoBase64: null,
-                                documents: []
-                            };
-                            this.loadAnimals();
+                            sterilization: false,
+                            diet: '',
+                            activity: '',
+                            activityDetails: '',
+                            medicalHistory: '',
+                            treatment: '',
+                            behavior: '',
+                            notes: '',
+                            photoUrl: '',
+                            photoPreview: null,
+                            photoBase64: null,
+                            documents: [],
+                            userId: '' // Ajout du champ userId
+                        };
+
                         alert('Animal ajouté avec succès !');
-                        })
-                        .catch(error => {
-                            console.error('Erreur détaillée lors de l\'ajout de l\'animal:', error);
-                            alert('Une erreur est survenue lors de l\'ajout de l\'animal: ' + error.message);
-                        });
+                    } catch (error) {
+                        console.error('Erreur détaillée lors de l\'ajout de l\'animal:', error);
+                        alert('Une erreur est survenue lors de l\'ajout de l\'animal: ' + error.message);
+                    }
                 },
                 formatDate(date) {
                     if (!date) return 'N/A';
@@ -2648,12 +2664,22 @@
                             };
                         });
 
-                        // Charger tous les animaux
-                        const animalsSnapshot = await db.collection('animals').get();
-                        this.allAnimals = animalsSnapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        }));
+                        // Mettre en place l'écoute en temps réel pour les animaux
+                        if (this.unsubscribeAdminAnimals) {
+                            this.unsubscribeAdminAnimals();
+                        }
+
+                        this.unsubscribeAdminAnimals = db.collection('animals')
+                            .orderBy('createdAt', 'desc')
+                            .onSnapshot(snapshot => {
+                                this.allAnimals = snapshot.docs.map(doc => ({
+                                    id: doc.id,
+                                    ...doc.data()
+                                }));
+                                console.log('Liste des animaux mise à jour en temps réel');
+                            }, error => {
+                                console.error('Erreur dans l\'écoute des animaux:', error);
+                            });
 
                         // Charger tous les rendez-vous
                         const appointmentsSnapshot = await db.collection('appointments').get();
@@ -2664,7 +2690,7 @@
 
                         // Charger tous les clients (users)
                         this.allClients = usersSnapshot.docs
-                            .filter(doc => doc.data().role !== 'admin') // Exclure les administrateurs
+                            .filter(doc => doc.data().role !== 'admin')
                             .map(doc => ({
                                 id: doc.id,
                                 firstName: doc.data().firstName || '',
@@ -4352,6 +4378,9 @@
                 }
                 if (this.unsubscribeBlogPosts) {
                     this.unsubscribeBlogPosts();
+                }
+                if (this.unsubscribeAdminAnimals) {
+                    this.unsubscribeAdminAnimals();
                 }
             }
         }).mount('#app')

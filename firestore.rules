@@ -2,19 +2,19 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Fonctions de base
+    // Fonction pour vérifier si l'utilisateur est admin
+    function isAdmin() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+    }
+
+    // Fonction pour vérifier si l'utilisateur est connecté
     function isAuthenticated() {
       return request.auth != null;
     }
 
+    // Fonction pour vérifier si l'utilisateur est le propriétaire du document
     function isOwner(userId) {
-      return isAuthenticated() && userId == request.auth.uid;
-    }
-
-    function isAdmin() {
-      return isAuthenticated() && 
-        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin';
+      return request.auth.uid == userId;
     }
 
     // Fonction pour vérifier si un créneau est disponible
@@ -36,66 +36,70 @@ service cloud.firestore {
           .size() > 0;
     }
 
-    // Collection des utilisateurs
+    // Règles pour la collection users
     match /users/{userId} {
-      allow read: if isAuthenticated();
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isOwner(userId) || isAdmin();
+      allow read: if isAuthenticated() && (isOwner(userId) || isAdmin());
+      allow create: if isAuthenticated();
+      allow update: if isAuthenticated() && (isOwner(userId) || isAdmin());
       allow delete: if isAdmin();
     }
 
-    // Collection des rendez-vous
+    // Règles pour la collection animals
+    match /animals/{animalId} {
+      // Lecture : admin peut tout lire, utilisateur peut lire ses propres animaux
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // Création : seul l'admin peut créer
+      allow create: if isAdmin();
+      // Modification : seul l'admin peut modifier
+      allow update: if isAdmin();
+      // Suppression : seul l'admin peut supprimer
+      allow delete: if isAdmin();
+    }
+
+    // Règles pour la collection appointments
     match /appointments/{appointmentId} {
-      allow read: if isAuthenticated() && (
-        resource == null ||
-        request.auth.uid == resource.data.userId ||
-        isAdmin()
-      );
+      // Lecture : admin peut tout lire, utilisateur peut lire ses propres rendez-vous
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // Création : utilisateur connecté peut créer un rendez-vous pour lui-même
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Modification : admin peut tout modifier, utilisateur peut modifier ses propres rendez-vous
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // Suppression : admin peut tout supprimer, utilisateur peut supprimer ses propres rendez-vous
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
 
-      allow create: if isAuthenticated() && 
-        request.resource.data.userId == request.auth.uid;
+    // Règles pour la collection timeSlots
+    match /timeSlots/{slotId} {
+      // Lecture : tout utilisateur connecté peut lire
+      allow read: if isAuthenticated();
+      // Création, modification, suppression : seul l'admin peut le faire
+      allow write: if isAdmin();
+    }
 
-      allow update, delete: if isAuthenticated() && (
-        request.auth.uid == resource.data.userId ||
-        isAdmin()
-      );
+    // Règles pour la collection contact_messages
+    match /contact_messages/{messageId} {
+      // Lecture : seul l'admin peut lire tous les messages
+      allow read: if isAdmin();
+      // Création : tout le monde peut créer un message
+      allow create: if true;
+      // Modification : seul l'admin peut modifier
+      allow update: if isAdmin();
+      // Suppression : seul l'admin peut supprimer
+      allow delete: if isAdmin();
+    }
 
-      allow list: if isAuthenticated();
+    // Règles pour la collection blog_posts
+    match /blog_posts/{postId} {
+      // Lecture : tout le monde peut lire
+      allow read: if true;
+      // Création, modification, suppression : seul l'admin peut le faire
+      allow write: if isAdmin();
     }
 
     // Collection des services
     match /services/{serviceId} {
       allow read: if true;
       allow write: if isAdmin();
-    }
-
-    // Collection des animaux
-    match /animals/{animalId} {
-      allow read: if isAuthenticated() && (
-        resource == null ||
-        request.auth.uid == resource.data.userId ||
-        isAdmin()
-      );
-      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
-      allow update, delete: if isAuthenticated() && (
-        request.auth.uid == resource.data.userId ||
-        isAdmin()
-      );
-    }
-
-    // Collection des créneaux horaires
-    match /timeSlots/{slotId} {
-      allow read, list: if isAuthenticated();
-      allow create: if isAdmin();
-      allow delete: if isAdmin();
-      allow update: if isAuthenticated();
-    }
-
-    // Collection des messages de contact
-    match /contact_messages/{messageId} {
-      allow read: if isAdmin();
-      allow create: if true;
-      allow update, delete: if isAdmin();
     }
 
     // Collection des annotations corporelles
@@ -110,16 +114,6 @@ service cloud.firestore {
         request.auth.uid == resource.data.userId ||
         isAdmin()
       );
-    }
-
-    // Collection des articles de blog
-    match /blog_posts/{postId} {
-      // Lecture publique pour tous
-      allow read: if true;
-      allow list: if true;
-      
-      // Création, modification et suppression réservées aux administrateurs
-      allow create, update, delete: if isAdmin();
     }
   }
 } 
