@@ -3078,3 +3078,51 @@ select#animalOwner option {
         margin: 0;
     }
 }
+
+.data-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    padding-right: 1.5rem;
+    transition: color 0.3s ease;
+}
+
+.data-table th.sortable:hover {
+    color: var(--primary-color);
+}
+
+.sort-icon {
+    position: absolute;
+    right: 0.5rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--primary-color);
+    font-size: 1.2rem;
+}
+
+/* Amélioration du style du tableau pour le tri */
+.data-table thead th {
+    background-color: var(--light-bg);
+    position: sticky;
+    top: 0;
+    z-index: 1;
+    transition: background-color 0.3s ease;
+}
+
+.data-table tbody tr {
+    transition: background-color 0.3s ease;
+}
+
+.data-table tbody tr:hover {
+    background-color: rgba(75, 108, 193, 0.05);
+}
+
+@media (max-width: 768px) {
+    .data-table th.sortable {
+        padding-right: 1.2rem;
+    }
+
+    .sort-icon {
+        font-size: 1rem;
+    }
+}

@@ -576,7 +576,12 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Date</th>
+                                        <th class="sortable" @click="sortAppointments('date')">
+                                            Date
+                                            <span class="sort-icon" v-if="sortField === 'date'">
+                                                {{ sortOrder === 'asc' ? '↑' : '↓' }}
+                                            </span>
+                                        </th>
                                         <th>Heure</th>
                                         <th>Animal</th>
                                         <th>Client</th>
@@ -587,7 +592,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    <tr v-for="appointment in filteredAppointments" :key="appointment.id">
+                                    <tr v-for="appointment in sortedAppointments" :key="appointment.id">
                                         <td>{{ formatDate(appointment.date) }}</td>
                                         <td>{{ appointment.time }}</td>
                                         <td>{{ appointment.animalName }}</td>
@@ -1348,7 +1353,9 @@
                     },
                     unsubscribeBlogPosts: null,
                     editingPost: null,
-                    appointmentsView: 'list'
+                    appointmentsView: 'list',
+                    sortField: 'date',
+                    sortOrder: 'asc'
                 }
             },
             computed: {
@@ -1476,6 +1483,15 @@
                         });
                     };
                 },
+                sortedAppointments() {
+                    return this.allAppointments.slice().sort((a, b) => {
+                        if (this.sortOrder === 'asc') {
+                            return new Date(a.date) - new Date(b.date);
+                        } else {
+                            return new Date(b.date) - new Date(a.date);
+                        }
+                    });
+                }
             },
             watch: {
                 'appointmentForm.date': {
@@ -4180,6 +4196,14 @@
                     };
                     window.addEventListener('keydown', handleEscape);
                 },
+                sortAppointments(field) {
+                    if (this.sortField === field) {
+                        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+                    } else {
+                        this.sortField = field;
+                        this.sortOrder = 'asc';
+                    }
+                }
             },
             mounted() {
                 // Gestion de la navigation par hash
