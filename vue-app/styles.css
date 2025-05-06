@@ -2443,4 +2443,200 @@ body {
     }
 }
 
-/* Ajouter les autres styles spécifiques ici... */ 
+/* Ajouter les autres styles spécifiques ici... */
+
+.date-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.date-slot {
+    padding: 0.5rem 1rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background-color: var(--light-bg);
+    color: var(--text-color);
+}
+
+.date-slot:hover {
+    background-color: var(--hover-bg);
+    border-color: var(--primary-color);
+}
+
+.date-slot.selected {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+.time-slots {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1rem;
+    padding: 0.5rem;
+}
+
+.time-slot {
+    min-width: 120px;
+    padding: 0.9rem 1.2rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    background-color: white;
+    color: var(--text-color);
+    font-weight: 500;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    text-align: center;
+}
+
+.time-slot:hover {
+    background-color: #F8FAFC;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+    transform: translateY(-1px);
+}
+
+.time-slot.selected {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+    box-shadow: 0 4px 6px rgba(75, 108, 193, 0.2);
+}
+
+/* Styles pour le select des dates */
+select#appointmentDate {
+    width: 100%;
+    padding: 0.8rem;
+    border: 2px solid var(--primary-color);
+    border-radius: 8px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: white;
+    cursor: pointer;
+    margin-bottom: 0.5rem;
+}
+
+select#appointmentDate:focus {
+    outline: none;
+    box-shadow: 0 0 0 3px rgba(75, 108, 193, 0.2);
+}
+
+select#appointmentDate:disabled {
+    background-color: var(--light-bg);
+    border-color: #ccc;
+    cursor: not-allowed;
+}
+
+/* Message styles */
+.loading-message, .no-slots-message {
+    padding: 1rem;
+    border-radius: 12px;
+    background-color: #F8FAFC;
+    border: 1px solid #E2E8F0;
+    color: var(--text-color);
+    text-align: center;
+    margin-top: 0.75rem;
+    font-size: 0.95rem;
+}
+
+.loading-message {
+    color: var(--primary-color);
+    background-color: rgba(75, 108, 193, 0.05);
+    border-color: rgba(75, 108, 193, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.loading-message::before {
+    content: "";
+    display: inline-block;
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid var(--primary-color);
+    border-right-color: transparent;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Styles améliorés pour les menus déroulants */
+select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    width: 100%;
+    padding: 1rem;
+    border: 1px solid #E2E8F0;
+    border-radius: 12px;
+    font-size: 1rem;
+    color: var(--text-color);
+    background-color: white;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%234B6CC1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1.2em;
+    cursor: pointer;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+select:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+select:focus {
+    outline: none;
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(75, 108, 193, 0.15);
+}
+
+select:disabled {
+    background-color: #F7FAFC;
+    border-color: #E2E8F0;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* Style pour le groupe de formulaire */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--text-color);
+    font-size: 0.95rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    select, .time-slot {
+        font-size: 0.9rem;
+        padding: 0.8rem 1rem;
+    }
+
+    .time-slots {
+        gap: 0.5rem;
+    }
+
+    .time-slot {
+        min-width: calc(50% - 0.5rem);
+    }
+} 

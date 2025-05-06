@@ -272,7 +272,7 @@
                                 <div v-if="isLoadingDates" class="loading-message">
                                     Chargement des dates disponibles...
                                 </div>
-                                        <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message" style="color: var(--text-color);">
+                                <div v-if="!isLoadingDates && availableDates.length === 0" class="no-slots-message" style="color: var(--text-color);">
                                     Aucune date disponible pour les 30 prochains jours.
                                 </div>
                             </div>
@@ -283,20 +283,21 @@
                                     Aucun créneau disponible pour cette date.
                                 </div>
                                 <div v-else class="time-slots">
-                                    <div v-for="slot in displayedTimeSlots" 
+                                    <button v-for="slot in displayedTimeSlots" 
                                          :key="slot"
+                                         type="button"
                                          class="time-slot"
                                          :class="{ 'selected': appointmentForm.time === slot }"
                                          @click="appointmentForm.time = slot">
                                         {{ slot }}
-                                    </div>
+                                    </button>
                                 </div>
-                                        <div class="info-message" style="margin-top: 1rem; color: var(--text-color); font-style: italic; background: var(--light-bg); padding: 1rem; border-radius: 8px;">
-                                            D'autres créneaux peuvent être disponibles. N'hésitez pas à me contacter directement :
-                                            <ul style="list-style: none; margin-top: 0.5rem;">
-                                                <li style="margin-bottom: 0.3rem;">📞 Par téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
-                                                <li>💬 Par message : <a href="#contact" @click="scrollToContact">formulaire de contact</a></li>
-                                            </ul>
+                                <div class="info-message" style="margin-top: 1rem; color: var(--text-color); font-style: italic; background: var(--light-bg); padding: 1rem; border-radius: 8px;">
+                                    D'autres créneaux peuvent être disponibles. N'hésitez pas à me contacter directement :
+                                    <ul style="list-style: none; margin-top: 0.5rem;">
+                                        <li style="margin-bottom: 0.3rem;">📞 Par téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
+                                        <li>💬 Par message : <a href="#contact" @click="scrollToContact">formulaire de contact</a></li>
+                                    </ul>
                                 </div>
                             </div>
 
