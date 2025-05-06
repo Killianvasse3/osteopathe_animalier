@@ -2951,3 +2951,130 @@ select#animalOwner option {
         height: 180px;
     }
 }
+
+.view-toggle {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.appointments-calendar-view {
+    background: white;
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+}
+
+.calendar-day.has-appointments {
+    border-color: var(--accent-color);
+    border-width: 2px;
+    background-color: rgba(255, 91, 91, 0.1);
+}
+
+.appointments-indicator {
+    font-size: 0.8rem;
+    color: var(--accent-color);
+    margin-top: 0.3rem;
+    font-weight: 500;
+}
+
+.day-appointments {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid var(--light-bg);
+}
+
+.day-appointments h3 {
+    color: var(--primary-color);
+    margin-bottom: 1.5rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.appointments-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1rem;
+}
+
+.appointment-card {
+    background: white;
+    border: 1px solid var(--light-bg);
+    border-radius: 12px;
+    padding: 1.2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.appointment-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.appointment-time {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--primary-color);
+    padding-bottom: 0.8rem;
+    border-bottom: 1px solid var(--light-bg);
+}
+
+.appointment-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.appointment-animal {
+    font-size: 1.1rem;
+    font-weight: 500;
+    color: var(--text-color);
+}
+
+.appointment-client {
+    color: var(--secondary-color);
+}
+
+.appointment-contact {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    margin-top: 0.5rem;
+}
+
+.appointment-actions {
+    display: flex;
+    gap: 0.8rem;
+    margin-top: auto;
+}
+
+.appointment-actions button {
+    flex: 1;
+    padding: 0.6rem;
+    font-size: 0.9rem;
+}
+
+@media (max-width: 768px) {
+    .view-toggle {
+        width: 100%;
+    }
+
+    .view-toggle button {
+        flex: 1;
+    }
+
+    .appointments-calendar-view {
+        padding: 1rem;
+    }
+
+    .appointments-cards {
+        grid-template-columns: 1fr;
+    }
+
+    .appointment-card {
+        margin: 0;
+    }
+}
