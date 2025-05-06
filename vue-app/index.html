@@ -1477,10 +1477,19 @@
                 },
                 getDayAppointments() {
                     return (date) => {
-                        return this.allAppointments.filter(appointment => {
-                            const appointmentDate = new Date(appointment.date);
-                            return appointmentDate.toDateString() === date.toDateString();
-                        });
+                        return this.allAppointments
+                            .filter(appointment => {
+                                const appointmentDate = new Date(appointment.date);
+                                return appointmentDate.toDateString() === date.toDateString();
+                            })
+                            .sort((a, b) => {
+                                // Convertir les heures en minutes pour faciliter la comparaison
+                                const timeA = a.time.split(':').map(Number);
+                                const timeB = b.time.split(':').map(Number);
+                                const minutesA = timeA[0] * 60 + timeA[1];
+                                const minutesB = timeB[0] * 60 + timeB[1];
+                                return minutesA - minutesB;
+                            });
                     };
                 },
                 sortedAppointments() {
