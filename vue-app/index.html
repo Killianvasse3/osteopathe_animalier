@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=1.7">
+    <link rel="stylesheet" href="styles.css?v=2.4">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -792,71 +792,66 @@
 
                     <!-- Onglet Créneaux -->
                     <div v-if="adminActiveTab === 'slots'" class="admin-content">
-                        <div class="slots-management">
-                            <div class="slots-header">
-                                <h2>Gestion des créneaux horaires</h2>
+                        <div class="slots-header">
+                            <h2>Gestion des créneaux horaires</h2>
+                            <button class="btn primary" @click="showAddSlotModal = true">
+                                Ajouter un créneau
+                            </button>
+                        </div>
+                        <div>
+                            <div class="calendar-header">
+                                <button class="btn secondary" @click="previousMonth">
+                                    <
+                                </button>
+                                <h3>{{ currentMonthName }} {{ currentYear }}</h3>
+                                <button class="btn secondary" @click="nextMonth">
+                                    >
+                                </button>
+                            </div>
+                            <div class="calendar-grid">
+                                <div class="calendar-weekday" v-for="day in weekDays" :key="day">
+                                    {{ day }}
+                                </div>
+                                <div v-for="day in calendarDays" 
+                                     :key="day.date"
+                                     class="calendar-day"
+                                     :class="{ 
+                                         'today': isToday(day.date),
+                                         'other-month': !isCurrentMonth(day.date),
+                                         'has-slots': hasSlots(day.date)
+                                     }"
+                                     @click="selectDate(day.date)">
+                                    {{ day.day }}
+                                    <div class="day-slots" v-if="hasSlots(day.date)">
+                                        {{ getSlotsCount(day.date) }} créneau(s)
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div v-if="selectedDate">
+                            <h3>Créneaux du {{ formatDate(selectedDate) }}</h3>
+                            <div class="slots-actions">
                                 <button class="btn primary" @click="showAddSlotModal = true">
                                     Ajouter un créneau
                                 </button>
+                                <button class="btn secondary" @click="selectedDate = null">
+                                    Fermer
+                                </button>
                             </div>
-
-                            <div class="slots-calendar">
-                                <div class="calendar-header">
-                                    <button class="btn secondary" @click="previousMonth">
-                                        <
-                                    </button>
-                                    <h3>{{ currentMonthName }} {{ currentYear }}</h3>
-                                    <button class="btn secondary" @click="nextMonth">
-                                        >
-                                    </button>
-                                </div>
-
-                                <div class="calendar-grid">
-                                    <div class="calendar-weekday" v-for="day in weekDays" :key="day">
-                                        {{ day }}
-                                    </div>
-                                    <div v-for="day in calendarDays" 
-                                         :key="day.date"
-                                         class="calendar-day"
-                                         :class="{ 
-                                             'today': isToday(day.date),
-                                             'other-month': !isCurrentMonth(day.date),
-                                             'has-slots': hasSlots(day.date)
-                                         }"
-                                         @click="selectDate(day.date)">
-                                        {{ day.day }}
-                                        <div class="day-slots" v-if="hasSlots(day.date)">
-                                            {{ getSlotsCount(day.date) }} créneau(s)
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="slots-list" v-if="selectedDate">
-                                <h3>Créneaux du {{ formatDate(selectedDate) }}</h3>
-                                <div class="slots-actions">
-                                    <button class="btn primary" @click="showAddSlotModal = true">
-                                        Ajouter un créneau
-                                    </button>
-                                    <button class="btn secondary" @click="selectedDate = null">
-                                        Fermer
-                                    </button>
-                                </div>
-                                <div class="time-slots-grid">
-                                    <div v-for="slot in getDateSlots(selectedDate)" 
-                                         :key="slot.id"
-                                         class="time-slot-card"
-                                         :class="{ 'unavailable': slot.unavailable }">
-                                        <div class="slot-time">{{ slot.time }}</div>
-                                        <div class="slot-status">{{ slot.unavailable ? 'Indisponible' : 'Disponible' }}</div>
-                                        <div class="slot-actions">
-                                            <button class="btn-edit" @click="toggleSlotAvailability(slot)">
-                                                {{ slot.unavailable ? 'Rendre disponible' : 'Rendre indisponible' }}
-                                            </button>
-                                            <button class="btn-delete" @click="deleteSlot(slot)">
-                                                Supprimer
-                                            </button>
-                                        </div>
+                            <div class="time-slots-grid">
+                                <div v-for="slot in getDateSlots(selectedDate)" 
+                                     :key="slot.id"
+                                     class="time-slot-card"
+                                     :class="{ 'unavailable': slot.unavailable }">
+                                    <div class="slot-time">{{ slot.time }}</div>
+                                    <div class="slot-status">{{ slot.unavailable ? 'Indisponible' : 'Disponible' }}</div>
+                                    <div class="slot-actions">
+                                        <button class="btn-edit" @click="toggleSlotAvailability(slot)">
+                                            {{ slot.unavailable ? 'Rendre disponible' : 'Rendre indisponible' }}
+                                        </button>
+                                        <button class="btn-delete" @click="deleteSlot(slot)">
+                                            Supprimer
+                                        </button>
                                     </div>
                                 </div>
                             </div>
