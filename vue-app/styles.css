@@ -3066,8 +3066,8 @@ select#animalOwner option {
 @media (max-width: 768px) {
   /* Styles communs pour tous les calendriers sur mobile */
   .calendar-grid {
-    gap: 0.1rem !important;
-    padding: 0.2rem !important;
+    gap: 0.35rem !important;
+    padding: 0.4rem !important;
     display: grid !important;
     grid-template-columns: repeat(7, 1fr) !important;
   }
@@ -3084,6 +3084,7 @@ select#animalOwner option {
     font-size: 0.65rem !important;
     overflow: hidden !important;
     position: relative !important;
+    border-radius: 4px !important;
   }
 
   /* Positionner le numéro du jour en haut */
