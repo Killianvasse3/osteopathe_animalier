@@ -1415,6 +1415,33 @@ body {
     border-bottom: 1px solid var(--light-bg);
 }
 
+.slots-header h2 {
+    margin: 0;
+    color: var(--primary-color);
+    font-family: 'Playfair Display', serif;
+}
+
+@media (max-width: 768px) {
+    .slots-header {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 1rem;
+        padding: 1rem;
+    }
+
+    .slots-header h2 {
+        text-align: center;
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .slots-header .btn {
+        width: 100%;
+        text-align: center;
+        padding: 0.8rem;
+    }
+}
+
 .calendar-header {
     display: flex;
     justify-content: space-between;
