@@ -1088,6 +1088,8 @@ body {
     max-width: 300px;
     z-index: 10003;
     animation: fadeIn 0.3s ease;
+    left: 50%;
+    transform: translateX(-50%);
 }
 
 .tutorial-step h3 {
@@ -1160,6 +1162,51 @@ body {
     }
     100% {
         box-shadow: 0 0 0 0 rgba(255, 91, 91, 0);
+    }
+}
+
+/* Ajustements pour le tutoriel sur mobile */
+@media (max-width: 768px) {
+    .tutorial-step {
+        width: 95% !important;
+        max-width: 400px !important;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: 2.5rem !important;
+        bottom: auto !important;
+        margin: 0 auto !important;
+        padding: 1.2rem !important;
+        box-sizing: border-box !important;
+        overflow-y: auto !important;
+    }
+
+    .tutorial-step h3 {
+        font-size: 1.1rem;
+        text-align: center;
+    }
+
+    .tutorial-step p {
+        font-size: 0.95rem;
+        text-align: center;
+    }
+
+    .tutorial-step .btn-group {
+        justify-content: center;
+        gap: 0.8rem;
+    }
+
+    .tutorial-step button {
+        padding: 0.6rem 1.2rem;
+        font-size: 0.9rem;
+        min-width: 100px;
+    }
+
+    .tutorial-btn {
+        bottom: 1rem;
+        right: 1rem;
+        width: 40px;
+        height: 40px;
+        font-size: 1.2rem;
     }
 }
 
@@ -1244,8 +1291,12 @@ body {
     .tutorial-step {
         width: calc(100% - 2rem);
         max-width: none;
-        margin: 1rem;
-        padding: 1rem;
+        left: 50%;
+        transform: translateX(-50%);
+        bottom: 2rem;
+        top: auto;
+        margin: 0 1rem;
+        padding: 1.2rem;
     }
 
     .tutorial-step h3 {
@@ -1257,12 +1308,14 @@ body {
     }
 
     .tutorial-step .btn-group {
-        justify-content: space-between;
+        justify-content: center;
+        gap: 0.8rem;
     }
 
     .tutorial-step button {
-        padding: 0.5rem 0.8rem;
+        padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
+        min-width: 100px;
     }
 }
 
