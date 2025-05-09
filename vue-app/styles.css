@@ -133,6 +133,7 @@ body {
     .page-container {
         padding-top: 70px !important;
         margin: 0 !important;
+        overflow: hidden !important;
     }
 }
 
@@ -149,6 +150,7 @@ body {
     text-align: center;
     color: white;
     filter: contrast(120%) brightness(105%);
+    margin-top: -1px; /* Correction du décalage */
 }
 
 .hero-content {
@@ -447,8 +449,10 @@ body {
     }
 
     .hero {
-        min-height: calc(100vh - 60px);
-        background-position: 75% center;
+        height: calc(100vh - 70px) !important;
+        min-height: calc(100vh - 70px) !important;
+        margin: 0 !important;
+        padding: 0 !important;
     }
 
     .hero-content {
@@ -474,6 +478,14 @@ body {
 
     .about > div {
         order: 1;
+    }
+
+    .header {
+        height: 70px !important;
+    }
+
+    .nav-container {
+        height: 70px !important;
     }
 }
 
@@ -1159,7 +1171,7 @@ body {
 
     .hero {
         min-height: calc(100vh - 70px);
-        margin-top: -1px; /* Correction du décalage */
+        margin-top: 0; /* Ajustement pour mobile */
     }
 
     /* Calendrier admin responsive */
