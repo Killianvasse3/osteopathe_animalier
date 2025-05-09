@@ -3005,3 +3005,40 @@ select#animalOwner option {
         padding: 1.5rem;
     }
 }
+
+/* Harmonisation des boutons dans .appointment-actions */
+.appointment-actions button {
+    padding: 0.8rem 1.2rem;
+    border-radius: 8px;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 0.9rem;
+    background-color: var(--primary-color);
+    color: white;
+    margin-right: 0.6rem;
+    margin-bottom: 0.5rem;
+}
+.appointment-actions button:last-child {
+    margin-right: 0;
+}
+
+.appointment-actions .btn-edit {
+    background-color: var(--green-accent);
+}
+.appointment-actions .btn-edit:hover {
+    background-color: #4ab85e;
+}
+.appointment-actions .btn-delete {
+    background-color: var(--accent-color);
+}
+.appointment-actions .btn-delete:hover {
+    background-color: #e64545;
+}
+.appointment-actions .btn-primary {
+    background-color: var(--primary-color);
+}
+.appointment-actions .btn-primary:hover {
+    background-color: var(--secondary-color);
+}
