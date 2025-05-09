@@ -2862,3 +2862,134 @@ select#animalOwner option {
         margin: 0 0 0.8rem 0 !important;
     }
 }
+
+/* Appointment page */
+.appointment-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.appointment-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.appointment-header h1 {
+    font-family: 'Playfair Display', serif;
+    color: var(--primary-color);
+    font-size: 2.5rem;
+    margin-bottom: 1rem;
+}
+
+.appointment-steps {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.step {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+    text-align: center;
+    position: relative;
+}
+
+.step-number {
+    width: 40px;
+    height: 40px;
+    background: var(--primary-color);
+    color: white;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    margin: 0 auto 1rem;
+}
+
+.step h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.appointment-form {
+    background: white;
+    padding: 2rem;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.info-message {
+    background: var(--light-bg);
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin: 1rem 0;
+    color: var(--text-color);
+}
+
+.info-message h3 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.info-message ul {
+    list-style: none;
+    margin: 1rem 0;
+}
+
+.info-message a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.info-message a:hover {
+    color: var(--accent-color);
+}
+
+.error-message {
+    background: #FEE2E2;
+    color: #DC2626;
+    padding: 1rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.success-message {
+    background: #ECFDF5;
+    color: #059669;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .appointment-page {
+        padding: 1rem;
+    }
+
+    .appointment-header h1 {
+        font-size: 2rem;
+    }
+
+    .appointment-steps {
+        grid-template-columns: 1fr;
+        gap: 1rem;
+    }
+
+    .step {
+        padding: 1.5rem;
+    }
+
+    .appointment-form {
+        padding: 1.5rem;
+    }
+}
