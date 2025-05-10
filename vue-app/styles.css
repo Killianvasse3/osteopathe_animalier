@@ -3206,3 +3206,134 @@ select#animalOwner option {
         width: calc(100% - 2rem);
     }
 }
+
+/* Contact grid inspiration */
+.contact-grid {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr;
+    gap: 3rem;
+    max-width: 1100px;
+    margin: 0 auto;
+    background: none;
+    border-radius: 0;
+    box-shadow: none;
+    padding: 3rem 2.5rem;
+    align-items: flex-start;
+}
+
+.contact-form-container {
+    padding-right: 2rem;
+    border-right: 1px solid #f0f0f0;
+}
+
+.contact-info-container {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    align-items: flex-start;
+    justify-content: flex-start;
+    padding-left: 2rem;
+}
+
+.contact-info-container h3 {
+    font-family: 'Playfair Display', serif;
+    color: var(--primary-color);
+    font-size: 2rem;
+    margin-bottom: 1rem;
+}
+
+.contact-details p,
+.contact-hours p {
+    margin: 0.2rem 0;
+    color: var(--text-color);
+    font-size: 1.05rem;
+}
+
+.contact-links {
+    margin-top: 1.5rem;
+    font-size: 1rem;
+}
+
+.contact-links a {
+    color: var(--primary-color);
+    text-decoration: none;
+    margin: 0 0.3rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.contact-links a:hover {
+    color: var(--accent-color);
+}
+
+@media (max-width: 900px) {
+    .contact-grid {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 1.2rem 0.5rem;
+    }
+    .contact-form-container, .contact-info-container {
+        margin-left: auto;
+        margin-right: auto;
+        max-width: 420px;
+        width: 100%;
+        padding: 0;
+        border: none;
+        box-sizing: border-box;
+    }
+    .contact-form-container {
+        text-align: left;
+    }
+    .contact-info-container {
+        margin-top: 2rem;
+        align-items: stretch;
+        text-align: left;
+    }
+}
+
+/* Contact section fond inspiration */
+.contact-bg {
+    background: linear-gradient(135deg, #e0e7ff 0%, #f8fafc 100%);
+    position: relative;
+    z-index: 1;
+    padding-top: 4rem;
+    padding-bottom: 4rem;
+}
+
+.contact-form-container {
+    background: white;
+    border-radius: 22px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+    padding: 2.5rem 2.2rem 2.2rem 2.2rem;
+    margin: 0;
+    min-width: 320px;
+    max-width: 480px;
+    width: 100%;
+    z-index: 2;
+    position: relative;
+    overflow: hidden;
+    /* Suppression du background-image ici */
+}
+
+.section.contact {
+    position: relative;
+    overflow: hidden;
+    background: #fff;
+}
+
+.section.contact::before {
+    content: '';
+    position: absolute;
+    left: -30%;
+    top: 30%;
+    transform: translateY(-50%) rotate(40deg);
+    width: 70%;
+    height: 120%;
+    background: url('images/logo_emmy.png') no-repeat left center;
+    background-size: contain;
+    opacity: 0.20;
+    pointer-events: none;
+    z-index: 0;
+}
