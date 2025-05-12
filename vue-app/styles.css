@@ -1082,6 +1082,7 @@ body {
     color: var(--primary-color);
     margin-bottom: 1rem;
     font-size: 1.2rem;
+    font-family: 'Playfair Display', serif;
 }
 
 .tutorial-step p {
@@ -1123,9 +1124,66 @@ body {
 .tutorial-highlight {
     position: relative;
     z-index: 10002;
-    box-shadow: 0 0 0 4px var(--accent-color);
+    box-shadow: 0 0 0 4px var(--accent-color) !important;
     border-radius: 4px;
     animation: pulse 1.5s infinite;
+    pointer-events: auto !important;
+}
+
+/* Ajustements responsive pour le tutoriel */
+@media (max-width: 768px) {
+    .tutorial-step {
+        position: fixed;
+        width: calc(100% - 2rem) !important;
+        max-width: none !important;
+        left: 1rem !important;
+        right: 1rem !important;
+        margin: 0 !important;
+        padding: 1rem !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+    }
+
+    /* Ajustements pour les étapes spécifiques sur mobile */
+    .tutorial-step[style*="top:"] {
+        top: 50% !important;
+    }
+
+    .tutorial-step[style*="right:"] {
+        right: 1rem !important;
+        left: 1rem !important;
+    }
+
+    .tutorial-step h3 {
+        font-size: 1.1rem;
+        margin-bottom: 0.8rem;
+    }
+
+    .tutorial-step p {
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+
+    .tutorial-step .btn-group {
+        justify-content: space-between;
+    }
+
+    .tutorial-step button {
+        padding: 0.5rem 0.8rem;
+        font-size: 0.9rem;
+        min-width: 80px;
+    }
+
+    /* Renforcer la visibilité du highlight */
+    .tutorial-highlight {
+        box-shadow: 0 0 0 4px var(--accent-color), 0 0 0 8px rgba(255, 91, 91, 0.3) !important;
+    }
+
+    /* Ajuster la position du menu quand il est highlight */
+    .nav-links.active .tutorial-highlight {
+        position: relative;
+        z-index: 10004;
+    }
 }
 
 @keyframes fadeIn {
@@ -1141,13 +1199,13 @@ body {
 
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(255, 91, 91, 0.4);
+        box-shadow: 0 0 0 4px var(--accent-color), 0 0 0 4px rgba(255, 91, 91, 0.4);
     }
     70% {
-        box-shadow: 0 0 0 6px rgba(255, 91, 91, 0);
+        box-shadow: 0 0 0 4px var(--accent-color), 0 0 0 8px rgba(255, 91, 91, 0);
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(255, 91, 91, 0);
+        box-shadow: 0 0 0 4px var(--accent-color), 0 0 0 4px rgba(255, 91, 91, 0);
     }
 }
 
