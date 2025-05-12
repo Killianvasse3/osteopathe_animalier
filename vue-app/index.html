@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=3.9">
+    <link rel="stylesheet" href="styles.css?v=6.4">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -48,13 +48,13 @@
                     <span></span>
                 </div>
                 <div class="nav-links" :class="{ active: isMenuOpen, 'tutorial-padding': showTutorial && isMobile }">
-                    <a href="#services" @click="closeMenu">Services</a>
+                    <a href="#services" @click="closeMenu">Outils thérapeutiques</a>
                     <a href="#about" @click="closeMenu">À propos</a>
                     <a href="#blog" @click="closeMenu">Blog</a>
                     <a href="#contact" @click="closeMenu">Contact</a>
                     <template v-if="isAuthenticated">
                         <a href="#appointment" @click="closeMenu">Prendre RDV</a>
-                        <a href="#dossier" @click="closeMenu">Dossier Ostéopathique</a>
+                        <a href="#dossier" @click="closeMenu">Dossier Animaux</a>
                         <a href="#admin" v-if="isAdmin" @click="navigateTo('admin')">Administration</a>
                     </template>
                     <template v-if="!isAuthenticated">
@@ -73,26 +73,38 @@
                 <section class="hero">
                     <div class="hero-content">
                         <h1>Soins naturels pour vos animaux</h1>
-                        <p>Spécialiste en ostéopathie animale, je vous propose des soins adaptés à chaque espèce pour améliorer leur bien-être et leur qualité de vie.</p>
+                        <p>Thérapeute manuelle animalier, je vous propose des soins adaptés à chaque espèce pour améliorer leur bien-être et leur qualité de vie.</p>
                         <a href="#appointment" class="btn" v-if="isAuthenticated">Prendre rendez-vous</a>
                         <a href="#" class="btn" v-else @click.prevent="showAuth = true">Se connecter pour prendre RDV</a>
                     </div>
                 </section>
 
                 <section id="services" class="section services">
-                    <h2 class="section-title">Nos Services</h2>
+                    <h2 class="section-title">Mes Outils Thérapeutiques</h2>
                     <div class="services-grid">
                         <div class="service-card">
-                            <h3>Consultation Ostéopathique</h3>
-                            <p>Évaluation complète et traitement personnalisé pour soulager les douleurs et améliorer la mobilité de votre animal.</p>
+                            <h3>Rééquilibrage corporel</h3>
+                            <p>Permet de retrouver équilibre et harmonie dans l'ensemble des sphères du corps (articulaire, musculaire, viscérale, crânienne)</p>
                         </div>
                         <div class="service-card">
-                            <h3>Suivi Post-opératoire</h3>
-                            <p>Accompagnement dans la récupération après une intervention chirurgicale pour une meilleure réhabilitation.</p>
+                            <h3>Soin émotionnel</h3>
+                            <p>Libération d'émotions cristalisés dans les tissus pouvant être la cause de trouble psycologique et physique.</p>
                         </div>
                         <div class="service-card">
-                            <h3>Prévention</h3>
-                            <p>Consultations préventives pour maintenir la santé et le bien-être de votre animal à long terme.</p>
+                            <h3>Soin énergétique</h3>
+                            <p>Rééquilibrage des énergies afin de favoriser le bien-être physique, émotionnel et mental de l'animal.</p>
+                        </div>
+                        <div class="service-card">
+                            <h3>Naturopathie</h3>
+                            <p>Traitement naturel par les plantes : fleurs de Bach, aromathérapie, phytothérapie, homéopathie.</p>
+                        </div>
+                        <div class="service-card">
+                            <h3>Massage et étirement</h3>
+                            <p>Permet une détente musculaire et un apaisement global. Permet à l'animal de récupérer une élasticité musculaire optimal.</p>
+                        </div>
+                        <div class="service-card">
+                            <h3>Nutrition</h3>
+                            <p>Analyse et personnalisation des rations proposées à l'animal en fonction de ses besoins et spécificité.</p>
                         </div>
                     </div>
                 </section>
@@ -101,9 +113,14 @@
                     <h2 class="section-title">À Propos</h2>
                     <div class="about">
                         <div>
-                            <h3>Votre Ostéopathe Animalier</h3>
-                            <p>Diplômée en ostéopathie animale avec plus de 10 ans d'expérience, je me consacre à améliorer la qualité de vie des animaux à travers des soins naturels et non-invasifs.</p>
-                            <p>Ma pratique s'appuie sur une approche holistique, prenant en compte l'animal dans sa globalité pour identifier et traiter la source des problèmes.</p>
+                            <h3>Je suis Emmy VASSE,</h3>
+                            <p><strong>Thérapeute manuelle animalier</strong>, spécialisée dans une approche globale du bien-être animal.</p>
+
+                            <p>Formée pendant cinq ans en <strong>ostéopathie animale</strong> au CNESOA, j'ai acquis de nombreuses techniques de soin (structurelles, crâniennes, tissulaires…). Mon parcours m'a permis de travailler avec une grande diversité d'animaux : chiens, chats, chevaux, ruminants, NAC...</p>
+
+                            <p>Je me suis ensuite formée en <strong>éducation canine (MEC1)</strong>, en <strong>naturopathie animalière</strong> (nutrition, homéopathie, fleurs de Bach, etc.) et en <strong>magnétisme</strong>, afin d'intégrer une dimension <strong>énergétique et émotionnelle</strong> à ma pratique.</p>
+
+                            <p>Aujourd'hui, j'interviens à domicile dans l'<strong>Ain</strong> et le <strong>Jura</strong>, ainsi qu'au <strong>club canin Jura Sud (ACJS)</strong> à Jeurre, où je propose également des cours d'éducation.</p>
                         </div>
                         <img src="\images\Emmy_pratique.jpg" alt="Emmy pratique sur un chien" class="about-image">
                     </div>
@@ -136,23 +153,38 @@
                 </section>
 
                 <section id="contact" class="section contact">
-                    <h2 class="section-title">Contact</h2>
-                    <div class="contact-form">
-                        <form @submit.prevent="sendMessage">
-                            <div class="form-group">
-                                <label for="name">Nom</label>
-                                <input type="text" id="name" v-model="contactForm.name" required>
+                    <div class="contact-grid" style="background:none; box-shadow:none; border:none;">
+                        <div class="contact-form-container">
+                            <div class="contact-title" style="text-align:left;">Avez-vous des questions? <br>Contactez-moi!</div>
+                            <form @submit.prevent="sendMessage">
+                                <div class="form-group">
+                                    <label for="name">Nom</label>
+                                    <input type="text" id="name" v-model="contactForm.name" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email</label>
+                                    <input type="email" id="email" v-model="contactForm.email" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="message">Message</label>
+                                    <textarea id="message" v-model="contactForm.message" rows="5" required></textarea>
+                                </div>
+                                <button type="submit" class="btn">Envoyer</button>
+                            </form>
+                        </div>
+                        <div class="contact-info-container">
+                            <p>Pour toute demande, n'hésitez pas à me contacter par mail ou téléphone.<br>Je vous répondrai dans les plus brefs délais.</p>
+                            <div class="contact-info-block">
+                                <div>Ain & Jura, France</div>
+                                <div>06 12 34 56 78</div>
+                                <div>contact@osteopathe-animalier.fr</div>
                             </div>
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" id="email" v-model="contactForm.email" required>
+                            <div class="contact-socials">
+                                <a href="#" class="icon-social icon-instagram" aria-label="Instagram"></a>
+                                <a href="#" class="icon-social icon-facebook" aria-label="Facebook"></a>
+                                <a href="#" class="icon-social icon-linkedin" aria-label="LinkedIn"></a>
                             </div>
-                            <div class="form-group">
-                                <label for="message">Message</label>
-                                <textarea id="message" v-model="contactForm.message" rows="5" required></textarea>
-                            </div>
-                            <button type="submit" class="btn">Envoyer</button>
-                        </form>
+                        </div>
                     </div>
                 </section>
             </template>
@@ -599,7 +631,7 @@
                                     <td>{{ formatDate(appointment.date) }}</td>
                                     <td>{{ appointment.time }}</td>
                                     <td>{{ appointment.animalName }}</td>
-                                        <td>{{ getUserFullName(appointment.userId) }}</td>
+                                    <td>{{ getUserFullName(appointment.userId) }}</td>
                                     <td>{{ appointment.phone }}</td>
                                         <td>{{ userEmails[appointment.userId]?.address || 'Non renseignée' }}</td>
                                         <td>{{ appointment.travelTime || 'Non renseigné' }}</td>
@@ -961,26 +993,8 @@
         <footer class="footer">
             <div class="footer-content">
                 <div class="footer-section">
-                    <h3>Contact</h3>
-                    <p>Email: contact@osteopathe-animalier.fr</p>
-                    <p>Téléphone: 06 12 34 56 78</p>
+                    <p>&copy; 2024 Ostéopathe Animalier. Tous droits réservés.</p>
                 </div>
-                <div class="footer-section">
-                    <h3>Horaires</h3>
-                    <p>Lundi - Vendredi: 9h - 18h</p>
-                    <p>Samedi: 9h - 12h</p>
-                </div>
-                <div class="footer-section">
-                    <h3>Liens Utiles</h3>
-                    <ul>
-                        <li><a href="#services">Services</a></li>
-                        <li><a href="#about">À propos</a></li>
-                        <li><a href="#contact">Contact</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="copyright">
-                <p>&copy; 2024 Ostéopathe Animalier. Tous droits réservés.</p>
             </div>
         </footer>
 
@@ -1768,16 +1782,16 @@
                     }
 
                     try {
-                    const messageData = {
-                        name: this.contactForm.name,
-                        email: this.contactForm.email,
-                        message: this.contactForm.message,
-                        status: 'unread',
-                        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
-                        userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null
-                    };
+                        const messageData = {
+                            name: this.contactForm.name,
+                            email: this.contactForm.email,
+                            message: this.contactForm.message,
+                            status: 'unread',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            userId: firebase.auth().currentUser ? firebase.auth().currentUser.uid : null
+                        };
 
-                    // Sauvegarder le message dans Firebase
+                        // Sauvegarder le message dans Firebase
                         const messageRef = await db.collection('contact_messages').add(messageData);
 
                         // Envoyer une notification aux administrateurs via OneSignal
@@ -1807,15 +1821,15 @@
                             body: JSON.stringify(notificationData)
                         });
 
-                            alert('Message envoyé ! Nous vous contacterons bientôt.');
-                            this.contactForm = {
-                                name: '',
-                                email: '',
-                                message: ''
-                            };
+                        alert('Message envoyé ! Nous vous contacterons bientôt.');
+                        this.contactForm = {
+                            name: '',
+                            email: '',
+                            message: ''
+                        };
                     } catch (error) {
-                            console.error('Error sending message:', error);
-                            alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
+                        console.error('Error sending message:', error);
+                        alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
                     }
                 },
                 async loadUnavailableSlots() {
@@ -1938,13 +1952,13 @@
 
                         const timeSlotId = timeSlotSnapshot.docs[0].id;
 
-                            // Marquer le créneau comme indisponible
-                            await db.collection('timeSlots')
+                        // Marquer le créneau comme indisponible
+                        await db.collection('timeSlots')
                             .doc(timeSlotId)
-                                .update({
-                                    unavailable: true,
-                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                                });
+                            .update({
+                                unavailable: true,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
 
                         // Créer le rendez-vous
                         const appointmentData = {
@@ -2859,6 +2873,7 @@
                                             }
                                         }
                                     });
+                                    OneSignal.showSlidedownPrompt(); // <-- Ajout ici
                                     window.OneSignal.initialized = true;
                                 });
                             }
@@ -3148,7 +3163,7 @@
                         const slotsToAdd = [];
                         const startDate = new Date(this.newSlot.date);
                         const endDate = this.newSlot.recurrence !== 'none' ? new Date(this.newSlot.endDate) : startDate;
-                        
+
                         // Validation de base
                         if (!this.newSlot.time || !this.newSlot.date) {
                             throw new Error('La date et l\'heure sont requises');
@@ -3193,7 +3208,7 @@
                                 }
                             }
                         }
-                        
+
                         // Vérifier les doublons pour tous les créneaux d'un coup
                         const conflictingSlots = [];
                         for (const slot of slotsToAdd) {
@@ -3316,30 +3331,30 @@
                         for (let i = 0; i < appointments.length; i += 10) {
                             const batch = appointments.slice(i, i + 10);
                             await Promise.all(batch.map(async (appointmentDoc) => {
-                            const appointment = appointmentDoc.data();
-                            const appointmentDate = new Date(appointment.date);
-                            const startOfDay = new Date(appointmentDate);
-                            startOfDay.setHours(0, 0, 0, 0);
-                            const endOfDay = new Date(appointmentDate);
-                            endOfDay.setHours(23, 59, 59, 999);
+                                const appointment = appointmentDoc.data();
+                                const appointmentDate = new Date(appointment.date);
+                                const startOfDay = new Date(appointmentDate);
+                                startOfDay.setHours(0, 0, 0, 0);
+                                const endOfDay = new Date(appointmentDate);
+                                endOfDay.setHours(23, 59, 59, 999);
 
                                 try {
-                            // Trouver le créneau correspondant
-                            const timeSlotSnapshot = await db.collection('timeSlots')
-                                .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
-                                .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
-                                .where('time', '==', appointment.time)
-                                .get();
+                                    // Trouver le créneau correspondant
+                                    const timeSlotSnapshot = await db.collection('timeSlots')
+                                        .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                                        .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                                        .where('time', '==', appointment.time)
+                                        .get();
 
-                            if (!timeSlotSnapshot.empty) {
-                                // Mettre à jour le créneau
-                                await db.collection('timeSlots')
-                                    .doc(timeSlotSnapshot.docs[0].id)
-                                    .update({
-                                        unavailable: true,
-                                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                                    });
-                            }
+                                    if (!timeSlotSnapshot.empty) {
+                                        // Mettre à jour le créneau
+                                        await db.collection('timeSlots')
+                                            .doc(timeSlotSnapshot.docs[0].id)
+                                            .update({
+                                                unavailable: true,
+                                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                            });
+                                    }
                                 } catch (error) {
                                     console.warn(`Erreur lors de la mise à jour du créneau pour le rendez-vous ${appointmentDoc.id}:`, error);
                                 }
@@ -3351,7 +3366,7 @@
                         if (error.code === 'permission-denied') {
                             console.warn('Synchronisation des créneaux ignorée : permissions insuffisantes');
                         } else {
-                        console.error('Erreur lors de la synchronisation des créneaux:', error);
+                            console.error('Erreur lors de la synchronisation des créneaux:', error);
                         }
                     }
                 },
@@ -4149,8 +4164,8 @@
                         } catch (error) {
                             console.error('Error deleting blog post:', error);
                             alert('Erreur lors de la suppression de l\'article');
+                        }
                     }
-                }
                 },
                 viewAnimalDocuments(animal) {
                     if (!animal.documents || animal.documents.length === 0) return;
@@ -4398,14 +4413,14 @@
                             this.currentPage = 'appointment';
                             if (this.isAuthenticated) {
                                 this.loadAnimals();
-                            this.syncTimeSlots();
+                                this.syncTimeSlots();
                                 this.loadAvailableDates();
                             }
                             break;
                         case 'dossier':
                             this.currentPage = 'dossier';
                             if (this.isAuthenticated) {
-                            this.loadAnimals();
+                                this.loadAnimals();
                             }
                             break;
                         case 'admin':
@@ -4498,6 +4513,12 @@
                 }
             }
         }).mount('#app')
+
+        if ('Notification' in window && Notification.permission === 'default') {
+            Notification.requestPermission().then(function(permission) {
+                console.log('Notification permission:', permission);
+            });
+        }
     </script>
 </body>
 </html> 
