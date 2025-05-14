@@ -1660,7 +1660,12 @@
                             await this.loadUnavailableSlots();
                         }
                     }
-                }
+                },
+                currentPage() {
+                    setTimeout(() => {
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                    }, 100);
+                },
             },
             methods: {
                 toggleMenu() {
@@ -2085,6 +2090,7 @@
                 navigateTo(page) {
                     this.closeMenu();
                     this.currentPage = page;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
                     if (page === 'admin' && this.isAdmin) {
                         this.loadAllData();
                     }
