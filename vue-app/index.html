@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=6.9">
+    <link rel="stylesheet" href="styles.css?v=7.5">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -3868,79 +3868,45 @@
                     this.removeHighlights();
                     let elementToHighlight;
                     const isMobile = window.innerWidth <= 768;
-                    
-                    // Réinitialiser la position de défilement sur mobile
-                    if (isMobile) {
-                        window.scrollTo({
-                            top: 0,
-                            behavior: 'smooth'
-                        });
-                    }
-
-                    switch(this.currentTutorialStepIndex) {
-                        case 0: // Bienvenue
-                            if (!isMobile) {
-                                this.tutorialSteps[0].position = {
-                                    top: '50%',
-                                    left: '50%',
-                                    transform: 'translate(-50%, -50%)'
-                                };
-                            }
-                            break;
-                        case 1: // Connexion
-                            elementToHighlight = document.querySelector('.nav-links a[href="#"]');
-                            if (!isMobile) {
-                                this.tutorialSteps[1].position = {
-                                    top: '80px',
-                                    right: '20px'
-                                };
-                            }
-                            break;
-                        case 2: // Dossier ostéopathique
-                            elementToHighlight = document.querySelector('.nav-links a[href="#dossier"]');
-                            if (!isMobile) {
-                                this.tutorialSteps[2].position = {
-                                    top: '80px',
-                                    right: '150px'
-                                };
-                            }
-                            break;
-                        case 3: // Ajouter un animal
-                            if (this.currentPage === 'dossier') {
-                                elementToHighlight = document.querySelector('.btn.add-animal');
-                                if (!isMobile) {
-                                    this.tutorialSteps[3].position = {
-                                        top: '50%',
-                                        left: '50%',
-                                        transform: 'translate(-50%, -50%)'
-                                    };
+                    let retryCount = 0;
+                    const tryHighlight = () => {
+                        switch(this.currentTutorialStepIndex) {
+                            case 0: // Bienvenue
+                                // Pas de highlight
+                                break;
+                            case 1: // Connexion
+                                elementToHighlight = document.querySelector('.nav-links a[href="#"]');
+                                break;
+                            case 2: // Dossier ostéopathique
+                                elementToHighlight = document.querySelector('.nav-links a[href="#dossier"]');
+                                break;
+                            case 3: // Ajouter un animal
+                                if (this.currentPage === 'dossier') {
+                                    elementToHighlight = document.querySelector('.add-animal, .btn.add-animal');
                                 }
-                            }
-                            break;
-                        case 4: // Prendre rendez-vous
-                            elementToHighlight = document.querySelector('.nav-links a[href="#appointment"]');
-                            if (!isMobile) {
-                                this.tutorialSteps[4].position = {
-                                    top: '80px',
-                                    right: '250px'
-                                };
-                            }
-                            break;
-                    }
-
-                    if (elementToHighlight) {
-                        elementToHighlight.classList.add('tutorial-highlight');
-                        
-                        // Sur mobile, attendre que le menu soit ouvert
-                        if (isMobile) {
-                            setTimeout(() => {
-                                elementToHighlight.scrollIntoView({
-                                    behavior: 'smooth',
-                                    block: 'center'
-                                });
-                            }, 500);
+                                break;
+                            case 4: // Prendre rendez-vous
+                                elementToHighlight = document.querySelector('.nav-links a[href="#appointment"]');
+                                break;
                         }
-                    }
+                        if (elementToHighlight) {
+                            elementToHighlight.classList.add('tutorial-highlight');
+                            if (isMobile) {
+                                setTimeout(() => {
+                                    elementToHighlight.scrollIntoView({
+                                        behavior: 'smooth',
+                                        block: 'center'
+                                    });
+                                }, 500);
+                            }
+                        } else if (retryCount < 3) {
+                            retryCount++;
+                            setTimeout(tryHighlight, 200);
+                        } else {
+                            console.warn('Aucun élément à surligner pour l\'étape du tutoriel', this.currentTutorialStepIndex);
+                        }
+                    };
+                    tryHighlight();
                 },
                 removeHighlights() {
                     document.querySelectorAll('.tutorial-highlight').forEach(el => {

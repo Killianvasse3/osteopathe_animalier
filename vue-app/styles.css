@@ -1149,15 +1149,29 @@ body {
 /* Ajustements responsive pour le tutoriel */
 @media (max-width: 768px) {
     .tutorial-step {
-        position: fixed;
-        width: calc(100% - 2rem) !important;
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100vw !important;
         max-width: none !important;
-        left: 1rem !important;
-        right: 1rem !important;
+        border-radius: 0 !important;
         margin: 0 !important;
-        padding: 1rem !important;
-        top: 50% !important;
-        transform: translateY(-50%) !important;
+        padding: 1.2rem 0.5rem !important;
+        box-sizing: border-box !important;
+        z-index: 10003 !important;
+        transform: none !important;
+        overflow-y: auto !important;
+    }
+    /* Neutralise les règles qui pourraient remettre la fenêtre ailleurs */
+    .tutorial-step[style*="top:"] {
+        top: 0 !important;
+        transform: none !important;
+    }
+    .tutorial-step[style*="right:"] {
+        right: 0 !important;
+        left: 0 !important;
+        transform: none !important;
     }
 
     /* Ajustements pour les étapes spécifiques sur mobile */
@@ -1176,7 +1190,7 @@ body {
     }
 
     .tutorial-step p {
-        font-size: 0.9rem;
+        font-size: 0.95rem;
         margin-bottom: 1rem;
     }
 
@@ -1239,28 +1253,23 @@ body {
         box-sizing: border-box !important;
         overflow-y: auto !important;
     }
-
     .tutorial-step h3 {
         font-size: 1.1rem;
         text-align: center;
     }
-
     .tutorial-step p {
         font-size: 0.95rem;
         text-align: center;
     }
-
     .tutorial-step .btn-group {
         justify-content: center;
         gap: 0.8rem;
     }
-
     .tutorial-step button {
         padding: 0.6rem 1.2rem;
         font-size: 0.9rem;
         min-width: 100px;
     }
-
     .tutorial-btn {
         bottom: 1rem;
         right: 1rem;
@@ -3415,4 +3424,66 @@ select#animalOwner option {
     font-weight: 700;
     margin-bottom: 2.5rem;
     letter-spacing: 0.5px;
+}
+
+@media (max-width: 768px) {
+  .tutorial-step {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    right: 0 !important;
+    width: 100vw !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    margin: 0 !important;
+    padding: 1.2rem 0.5rem !important;
+    box-sizing: border-box !important;
+    z-index: 10003 !important;
+    transform: none !important;
+    overflow-y: auto !important;
+  }
+  /* Neutralise les règles qui pourraient remettre la fenêtre ailleurs */
+  .tutorial-step[style*="top:"] {
+    top: 0 !important;
+    transform: none !important;
+  }
+  .tutorial-step[style*="right:"] {
+    right: 0 !important;
+    left: 0 !important;
+    transform: none !important;
+  }
+  .tutorial-step h3 {
+    font-size: 1.1rem;
+    text-align: center;
+  }
+  .tutorial-step p {
+    font-size: 0.95rem;
+    text-align: center;
+  }
+  .tutorial-step .btn-group {
+    justify-content: center;
+    gap: 0.8rem;
+  }
+  .tutorial-step button {
+    padding: 0.6rem 1.2rem;
+    font-size: 0.9rem;
+    min-width: 100px;
+  }
+  .tutorial-btn {
+    bottom: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+    font-size: 1.2rem;
+  }
+}
+
+.tutorial-highlight {
+  position: relative !important;
+  z-index: 10004 !important;
+  box-shadow: 0 0 0 4px var(--accent-color), 0 0 0 10px rgba(255, 91, 91, 0.25) !important;
+  border-radius: 8px !important;
+  animation: pulse 1.5s infinite;
+  pointer-events: auto !important;
+  transition: box-shadow 0.2s;
 }
