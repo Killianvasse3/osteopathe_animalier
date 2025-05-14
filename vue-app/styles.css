@@ -253,6 +253,10 @@ body {
     object-fit: cover;
 }
 
+.about h3 {
+    margin-bottom: 1.2rem;
+}
+
 /* Contact section */
 .contact {
     background-color: var(--light-bg);
