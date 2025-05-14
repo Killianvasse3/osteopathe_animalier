@@ -3289,8 +3289,12 @@ select#animalOwner option {
     flex-direction: column;
     gap: 2rem;
     align-items: flex-start;
-    justify-content: flex-start;
+    justify-content: center; /* centrer verticalement */
     padding-left: 2rem;
+    font-size: 1.18rem; /* police plus grande */
+    line-height: 1.7;
+    min-height: 480px;
+    margin-top: 40px; /* décale le bloc vers le bas pour l'aligner avec le formulaire */
 }
 
 .contact-info-container h3 {
@@ -3348,6 +3352,8 @@ select#animalOwner option {
         margin-top: 2rem;
         align-items: stretch;
         text-align: left;
+        justify-content: flex-start; /* sur mobile, revenir à l'alignement haut */
+        font-size: 1.05rem;
     }
     .section.contact::before {
         display: none;
