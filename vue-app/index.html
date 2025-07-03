@@ -48,14 +48,14 @@
                     <span></span>
                 </div>
                 <div class="nav-links" :class="{ active: isMenuOpen, 'tutorial-padding': showTutorial && isMobile }">
-                    <a href="#services" @click="closeMenu">Outils thérapeutiques</a>
-                    <a href="#about" @click="closeMenu">À propos</a>
-                    <a href="#blog" @click="closeMenu">Blog</a>
-                    <a href="#contact" @click="closeMenu">Contact</a>
+                    <a href="#" @click.prevent="smoothScrollTo('services'); closeMenu()">Outils thérapeutiques</a>
+                    <a href="#" @click.prevent="smoothScrollTo('about'); closeMenu()">À propos</a>
+                    <a href="#" @click.prevent="smoothScrollTo('blog'); closeMenu()">Blog</a>
+                    <a href="#" @click.prevent="smoothScrollTo('contact'); closeMenu()">Contact</a>
                     <template v-if="isAuthenticated">
-                        <a href="#appointment" @click="closeMenu">Prendre RDV</a>
-                        <a href="#dossier" @click="closeMenu">Dossier Animaux</a>
-                        <a href="#admin" v-if="isAdmin" @click="navigateTo('admin')">Administration</a>
+                        <a href="#" @click.prevent="smoothScrollTo('appointment'); closeMenu()">Prendre RDV</a>
+                        <a href="#" @click.prevent="smoothScrollTo('dossier'); closeMenu()">Dossier Animaux</a>
+                        <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
                     </template>
                     <template v-if="!isAuthenticated">
                         <a href="#" @click.prevent="showAuth = true; closeMenu()">Connexion</a>
@@ -4367,7 +4367,22 @@
                 },
                 loadClientAnimals() {
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);
-                }
+                },
+                // Fonction pour le défilement fluide vers les sections
+                smoothScrollTo(targetId) {
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        // Utiliser scrollIntoView avec des options plus précises
+                        targetElement.scrollIntoView({
+                            behavior: 'smooth',
+                            block: 'start',
+                            inline: 'nearest'
+                        });
+                        
+                        // Fermer le menu mobile si ouvert
+                        this.isMenuOpen = false;
+                    }
+                },
             },
             mounted() {
                 // Gestion de la navigation par hash
