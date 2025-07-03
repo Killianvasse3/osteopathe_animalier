@@ -53,8 +53,8 @@
                     <a href="#" @click.prevent="smoothScrollTo('blog'); closeMenu()">Blog</a>
                     <a href="#" @click.prevent="smoothScrollTo('contact'); closeMenu()">Contact</a>
                     <template v-if="isAuthenticated">
-                        <a href="#" @click.prevent="smoothScrollTo('appointment'); closeMenu()">Prendre RDV</a>
-                        <a href="#" @click.prevent="smoothScrollTo('dossier'); closeMenu()">Dossier Animaux</a>
+                        <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
+                        <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
                         <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
                     </template>
                     <template v-if="!isAuthenticated">
@@ -74,7 +74,7 @@
                     <div class="hero-content">
                         <h1>Soins naturels pour vos animaux</h1>
                         <p>Thérapeute manuelle animalier, je vous propose des soins adaptés à chaque espèce pour améliorer leur bien-être et leur qualité de vie.</p>
-                        <a href="#appointment" class="btn" v-if="isAuthenticated">Prendre rendez-vous</a>
+                        <a href="#" @click.prevent="navigateTo('appointment')" class="btn" v-if="isAuthenticated">Prendre rendez-vous</a>
                         <a href="#" class="btn" v-else @click.prevent="showAuth = true">Se connecter pour prendre RDV</a>
                     </div>
                 </section>
