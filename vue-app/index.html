@@ -48,10 +48,10 @@
                     <span></span>
                 </div>
                 <div class="nav-links" :class="{ active: isMenuOpen, 'tutorial-padding': showTutorial && isMobile }">
-                    <a href="#" @click.prevent="smoothScrollTo('services'); closeMenu()">Outils thérapeutiques</a>
-                    <a href="#" @click.prevent="smoothScrollTo('about'); closeMenu()">À propos</a>
-                    <a href="#" @click.prevent="smoothScrollTo('blog'); closeMenu()">Blog</a>
-                    <a href="#" @click.prevent="smoothScrollTo('contact'); closeMenu()">Contact</a>
+                    <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
+                    <a href="#" @click.prevent="navigateToSection('about'); closeMenu()">À propos</a>
+                    <a href="#" @click.prevent="navigateToSection('blog'); closeMenu()">Blog</a>
+                    <a href="#" @click.prevent="navigateToSection('contact'); closeMenu()">Contact</a>
                     <template v-if="isAuthenticated">
                         <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
                         <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
@@ -4381,6 +4381,23 @@
                         
                         // Fermer le menu mobile si ouvert
                         this.isMenuOpen = false;
+                    }
+                },
+                
+                // Fonction pour naviguer vers une section (gère le changement de page si nécessaire)
+                navigateToSection(sectionId) {
+                    // Si on n'est pas sur la page d'accueil, d'abord y aller
+                    if (this.currentPage !== 'home') {
+                        this.currentPage = 'home';
+                        // Attendre que la page soit chargée avant de faire le scroll
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                this.smoothScrollTo(sectionId);
+                            }, 100);
+                        });
+                    } else {
+                        // Si on est déjà sur la page d'accueil, faire le scroll directement
+                        this.smoothScrollTo(sectionId);
                     }
                 },
             },
