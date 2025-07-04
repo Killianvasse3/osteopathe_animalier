@@ -413,7 +413,7 @@
                         </button>
                         <button 
                             :class="['admin-tab', { active: adminActiveTab === 'slots' }]"
-                            @click="adminActiveTab = 'slots'">
+                            @click="switchToSlotsTab">
                             Créneaux
                         </button>
                         <button 
@@ -1570,7 +1570,9 @@
                     // Utiliser la date du formulaire actif (admin ou client)
                     const selectedDate = this.adminAppointmentForm.date || this.appointmentForm.date;
                     if (!selectedDate) return [];
-                    return this.availableSlots;
+                    
+                    // Retourner les créneaux disponibles pour la date sélectionnée
+                    return this.availableSlots || [];
                 },
                 filteredMessages() {
                     if (!this.adminSearch) return this.messages;
@@ -1665,6 +1667,21 @@
                     setTimeout(() => {
                         window.scrollTo({ top: 0, behavior: 'smooth' });
                     }, 100);
+                    
+                    // Recharger les créneaux si on va sur la page de rendez-vous
+                    if (this.currentPage === 'appointment' && this.isAuthenticated) {
+                        setTimeout(() => {
+                            this.loadAvailableDates();
+                        }, 200);
+                    }
+                },
+                adminActiveTab() {
+                    // Recharger les créneaux quand on va sur l'onglet Créneaux
+                    if (this.adminActiveTab === 'slots' && this.isAdmin) {
+                        setTimeout(() => {
+                            this.loadSlots();
+                        }, 100);
+                    }
                 },
             },
             methods: {
@@ -1856,6 +1873,8 @@
                     }
                     
                     try {
+                        console.log('Loading slots for date:', selectedDate);
+                        
                         // Créer les dates de début et fin de la journée sélectionnée
                         const dateObj = new Date(selectedDate);
                         const startOfDay = new Date(dateObj);
@@ -1863,37 +1882,45 @@
                         const endOfDay = new Date(dateObj);
                         endOfDay.setHours(23, 59, 59, 999);
 
-                        // Utiliser onSnapshot pour les créneaux
+                        // Nettoyer les anciens écouteurs
                         if (this.unsubscribeSlots) {
                             this.unsubscribeSlots();
                         }
+                        if (this.unsubscribeAppointments) {
+                            this.unsubscribeAppointments();
+                        }
 
+                        // Écouter les créneaux pour cette date
                         this.unsubscribeSlots = db.collection('timeSlots')
                             .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
                             .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
                             .onSnapshot((slotsSnapshot) => {
+                                console.log('Slots snapshot:', slotsSnapshot.docs.length, 'slots found');
+                                
                                 // Si aucun créneau n'est défini pour cette date
                                 if (slotsSnapshot.empty) {
                                     this.availableSlots = [];
                                     return;
                                 }
 
-                                // Récupérer les créneaux disponibles
-                                let availableSlots = slotsSnapshot.docs
+                                // Récupérer les créneaux disponibles (non marqués comme indisponibles)
+                                const availableSlots = slotsSnapshot.docs
                                     .filter(doc => !doc.data().unavailable)
                                     .map(doc => doc.data().time);
 
-                                // Utiliser onSnapshot pour les rendez-vous
-                                if (this.unsubscribeAppointments) {
-                                    this.unsubscribeAppointments();
-                                }
+                                console.log('Available slots before appointments filter:', availableSlots);
 
+                                // Écouter les rendez-vous pour cette date
                                 this.unsubscribeAppointments = db.collection('appointments')
                                     .where('date', '==', selectedDate)
                                     .onSnapshot((appointmentsSnapshot) => {
+                                        console.log('Appointments snapshot:', appointmentsSnapshot.docs.length, 'appointments found');
+                                        
                                         // Récupérer les créneaux déjà réservés
                                         const bookedSlots = appointmentsSnapshot.docs
                                             .map(doc => doc.data().time);
+                                        
+                                        console.log('Booked slots:', bookedSlots);
                                             
                                         // Filtrer les créneaux disponibles
                                         this.availableSlots = availableSlots
@@ -1903,7 +1930,15 @@
                                                 const [bHours, bMinutes] = b.split(':').map(Number);
                                                 return (aHours * 60 + aMinutes) - (bHours * 60 + bMinutes);
                                             });
+                                        
+                                        console.log('Final available slots:', this.availableSlots);
+                                    }, error => {
+                                        console.error('Error in appointments listener:', error);
+                                        this.availableSlots = availableSlots;
                                     });
+                            }, error => {
+                                console.error('Error in slots listener:', error);
+                                this.availableSlots = [];
                             });
 
                     } catch (error) {
@@ -3210,6 +3245,7 @@
                                     unavailable: false
                                 });
                                 
+                                // Passer à la date suivante selon la récurrence
                                 switch(this.newSlot.recurrence) {
                                     case 'daily':
                                         currentDate.setDate(currentDate.getDate() + 1);
@@ -3309,22 +3345,40 @@
                 },
                 async loadSlots() {
                     try {
-                        // Utiliser onSnapshot pour les créneaux dans l'interface admin
+                        console.log('Loading admin slots...');
+                        
+                        // Nettoyer l'ancien écouteur
                         if (this.unsubscribeAdminSlots) {
                             this.unsubscribeAdminSlots();
+                            this.unsubscribeAdminSlots = null;
+                        }
+
+                        // Vérifier que l'utilisateur est admin
+                        if (!this.isAdmin) {
+                            console.log('User is not admin, skipping slots load');
+                            return;
                         }
 
                         this.unsubscribeAdminSlots = db.collection('timeSlots')
                             .orderBy('date')
                             .onSnapshot(snapshot => {
+                                console.log('Admin slots snapshot:', snapshot.docs.length, 'slots found');
+                                
                                 this.slots = snapshot.docs.map(doc => ({
                                     id: doc.id,
                                     ...doc.data(),
                                     date: doc.data().date.toDate()
                                 }));
+                                
+                                console.log('Processed slots:', this.slots.length);
+                                console.log('Slots data:', this.slots);
+                            }, error => {
+                                console.error('Error in admin slots listener:', error);
+                                this.slots = [];
                             });
                     } catch (error) {
                         console.error('Error loading slots:', error);
+                        this.slots = [];
                     }
                 },
                 async syncTimeSlots() {
@@ -3387,6 +3441,7 @@
                 },
                 async loadAvailableDates() {
                     try {
+                        console.log('Loading available dates...');
                         this.isLoadingDates = true;
                         
                         // Calculer la date de début (demain)
@@ -3398,7 +3453,9 @@
                         thirtyDaysFromNow.setDate(tomorrow.getDate() + 30);
                         thirtyDaysFromNow.setHours(23, 59, 59, 999);
 
-                        // Utiliser onSnapshot pour les dates disponibles
+                        console.log('Date range:', tomorrow.toISOString(), 'to', thirtyDaysFromNow.toISOString());
+
+                        // Nettoyer l'ancien écouteur
                         if (this.unsubscribeAvailableDates) {
                             this.unsubscribeAvailableDates();
                         }
@@ -3408,6 +3465,8 @@
                             .where('date', '<=', firebase.firestore.Timestamp.fromDate(thirtyDaysFromNow))
                             .where('unavailable', '==', false)
                             .onSnapshot(snapshot => {
+                                console.log('Available dates snapshot:', snapshot.docs.length, 'slots found');
+                                
                                 // Extraire les dates uniques des créneaux disponibles
                                 const availableDatesSet = new Set();
                                 snapshot.forEach(doc => {
@@ -3417,6 +3476,7 @@
                                 });
 
                                 this.availableDates = Array.from(availableDatesSet).sort();
+                                console.log('Available dates:', this.availableDates);
                                 this.isLoadingDates = false;
                             }, error => {
                                 console.error('Error loading available dates:', error);
@@ -4368,6 +4428,13 @@
                 loadClientAnimals() {
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);
                 },
+                switchToSlotsTab() {
+                    this.adminActiveTab = 'slots';
+                    // Forcer le rechargement des créneaux
+                    setTimeout(() => {
+                        this.loadSlots();
+                    }, 100);
+                },
                 // Fonction pour le défilement fluide vers les sections
                 smoothScrollTo(targetId) {
                     const targetElement = document.getElementById(targetId);
@@ -4440,7 +4507,9 @@
                             if (this.isAdmin) {
                                 this.currentPage = 'admin';
                                 this.loadAllData();
-                                this.loadSlots();
+                                setTimeout(() => {
+                                    this.loadSlots();
+                                }, 100);
                                 this.loadAvailableDates();
                             }
                             break;
@@ -4468,11 +4537,16 @@
                         
                         // Si on est sur la page de rendez-vous, charger les données nécessaires
                         if (this.currentPage === 'appointment') {
-                            await this.syncTimeSlots();
                             await this.loadAvailableDates();
+                            // Attendre un peu avant de synchroniser
+                            setTimeout(() => {
+                                this.syncTimeSlots();
+                            }, 500);
                         } else if (this.currentPage === 'admin' && this.isAdmin) {
                             await this.loadAllData();
-                            await this.loadSlots();
+                            setTimeout(() => {
+                                this.loadSlots();
+                            }, 100);
                             await this.loadAvailableDates();
                         }
                     } else {
@@ -4497,6 +4571,13 @@
                 });
 
                 this.loadBlogPosts();
+                
+                // Si on est déjà sur l'onglet Créneaux, charger les créneaux
+                if (this.currentPage === 'admin' && this.adminActiveTab === 'slots' && this.isAdmin) {
+                    setTimeout(() => {
+                        this.loadSlots();
+                    }, 500);
+                }
             },
             beforeUnmount() {
                 // Nettoyer tous les écouteurs en temps réel
