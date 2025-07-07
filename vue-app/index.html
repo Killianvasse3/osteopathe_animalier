@@ -2484,7 +2484,8 @@
                         modal.remove();
                         window.removeEventListener('keydown', escListener);
                         window.removeEventListener('popstate', popListener);
-                        if (window.location.hash === '#animaldetails') {
+                        // Ne gérer l'historique que si on n'est pas dans l'interface d'administration
+                        if (window.location.hash === '#animaldetails' && this.currentPage !== 'admin') {
                             history.back();
                         }
                     };
@@ -2498,7 +2499,10 @@
                         closeModal();
                     };
                     window.addEventListener('popstate', popListener);
-                    history.pushState({ animalModal: true }, '', '#animaldetails');
+                    // N'ajouter une entrée à l'historique que si on n'est pas dans l'interface d'administration
+                    if (this.currentPage !== 'admin') {
+                        history.pushState({ animalModal: true }, '', '#animaldetails');
+                    }
                     modal.querySelector('#close-animal-modal').onclick = closeModal;
                 },
                 showEditAnimalForm(animal, modal) {
