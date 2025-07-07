@@ -525,6 +525,11 @@
                                             </label>
                                         </div>
                                     </div>
+                                    <div class="form-group" v-if="newAnimal.sterilization">
+                                        <label for="newAnimalSterilizationDetails">Détails de la stérilisation</label>
+                                        <textarea id="newAnimalSterilizationDetails" v-model="newAnimal.sterilizationDetails" rows="2"
+                                                placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc."></textarea>
+                                    </div>
                                     <div class="form-group">
                                         <label for="newAnimalDiet">Alimentation</label>
                                         <textarea id="newAnimalDiet" v-model="newAnimal.diet" rows="2" 
@@ -1371,6 +1376,7 @@
                         race: '',
                         birthdate: '',
                         sterilization: false,
+                        sterilizationDetails: '',
                         diet: '',
                         activity: '',
                         activityDetails: '',
@@ -1661,6 +1667,20 @@
                         if (newDate) {
                             await this.loadUnavailableSlots();
                         }
+                    }
+                },
+                'newAnimal.sterilization': {
+                    handler(newValue) {
+                        // Gérer l'affichage du champ de détails de stérilisation
+                        this.$nextTick(() => {
+                            const detailsField = document.getElementById('newAnimalSterilizationDetails');
+                            if (detailsField) {
+                                const parentGroup = detailsField.closest('.form-group');
+                                if (parentGroup) {
+                                    parentGroup.style.display = newValue ? 'block' : 'none';
+                                }
+                            }
+                        });
                     }
                 },
                 currentPage() {
@@ -2215,6 +2235,7 @@
                             race: this.newAnimal.race || '',
                             birthdate: this.newAnimal.birthdate,
                             sterilization: this.newAnimal.sterilization || false,
+                            sterilizationDetails: this.newAnimal.sterilizationDetails || '',
                             diet: this.newAnimal.diet || '',
                             activity: this.newAnimal.activity || '',
                             activityDetails: this.newAnimal.activityDetails || '',
@@ -2247,6 +2268,7 @@
                             race: '',
                             birthdate: '',
                             sterilization: false,
+                            sterilizationDetails: '',
                             diet: '',
                             activity: '',
                             activityDetails: '',
@@ -2294,6 +2316,7 @@
                                     <p><strong>Race :</strong> <span id="animal-race">${animal.race || 'Non renseignée'}</span></p>
                                     <p><strong>Date de naissance :</strong> <span id="animal-birthdate">${this.formatDate(animal.birthdate)}</span></p>
                                     <p><strong>Stérilisation :</strong> <span id="animal-sterilization">${animal.sterilization ? 'Oui' : 'Non'}</span></p>
+                                    ${animal.sterilization && animal.sterilizationDetails ? `<p><strong>Détails de la stérilisation :</strong> <span id="animal-sterilization-details">${animal.sterilizationDetails}</span></p>` : ''}
                                 </div>
                             </div>
                             <div class="animal-details-section">
@@ -2521,6 +2544,10 @@
                             </div>
                                 </div>
                             </div>
+                            <div class="form-group" id="sterilization-details-group" style="display: ${animal.sterilization ? 'block' : 'none'};">
+                                <label>Détails de la stérilisation :</label>
+                                <textarea id="edit-animal-sterilization-details" rows="2" placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc.">${animal.sterilizationDetails || ''}</textarea>
+                            </div>
 
                             <div class="form-group">
                                 <label>Alimentation :</label>
@@ -2625,6 +2652,16 @@
                         modal.remove();
                     };
 
+                    // Gestion de l'affichage du champ détails de stérilisation
+                    const sterilizationRadios = modal.querySelectorAll('input[name="sterilization"]');
+                    const sterilizationDetailsGroup = modal.querySelector('#sterilization-details-group');
+                    
+                    sterilizationRadios.forEach(radio => {
+                        radio.addEventListener('change', () => {
+                            sterilizationDetailsGroup.style.display = radio.value === 'true' ? 'block' : 'none';
+                        });
+                    });
+
                     // Soumission du formulaire
                     modal.querySelector('#edit-animal-form').onsubmit = async (e) => {
                         e.preventDefault();
@@ -2634,6 +2671,7 @@
                             race: modal.querySelector('#edit-animal-race').value,
                             birthdate: modal.querySelector('#edit-animal-birthdate').value,
                             sterilization: modal.querySelector('input[name="sterilization"]:checked').value === 'true',
+                            sterilizationDetails: modal.querySelector('#edit-animal-sterilization-details').value,
                             diet: modal.querySelector('#edit-animal-diet').value,
                             activity: modal.querySelector('#edit-animal-activity').value,
                             activityDetails: modal.querySelector('#edit-animal-activity-details').value,
@@ -3026,6 +3064,7 @@
                             race: this.editingAnimal.race,
                             birthdate: this.editingAnimal.birthdate,
                             sterilization: this.editingAnimal.sterilization,
+                            sterilizationDetails: this.editingAnimal.sterilizationDetails,
                             diet: this.editingAnimal.diet,
                             activity: this.editingAnimal.activity,
                             activityDetails: this.editingAnimal.activityDetails,
