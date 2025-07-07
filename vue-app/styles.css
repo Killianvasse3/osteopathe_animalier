@@ -481,6 +481,37 @@ body {
         right: 0;
     }
 
+    .close-menu-btn {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 50px;
+        height: 50px;
+        background-color: transparent;
+        color: var(--text-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        font-size: 28px;
+        font-weight: bold;
+        transition: all 0.3s ease;
+        z-index: 10003;
+        border: none;
+    }
+
+    .close-menu-btn:hover {
+        background-color: transparent;
+        transform: scale(1.1);
+        color: var(--accent-color);
+    }
+
+    .close-menu-btn span {
+        font-size: 32px;
+        line-height: 1;
+    }
+
     .nav-links a {
         font-size: 1.1rem;
         padding: 0.8rem 1.5rem;
