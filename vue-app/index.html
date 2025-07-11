@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=8.0">
+    <link rel="stylesheet" href="styles.css?v=8.3">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -4110,7 +4110,7 @@
                 showPostDetails(post) {
                     const formattedContent = post.content.replace(/\n/g, '<br>');
                     const modal = document.createElement('div');
-                    modal.className = 'modal';
+                    modal.className = 'modal blog-modal';
                     modal.innerHTML = `
                         <div class="modal-content blog-post-modal">
                             <div class="blog-post-header">
