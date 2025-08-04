@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=8.3">
+    <link rel="stylesheet" href="styles.css?v=8.4">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -58,6 +58,7 @@
                     <template v-if="isAuthenticated">
                         <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
                         <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
+                        <a href="#" @click.prevent="navigateTo('profile'); closeMenu()">Mon Profil</a>
                         <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
                     </template>
                     <template v-if="!isAuthenticated">
@@ -1005,6 +1006,82 @@
                     </div>
                 </section>
             </template>
+
+            <!-- Page de profil client -->
+            <template v-if="currentPage === 'profile'">
+                <section class="profile-page">
+                    <div class="profile-header">
+                        <h1>Mon Profil</h1>
+                        <p>Gérez vos informations personnelles et votre mot de passe</p>
+                    </div>
+
+                    <div class="profile-content">
+                        <div v-if="profileSuccess" class="success-message">
+                            <h3>Profil mis à jour avec succès</h3>
+                            <p>Vos informations ont été modifiées avec succès.</p>
+                        </div>
+                        
+                        <div v-if="profileError" class="error-message">
+                            {{ profileError }}
+                        </div>
+
+                        <form @submit.prevent="updateProfile" class="profile-form">
+                            <div class="profile-section">
+                                <h3>Informations personnelles</h3>
+                                
+                                <div class="form-group">
+                                    <label for="profileFirstName">Prénom</label>
+                                    <input type="text" id="profileFirstName" v-model="profileForm.firstName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="profileLastName">Nom</label>
+                                    <input type="text" id="profileLastName" v-model="profileForm.lastName" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="profileEmail">Email</label>
+                                    <input type="email" id="profileEmail" v-model="profileForm.email" required>
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="profileAddress">Adresse complète</label>
+                                    <textarea id="profileAddress" v-model="profileForm.address" rows="3" required></textarea>
+                                </div>
+                            </div>
+
+                            <div class="profile-section">
+                                <h3>Modifier le mot de passe</h3>
+                                <p class="password-info">Laissez vide si vous ne souhaitez pas changer votre mot de passe</p>
+                                
+                                <div class="form-group">
+                                    <label for="profileCurrentPassword">Mot de passe actuel</label>
+                                    <input type="password" id="profileCurrentPassword" v-model="profileForm.currentPassword">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="profileNewPassword">Nouveau mot de passe</label>
+                                    <input type="password" id="profileNewPassword" v-model="profileForm.newPassword" 
+                                           :disabled="!profileForm.currentPassword">
+                                </div>
+
+                                <div class="form-group">
+                                    <label for="profileConfirmPassword">Confirmer le nouveau mot de passe</label>
+                                    <input type="password" id="profileConfirmPassword" v-model="profileForm.confirmPassword" 
+                                           :disabled="!profileForm.currentPassword">
+                                </div>
+                            </div>
+
+                            <div class="profile-actions">
+                                <button type="submit" class="btn primary" :disabled="isUpdatingProfile">
+                                    <span v-if="isUpdatingProfile">Mise à jour...</span>
+                                    <span v-else>Sauvegarder les modifications</span>
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </template>
         </div>
 
         <footer class="footer">
@@ -1504,7 +1581,20 @@
                         date: '',
                         time: '',
                         notes: ''
-                    }
+                    },
+                    // Données pour la page de profil
+                    profileForm: {
+                        firstName: '',
+                        lastName: '',
+                        email: '',
+                        address: '',
+                        currentPassword: '',
+                        newPassword: '',
+                        confirmPassword: ''
+                    },
+                    profileSuccess: false,
+                    profileError: '',
+                    isUpdatingProfile: false
                 }
             },
             computed: {
@@ -1886,6 +1976,119 @@
                         alert('Une erreur est survenue lors de l\'envoi du message. Veuillez réessayer plus tard.');
                     }
                 },
+                // Méthodes pour la page de profil
+                async loadProfileData() {
+                    try {
+                        const user = firebase.auth().currentUser;
+                        if (!user) return;
+
+                        const userDoc = await db.collection('users').doc(user.uid).get();
+                        if (userDoc.exists) {
+                            const userData = userDoc.data();
+                            this.profileForm.firstName = userData.firstName || '';
+                            this.profileForm.lastName = userData.lastName || '';
+                            this.profileForm.email = userData.email || user.email || '';
+                            this.profileForm.address = userData.address || '';
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors du chargement du profil:', error);
+                        this.profileError = 'Erreur lors du chargement des données du profil';
+                    }
+                },
+                async updateProfile() {
+                    try {
+                        this.isUpdatingProfile = true;
+                        this.profileError = '';
+                        this.profileSuccess = false;
+
+                        const user = firebase.auth().currentUser;
+                        if (!user) {
+                            this.profileError = 'Vous devez être connecté pour modifier votre profil';
+                            return;
+                        }
+
+                        // Validation des champs requis
+                        if (!this.profileForm.firstName || !this.profileForm.lastName || !this.profileForm.email || !this.profileForm.address) {
+                            this.profileError = 'Tous les champs sont obligatoires';
+                            return;
+                        }
+
+                        // Validation du mot de passe si changement demandé
+                        if (this.profileForm.currentPassword || this.profileForm.newPassword || this.profileForm.confirmPassword) {
+                            if (!this.profileForm.currentPassword) {
+                                this.profileError = 'Le mot de passe actuel est requis pour changer le mot de passe';
+                                return;
+                            }
+                            if (!this.profileForm.newPassword) {
+                                this.profileError = 'Le nouveau mot de passe est requis';
+                                return;
+                            }
+                            if (this.profileForm.newPassword !== this.profileForm.confirmPassword) {
+                                this.profileError = 'Les mots de passe ne correspondent pas';
+                                return;
+                            }
+                            if (this.profileForm.newPassword.length < 6) {
+                                this.profileError = 'Le mot de passe doit contenir au moins 6 caractères';
+                                return;
+                            }
+                        }
+
+                        // Mise à jour des informations utilisateur dans Firestore
+                        const userUpdateData = {
+                            firstName: this.profileForm.firstName,
+                            lastName: this.profileForm.lastName,
+                            email: this.profileForm.email,
+                            address: this.profileForm.address,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        await db.collection('users').doc(user.uid).update(userUpdateData);
+
+                        // Mise à jour du mot de passe si demandé
+                        if (this.profileForm.currentPassword && this.profileForm.newPassword) {
+                            // Réauthentifier l'utilisateur avant de changer le mot de passe
+                            const credential = firebase.auth.EmailAuthProvider.credential(
+                                user.email,
+                                this.profileForm.currentPassword
+                            );
+                            await user.reauthenticateWithCredential(credential);
+                            
+                            // Changer le mot de passe
+                            await user.updatePassword(this.profileForm.newPassword);
+                        }
+
+                        // Mettre à jour l'email dans Firebase Auth si nécessaire
+                        if (this.profileForm.email !== user.email) {
+                            await user.updateEmail(this.profileForm.email);
+                        }
+
+                        this.profileSuccess = true;
+                        
+                        // Réinitialiser les champs de mot de passe
+                        this.profileForm.currentPassword = '';
+                        this.profileForm.newPassword = '';
+                        this.profileForm.confirmPassword = '';
+
+                        // Masquer le message de succès après 3 secondes
+                        setTimeout(() => {
+                            this.profileSuccess = false;
+                        }, 3000);
+
+                    } catch (error) {
+                        console.error('Erreur lors de la mise à jour du profil:', error);
+                        if (error.code === 'auth/wrong-password') {
+                            this.profileError = 'Le mot de passe actuel est incorrect';
+                        } else if (error.code === 'auth/email-already-in-use') {
+                            this.profileError = 'Cette adresse email est déjà utilisée';
+                        } else if (error.code === 'auth/requires-recent-login') {
+                            this.profileError = 'Pour des raisons de sécurité, veuillez vous reconnecter avant de modifier votre profil';
+                        } else {
+                            this.profileError = 'Une erreur est survenue lors de la mise à jour du profil';
+                        }
+                    } finally {
+                        this.isUpdatingProfile = false;
+                    }
+                },
                 async loadUnavailableSlots() {
                     // Déterminer quelle date utiliser en fonction du formulaire actif
                     const selectedDate = this.adminAppointmentForm.date || this.appointmentForm.date;
@@ -2151,6 +2354,8 @@
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                     if (page === 'admin' && this.isAdmin) {
                         this.loadAllData();
+                    } else if (page === 'profile' && this.isAuthenticated) {
+                        this.loadProfileData();
                     }
                 },
                 async loadAnimals() {
@@ -4523,7 +4728,7 @@
                     const hash = window.location.hash.slice(1);
                     
                     // Si l'utilisateur n'est pas connecté, il ne peut accéder qu'à la page d'accueil et ses sections
-                    if (!this.isAuthenticated && (hash === 'appointment' || hash === 'dossier' || hash === 'admin')) {
+                    if (!this.isAuthenticated && (hash === 'appointment' || hash === 'dossier' || hash === 'admin' || hash === 'profile')) {
                         window.location.hash = '';
                         this.currentPage = 'home';
                         return;
@@ -4560,6 +4765,12 @@
                                     this.loadSlots();
                                 }, 100);
                                 this.loadAvailableDates();
+                            }
+                            break;
+                        case 'profile':
+                            if (this.isAuthenticated) {
+                                this.currentPage = 'profile';
+                                this.loadProfileData();
                             }
                             break;
                         default:
@@ -4607,7 +4818,7 @@
                         this.userEmail = '';
                         this.travelTime = '';
                         this.animals = [];
-                        if (window.location.hash === '#appointment' || window.location.hash === '#dossier' || window.location.hash === '#admin') {
+                        if (window.location.hash === '#appointment' || window.location.hash === '#dossier' || window.location.hash === '#admin' || window.location.hash === '#profile') {
                             window.location.hash = '';
                             this.currentPage = 'home';
                         }
