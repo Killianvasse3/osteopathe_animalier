@@ -17,24 +17,7 @@ service cloud.firestore {
       return request.auth.uid == userId;
     }
 
-    // Fonction pour vérifier si un créneau est disponible
-    function isSlotAvailable(slotId) {
-      let slot = get(/databases/$(database)/documents/timeSlots/$(slotId)).data;
-      return !slot.unavailable;
-    }
 
-    // Fonction pour vérifier si un créneau existe déjà à la même date et heure
-    function hasNoConflictingSlot() {
-      let requestDate = request.resource.data.date;
-      let requestTime = request.resource.data.time;
-      
-      return !exists(/databases/$(database)/documents/timeSlots/**) || 
-        getAfter(/databases/$(database)/documents/timeSlots/**).size() == 0 ||
-        !getAfter(/databases/$(database)/documents/timeSlots)
-          .where('date', '==', requestDate)
-          .where('time', '==', requestTime)
-          .size() > 0;
-    }
 
     // Règles pour la collection users
     match /users/{userId} {
@@ -50,25 +33,24 @@ service cloud.firestore {
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
       // Création : seul l'admin peut créer
       allow create: if isAdmin();
-      // Modification : seul l'admin peut modifier
-      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+      // Modification : admin ou propriétaire de l'animal (pour ajouter des rendez-vous)
+      allow update: if isAuthenticated() && (
+        resource.data.userId == request.auth.uid || 
+        isAdmin() ||
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['appointments']))
+      );
       // Suppression : seul l'admin peut supprimer
       allow delete: if isAdmin();
     }
 
     // Règles pour la collection appointments
     match /appointments/{appointmentId} {
-      // Les utilisateurs peuvent lire leurs propres rendez-vous
-      allow read: if isAuthenticated() && (
-        resource.data.userId == request.auth.uid || isAdmin()
-      );
+      // Lecture : tout utilisateur connecté peut lire (nécessaire pour vérifier les créneaux disponibles)
+      allow read: if isAuthenticated();
       
-      // Seuls les admins peuvent créer des rendez-vous directement
-      // Les utilisateurs normaux doivent passer par la fonction Cloud
-      allow create: if isAdmin() || (
-        isAuthenticated() && 
-        request.resource.data.userId == request.auth.uid
-      );
+      // Création : utilisateurs authentifiés peuvent créer leurs propres rendez-vous
+      allow create: if isAuthenticated() && 
+        request.resource.data.userId == request.auth.uid;
       
       // Seuls les admins peuvent modifier les rendez-vous
       allow update: if isAdmin();
@@ -81,8 +63,13 @@ service cloud.firestore {
     match /timeSlots/{slotId} {
       // Lecture : tout utilisateur connecté peut lire
       allow read: if isAuthenticated();
-      // Création, modification, suppression : seul l'admin peut le faire
-      allow write: if isAdmin();
+      // Modification : admin ou utilisateur qui crée un rendez-vous
+      allow update: if isAdmin() || (
+        isAuthenticated() && 
+        request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unavailable', 'updatedAt'])
+      );
+      // Création et suppression : seul l'admin peut le faire
+      allow create, delete: if isAdmin();
     }
 
     // Règles pour la collection contact_messages
