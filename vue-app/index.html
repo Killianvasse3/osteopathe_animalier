@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=8.4">
+    <link rel="stylesheet" href="styles.css?v=9.1">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -51,21 +51,34 @@
                     <div class="close-menu-btn" @click="closeMenu" v-if="isMenuOpen">
                         <span>&times;</span>
                     </div>
-                    <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
-                    <a href="#" @click.prevent="navigateToSection('about'); closeMenu()">À propos</a>
-                    <a href="#" @click.prevent="navigateToSection('blog'); closeMenu()">Blog</a>
-                    <a href="#" @click.prevent="navigateToSection('contact'); closeMenu()">Contact</a>
+                    
+                    <!-- Navigation principale -->
+                    <div class="nav-section">
+                        <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
+                        <a href="#" @click.prevent="navigateToSection('about'); closeMenu()">À propos</a>
+                        <a href="#" @click.prevent="navigateToSection('blog'); closeMenu()">Blog</a>
+                        <a href="#" @click.prevent="navigateToSection('contact'); closeMenu()">Contact</a>
+                    </div>
+                    
+                    <!-- Actions utilisateur -->
                     <template v-if="isAuthenticated">
-                        <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
-                        <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
-                        <a href="#" @click.prevent="navigateTo('profile'); closeMenu()">Mon Profil</a>
-                        <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
+                        <div class="nav-separator"></div>
+                        <div class="nav-section user-actions">
+                            <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
+                            <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
+                            <a href="#" @click.prevent="navigateTo('profile'); closeMenu()">Mon Profil</a>
+                            <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
+                        </div>
+                        <div class="nav-separator"></div>
+                        <div class="nav-section">
+                            <a href="#" @click.prevent="logout(); closeMenu()" class="nav-logout">Déconnexion</a>
+                        </div>
                     </template>
                     <template v-if="!isAuthenticated">
-                        <a href="#" @click.prevent="showAuth = true; closeMenu()">Connexion</a>
-                    </template>
-                    <template v-else>
-                        <a href="#" @click.prevent="logout(); closeMenu()">Déconnexion</a>
+                        <div class="nav-separator"></div>
+                        <div class="nav-section">
+                            <a href="#" @click.prevent="showAuth = true; closeMenu()" class="nav-login">Connexion</a>
+                        </div>
                     </template>
                 </div>
             </nav>
