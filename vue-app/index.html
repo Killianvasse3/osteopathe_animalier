@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=9.1">
+    <link rel="stylesheet" href="styles.css?v=9.2">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -418,32 +418,32 @@
                     </div>
 
                     <div class="admin-tabs">
-                        <button 
-                            :class="['admin-tab', { active: adminActiveTab === 'animals' }]"
-                            @click="adminActiveTab = 'animals'">
-                            Dossiers Animaux
-                        </button>
-                        <button 
-                            :class="['admin-tab', { active: adminActiveTab === 'appointments' }]"
-                            @click="adminActiveTab = 'appointments'">
-                            Rendez-vous
-                        </button>
-                        <button 
-                            :class="['admin-tab', { active: adminActiveTab === 'slots' }]"
-                            @click="switchToSlotsTab">
-                            Créneaux
-                        </button>
-                        <button 
-                            :class="['admin-tab', { active: adminActiveTab === 'clients' }]"
-                            @click="adminActiveTab = 'clients'">
-                            Clients
-                        </button>
-                        <button 
-                            :class="['admin-tab', { active: adminActiveTab === 'messages' }]"
-                            @click="adminActiveTab = 'messages'">
-                            Messages
-                            <span v-if="unreadMessagesCount > 0" class="notification-badge">{{ unreadMessagesCount }}</span>
-                        </button>
+                                                    <button 
+                                :class="['admin-tab', { active: adminActiveTab === 'animals' }]"
+                                @click="switchAdminTab('animals')">
+                                Dossiers Animaux
+                            </button>
+                            <button 
+                                :class="['admin-tab', { active: adminActiveTab === 'appointments' }]"
+                                @click="switchAdminTab('appointments')">
+                                Rendez-vous
+                            </button>
+                            <button 
+                                :class="['admin-tab', { active: adminActiveTab === 'slots' }]"
+                                @click="switchToSlotsTab">
+                                Créneaux
+                            </button>
+                            <button 
+                                :class="['admin-tab', { active: adminActiveTab === 'clients' }]"
+                                @click="switchAdminTab('clients')">
+                                Clients
+                            </button>
+                            <button 
+                                :class="['admin-tab', { active: adminActiveTab === 'messages' }]"
+                                @click="switchAdminTab('messages')">
+                                Messages
+                                <span v-if="unreadMessagesCount > 0" class="notification-badge">{{ unreadMessagesCount }}</span>
+                            </button>
                     </div>
 
                     <!-- Onglet Dossiers Animaux -->
@@ -452,7 +452,7 @@
                         <div class="search-bar">
                             <input 
                                 type="text" 
-                                v-model="adminSearch" 
+                                v-model="animalsSearch" 
                                 placeholder="Rechercher un animal...">
                             </div>
                             <button class="btn primary" @click="showAddAnimalModal = true">
@@ -489,6 +489,9 @@
                                             </button>
                                         </div>
                                     </td>
+                                </tr>
+                                <tr v-if="filteredAnimals.length === 0">
+                                    <td colspan="5" class="text-center">Aucun animal trouvé</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -617,7 +620,7 @@
                         <div class="search-bar">
                             <input 
                                 type="text" 
-                                v-model="adminSearch" 
+                                v-model="appointmentsSearch" 
                                 placeholder="Rechercher un rendez-vous...">
                             </div>
                             <button class="btn primary" @click="showAdminNewAppointmentModal = true">
@@ -676,6 +679,9 @@
                                             </button>
                                         </div>
                                     </td>
+                                </tr>
+                                <tr v-if="sortedAppointments.length === 0">
+                                    <td colspan="8" class="text-center">Aucun rendez-vous trouvé</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -926,7 +932,7 @@
                         <div class="search-bar">
                             <input 
                                 type="text" 
-                                v-model="adminSearch" 
+                                v-model="clientsSearch" 
                                 placeholder="Rechercher un client...">
                         </div>
 
@@ -974,7 +980,7 @@
                         <div class="search-bar">
                             <input 
                                 type="text" 
-                                v-model="adminSearch" 
+                                v-model="messagesSearch" 
                                 placeholder="Rechercher un message...">
                         </div>
 
@@ -1488,6 +1494,10 @@
                     isAdmin: false,
                     adminActiveTab: 'animals',
                     adminSearch: '',
+                    animalsSearch: '',
+                    appointmentsSearch: '',
+                    clientsSearch: '',
+                    messagesSearch: '',
                     allAnimals: [],
                     allAppointments: [],
                     userEmails: {},
@@ -1622,20 +1632,20 @@
                     return max.toISOString().split('T')[0];
                 },
                 filteredAnimals() {
-                    if (!this.adminSearch) return this.allAnimals;
-                    const search = this.adminSearch.toLowerCase();
+                    if (!this.animalsSearch) return this.allAnimals;
+                    const search = this.animalsSearch.toLowerCase();
                     return this.allAnimals.filter(animal => 
-                        animal.name.toLowerCase().includes(search) ||
-                        animal.species.toLowerCase().includes(search) ||
-                        this.getUserFullName(animal.userId).toLowerCase().includes(search)
+                        (animal.name || '').toLowerCase().includes(search) ||
+                        (animal.species || '').toLowerCase().includes(search) ||
+                        (this.getUserFullName(animal.userId) || '').toLowerCase().includes(search)
                     );
                 },
                 filteredAppointments() {
-                    if (!this.adminSearch) return this.allAppointments;
-                    const search = this.adminSearch.toLowerCase();
+                    if (!this.appointmentsSearch) return this.allAppointments;
+                    const search = this.appointmentsSearch.toLowerCase();
                     return this.allAppointments.filter(apt => 
-                        apt.animalName.toLowerCase().includes(search) ||
-                        this.getUserFullName(apt.userId).toLowerCase().includes(search)
+                        (apt.animalName || '').toLowerCase().includes(search) ||
+                        (this.getUserFullName(apt.userId) || '').toLowerCase().includes(search)
                     );
                 },
                 currentMonthName() {
@@ -1687,8 +1697,8 @@
                     return this.availableSlots || [];
                 },
                 filteredMessages() {
-                    if (!this.adminSearch) return this.messages;
-                    const search = this.adminSearch.toLowerCase();
+                    if (!this.messagesSearch) return this.messages;
+                    const search = this.messagesSearch.toLowerCase();
                     return this.messages.filter(message => 
                         message.name.toLowerCase().includes(search) ||
                         message.email.toLowerCase().includes(search) ||
@@ -1696,8 +1706,8 @@
                     );
                 },
                 filteredClients() {
-                    if (!this.adminSearch) return this.allClients;
-                    const search = this.adminSearch.toLowerCase();
+                    if (!this.clientsSearch) return this.allClients;
+                    const search = this.clientsSearch.toLowerCase();
                     return this.allClients.filter(client => 
                         (client.lastName || '').toLowerCase().includes(search) ||
                         (client.firstName || '').toLowerCase().includes(search) ||
@@ -1749,7 +1759,7 @@
                     };
                 },
                 sortedAppointments() {
-                    return this.allAppointments.slice().sort((a, b) => {
+                    return this.filteredAppointments.slice().sort((a, b) => {
                         if (this.sortOrder === 'asc') {
                             return new Date(a.date) - new Date(b.date);
                         } else {
@@ -4701,6 +4711,14 @@
                     setTimeout(() => {
                         this.loadSlots();
                     }, 100);
+                },
+                switchAdminTab(tab) {
+                    this.adminActiveTab = tab;
+                    // Réinitialiser les recherches lors du changement d'onglet
+                    this.animalsSearch = '';
+                    this.appointmentsSearch = '';
+                    this.clientsSearch = '';
+                    this.messagesSearch = '';
                 },
                 // Fonction pour le défilement fluide vers les sections
                 smoothScrollTo(targetId) {
