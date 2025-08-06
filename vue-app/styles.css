@@ -927,6 +927,41 @@ body {
     transition: transform 0.3s ease;
 }
 
+/* Styles pour les boutons radio stylisés */
+.radio-buttons {
+    display: flex;
+    gap: 1rem;
+}
+
+.radio-btn {
+    padding: 0.5rem 1rem;
+    border: 2px solid #ddd;
+    background: white;
+    color: #333;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    min-width: 80px;
+    text-align: center;
+}
+
+.radio-btn:hover {
+    border-color: #007bff;
+    background: #f8f9fa;
+}
+
+.radio-btn.selected {
+    background: #007bff;
+    color: white;
+    border-color: #007bff;
+}
+
+.radio-btn.selected:hover {
+    background: #0056b3;
+    border-color: #0056b3;
+}
+
 /* Styles pour les photos multiples */
 .photos-preview {
     display: flex;

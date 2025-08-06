@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=9.3">
+    <link rel="stylesheet" href="styles.css?v=10.1">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -537,23 +537,21 @@
                                         <label for="newAnimalBirthdate">Date de naissance</label>
                                         <input type="date" id="newAnimalBirthdate" v-model="newAnimal.birthdate" required>
                                     </div>
-                                    <div class="form-group" style="display: flex; align-items: center; gap: 1rem;">
-                                        <label style="margin-bottom: 0;">Stérilisation :</label>
-                                        <div class="radio-group" style="display: flex; gap: 1.5rem;">
-                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <input type="radio" v-model="newAnimal.sterilization" :value="true">
+                                    <div class="form-group">
+                                        <label>Stérilisation :</label>
+                                        <div class="radio-buttons">
+                                            <button type="button" class="radio-btn" :class="{ selected: newAnimal.sterilization === true }" @click="newAnimal.sterilization = true; toggleSterilizationDetails()">
                                                 Oui
-                                            </label>
-                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <input type="radio" v-model="newAnimal.sterilization" :value="false">
+                                            </button>
+                                            <button type="button" class="radio-btn" :class="{ selected: newAnimal.sterilization === false }" @click="newAnimal.sterilization = false; toggleSterilizationDetails()">
                                                 Non
-                                            </label>
+                                            </button>
                                         </div>
                                     </div>
-                                    <div class="form-group" v-if="newAnimal.sterilization">
-                                        <label for="newAnimalSterilizationDetails">Détails de la stérilisation</label>
-                                        <textarea id="newAnimalSterilizationDetails" v-model="newAnimal.sterilizationDetails" rows="2"
-                                                placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc."></textarea>
+                                    
+                                    <div class="form-group sterilization-details" v-show="newAnimal.sterilization === true">
+                                        <label>Détails de la stérilisation :</label>
+                                        <textarea v-model="newAnimal.sterilizationDetails" rows="2" placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc."></textarea>
                                     </div>
                                     <div class="form-group">
                                         <label for="newAnimalDiet">Alimentation</label>
@@ -1791,6 +1789,10 @@
                 },
             },
             methods: {
+                toggleSterilizationDetails() {
+                    // Cette méthode est appelée par les boutons radio dans le formulaire de création
+                    // Le v-show gère automatiquement l'affichage selon newAnimal.sterilization
+                },
                 toggleMenu() {
                     this.isMenuOpen = !this.isMenuOpen;
                 },
@@ -2849,51 +2851,62 @@
                                     <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB par image, max 10 images)</small>
                                 </div>
                                 <div class="animal-basic-info-right">
-                                    <label>Propriétaire :</label>
-                                    <select id="edit-animal-owner" required>
-                                        ${this.allClients.map(client => `
-                                            <option value="${client.id}" ${animal.userId === client.id ? 'selected' : ''}>
-                                                ${client.firstName} ${client.lastName} (${client.email})
-                                            </option>
-                                        `).join('')}
-                                    </select>
+                                    <div class="form-group">
+                                        <label>Propriétaire :</label>
+                                        <select id="edit-animal-owner" required>
+                                            ${this.allClients.map(client => `
+                                                <option value="${client.id}" ${animal.userId === client.id ? 'selected' : ''}>
+                                                    ${client.firstName} ${client.lastName} (${client.email})
+                                                </option>
+                                            `).join('')}
+                                        </select>
+                                    </div>
 
-                                    <label>Nom :</label>
-                                    <input type="text" id="edit-animal-name" value="${animal.name}" required>
+                                    <div class="form-group">
+                                        <label>Nom :</label>
+                                        <input type="text" id="edit-animal-name" value="${animal.name}" required>
+                                    </div>
                                     
-                                    <label>Espèce :</label>
-                                    <select id="edit-animal-species" required>
-                                        <option value="chien" ${animal.species === 'chien' ? 'selected' : ''}>Chien</option>
-                                        <option value="chat" ${animal.species === 'chat' ? 'selected' : ''}>Chat</option>
-                                        <option value="cheval" ${animal.species === 'cheval' ? 'selected' : ''}>Cheval</option>
-                                        <option value="autre" ${animal.species === 'autre' ? 'selected' : ''}>Autre</option>
-                                    </select>
+                                    <div class="form-group">
+                                        <label>Espèce :</label>
+                                        <select id="edit-animal-species" required>
+                                            <option value="chien" ${animal.species === 'chien' ? 'selected' : ''}>Chien</option>
+                                            <option value="chat" ${animal.species === 'chat' ? 'selected' : ''}>Chat</option>
+                                            <option value="cheval" ${animal.species === 'cheval' ? 'selected' : ''}>Cheval</option>
+                                            <option value="autre" ${animal.species === 'autre' ? 'selected' : ''}>Autre</option>
+                                        </select>
+                                    </div>
 
-                                    <label>Race :</label>
-                                    <input type="text" id="edit-animal-race" value="${animal.race || ''}">
+                                    <div class="form-group">
+                                        <label>Race :</label>
+                                        <input type="text" id="edit-animal-race" value="${animal.race || ''}">
+                                    </div>
                                     
-                                    <label>Date de naissance :</label>
-                                    <input type="date" id="edit-animal-birthdate" value="${animal.birthdate}" required>
+                                    <div class="form-group">
+                                        <label>Date de naissance :</label>
+                                        <input type="date" id="edit-animal-birthdate" value="${animal.birthdate}" required>
+                                    </div>
 
-                                    <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
-                                        <label style="margin-bottom: 0;">Stérilisation :</label>
-                                        <div class="radio-group" style="display: flex; gap: 1.5rem;">
-                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <input type="radio" name="sterilization" value="true" ${animal.sterilization ? 'checked' : ''}>
+                                    <div class="form-group">
+                                        <label>Stérilisation :</label>
+                                        <div class="radio-buttons">
+                                            <button type="button" class="radio-btn ${animal.sterilization ? 'selected' : ''}" data-value="true">
                                                 Oui
-                                            </label>
-                                            <label style="display: flex; align-items: center; gap: 0.5rem;">
-                                                <input type="radio" name="sterilization" value="false" ${!animal.sterilization ? 'checked' : ''}>
+                                            </button>
+                                            <button type="button" class="radio-btn ${!animal.sterilization ? 'selected' : ''}" data-value="false">
                                                 Non
-                                            </label>
+                                            </button>
+                                        </div>
+                                        <input type="hidden" id="edit-animal-sterilization" value="${animal.sterilization}">
+                                    </div>
+                                    
+                                    <div class="form-group sterilization-details" style="display: ${animal.sterilization ? 'block' : 'none'};">
+                                        <label>Détails de la stérilisation :</label>
+                                        <textarea id="edit-animal-sterilization-details" rows="2" placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc.">${animal.sterilizationDetails || ''}</textarea>
+                                    </div>
                                 </div>
                             </div>
-                                </div>
-                            </div>
-                            <div class="form-group" id="sterilization-details-group" style="display: ${animal.sterilization ? 'block' : 'none'};">
-                                <label>Détails de la stérilisation :</label>
-                                <textarea id="edit-animal-sterilization-details" rows="2" placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc.">${animal.sterilizationDetails || ''}</textarea>
-                            </div>
+
 
                             <div class="form-group">
                                 <label>Alimentation :</label>
@@ -3071,14 +3084,7 @@
                     };
 
                     // Gestion de l'affichage du champ détails de stérilisation
-                    const sterilizationRadios = modal.querySelectorAll('input[name="sterilization"]');
-                    const sterilizationDetailsGroup = modal.querySelector('#sterilization-details-group');
-                    
-                    sterilizationRadios.forEach(radio => {
-                        radio.addEventListener('change', () => {
-                            sterilizationDetailsGroup.style.display = radio.value === 'true' ? 'block' : 'none';
-                        });
-                    });
+
 
                     // Soumission du formulaire
                     modal.querySelector('#edit-animal-form').onsubmit = async (e) => {
@@ -3089,7 +3095,7 @@
                             species: modal.querySelector('#edit-animal-species').value,
                             race: modal.querySelector('#edit-animal-race').value,
                             birthdate: modal.querySelector('#edit-animal-birthdate').value,
-                            sterilization: modal.querySelector('input[name="sterilization"]:checked').value === 'true',
+                            sterilization: modal.querySelector('#edit-animal-sterilization').value === 'true',
                             sterilizationDetails: modal.querySelector('#edit-animal-sterilization-details').value,
                             diet: modal.querySelector('#edit-animal-diet').value,
                             activity: modal.querySelector('#edit-animal-activity').value,
@@ -3232,6 +3238,35 @@
                             console.error('Erreur lors de la suppression du document:', error);
                             alert('Erreur lors de la suppression du document. Veuillez réessayer.');
                         }
+                    });
+
+                    // Gestion des boutons radio stylisés
+                    const radioButtons = modal.querySelectorAll('.radio-btn');
+                    const sterilizationDetailsDiv = modal.querySelector('.sterilization-details');
+                    
+                    radioButtons.forEach(btn => {
+                        btn.addEventListener('click', function() {
+                            // Retirer la sélection de tous les boutons
+                            radioButtons.forEach(b => b.classList.remove('selected'));
+                            // Ajouter la sélection au bouton cliqué
+                            this.classList.add('selected');
+                            // Mettre à jour la valeur cachée
+                            const hiddenInput = modal.querySelector('#edit-animal-sterilization');
+                            hiddenInput.value = this.dataset.value;
+                            
+                            // Afficher/masquer le champ de détails selon la sélection
+                            if (this.dataset.value === 'true') {
+                                sterilizationDetailsDiv.style.display = 'block';
+                            } else {
+                                // Vider le champ de détails AVANT de le masquer
+                                const detailsTextarea = modal.querySelector('#edit-animal-sterilization-details');
+                                if (detailsTextarea) {
+                                    detailsTextarea.value = '';
+                                }
+                                // Masquer le champ de détails
+                                sterilizationDetailsDiv.style.display = 'none';
+                            }
+                        });
                     });
                 },
                 async checkAdminStatus() {
