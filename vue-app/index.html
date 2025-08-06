@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=10.3">
+    <link rel="stylesheet" href="styles.css?v=10.5">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -1788,11 +1788,96 @@
                     }
                 },
             },
-            methods: {
-                toggleSterilizationDetails() {
-                    // Cette méthode est appelée par les boutons radio dans le formulaire de création
-                    // Le v-show gère automatiquement l'affichage selon newAnimal.sterilization
-                },
+                            methods: {
+                    // Fonction pour traduire les erreurs Firebase
+                    translateFirebaseError(error) {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        
+                        // Traductions des erreurs Firebase les plus courantes
+                        const translations = {
+                            // Erreurs d'authentification
+                            'auth/user-not-found': 'Aucun compte trouvé avec cet email.',
+                            'auth/wrong-password': 'Mot de passe incorrect.',
+                            'auth/invalid-login-credentials': 'Email ou mot de passe incorrect.',
+                            'auth/invalid-email': 'Adresse email invalide.',
+                            'auth/user-disabled': 'Ce compte a été désactivé.',
+                            'auth/too-many-requests': 'Trop de tentatives. Veuillez réessayer plus tard.',
+                            'auth/operation-not-allowed': 'Cette opération n\'est pas autorisée.',
+                            
+                            // Erreurs d'inscription
+                            'auth/email-already-in-use': 'Cette adresse email est déjà utilisée.',
+                            'auth/weak-password': 'Le mot de passe doit contenir au moins 6 caractères.',
+                            'auth/invalid-password': 'Le mot de passe ne respecte pas les critères de sécurité.',
+                            
+                            // Erreurs générales
+                            'auth/network-request-failed': 'Erreur de connexion réseau. Vérifiez votre connexion internet.',
+                            'auth/internal-error': 'Erreur interne. Veuillez réessayer.',
+                            'auth/invalid-credential': 'Identifiants invalides.',
+                            'auth/account-exists-with-different-credential': 'Un compte existe déjà avec ces identifiants.',
+                            'auth/requires-recent-login': 'Cette action nécessite une reconnexion récente.',
+                            'auth/credential-already-in-use': 'Ces identifiants sont déjà utilisés.',
+                            'auth/operation-not-supported-in-this-environment': 'Cette opération n\'est pas supportée dans cet environnement.',
+                            'auth/timeout': 'Délai d\'attente dépassé. Veuillez réessayer.',
+                            'auth/network-request-failed': 'Erreur de réseau. Vérifiez votre connexion.',
+                            'auth/quota-exceeded': 'Quota dépassé. Veuillez réessayer plus tard.',
+                            'auth/unavailable': 'Service temporairement indisponible. Veuillez réessayer.',
+                            'auth/argument-error': 'Erreur de paramètre.',
+                            'auth/invalid-verification-code': 'Code de vérification invalide.',
+                            'auth/invalid-verification-id': 'ID de vérification invalide.',
+                            'auth/missing-verification-code': 'Code de vérification manquant.',
+                            'auth/missing-verification-id': 'ID de vérification manquant.',
+                            'auth/code-expired': 'Code expiré. Veuillez demander un nouveau code.',
+                            'auth/invalid-phone-number': 'Numéro de téléphone invalide.',
+                            'auth/missing-phone-number': 'Numéro de téléphone manquant.',
+                            'auth/quota-exceeded': 'Limite de requêtes dépassée. Veuillez réessayer plus tard.',
+                            'auth/captcha-check-failed': 'Vérification CAPTCHA échouée.',
+                            'auth/invalid-app-credential': 'Identifiants d\'application invalides.',
+                            'auth/invalid-app-id': 'ID d\'application invalide.',
+                            'auth/invalid-user-token': 'Token utilisateur invalide.',
+                            'auth/invalid-tenant-id': 'ID de locataire invalide.',
+                            'auth/unauthorized-continue-uri': 'URI de continuation non autorisée.',
+                            'auth/invalid-dynamic-link-domain': 'Domaine de lien dynamique invalide.',
+                            'auth/argument-error': 'Erreur d\'argument.',
+                            'auth/invalid-persistence-type': 'Type de persistance invalide.',
+                            'auth/unsupported-persistence-type': 'Type de persistance non supporté.',
+                            'auth/invalid-credential': 'Identifiants invalides.',
+                            'auth/account-exists-with-different-credential': 'Un compte existe déjà avec ces identifiants.',
+                            'auth/requires-recent-login': 'Cette action nécessite une reconnexion récente.',
+                            'auth/credential-already-in-use': 'Ces identifiants sont déjà utilisés.',
+                            'auth/operation-not-supported-in-this-environment': 'Cette opération n\'est pas supportée dans cet environnement.',
+                            'auth/timeout': 'Délai d\'attente dépassé. Veuillez réessayer.',
+                            'auth/network-request-failed': 'Erreur de réseau. Vérifiez votre connexion.',
+                            'auth/quota-exceeded': 'Quota dépassé. Veuillez réessayer plus tard.',
+                            'auth/unavailable': 'Service temporairement indisponible. Veuillez réessayer.',
+                            'auth/argument-error': 'Erreur de paramètre.',
+                            'auth/invalid-verification-code': 'Code de vérification invalide.',
+                            'auth/invalid-verification-id': 'ID de vérification invalide.',
+                            'auth/missing-verification-code': 'Code de vérification manquant.',
+                            'auth/missing-verification-id': 'ID de vérification manquant.',
+                            'auth/code-expired': 'Code expiré. Veuillez demander un nouveau code.',
+                            'auth/invalid-phone-number': 'Numéro de téléphone invalide.',
+                            'auth/missing-phone-number': 'Numéro de téléphone manquant.',
+                            'auth/quota-exceeded': 'Limite de requêtes dépassée. Veuillez réessayer plus tard.',
+                            'auth/captcha-check-failed': 'Vérification CAPTCHA échouée.',
+                            'auth/invalid-app-credential': 'Identifiants d\'application invalides.',
+                            'auth/invalid-app-id': 'ID d\'application invalide.',
+                            'auth/invalid-user-token': 'Token utilisateur invalide.',
+                            'auth/invalid-tenant-id': 'ID de locataire invalide.',
+                            'auth/unauthorized-continue-uri': 'URI de continuation non autorisée.',
+                            'auth/invalid-dynamic-link-domain': 'Domaine de lien dynamique invalide.',
+                            'auth/argument-error': 'Erreur d\'argument.',
+                            'auth/invalid-persistence-type': 'Type de persistance invalide.',
+                            'auth/unsupported-persistence-type': 'Type de persistance non supporté.'
+                        };
+                        
+                        // Retourner la traduction si elle existe, sinon le message original
+                        return translations[errorCode] || errorMessage || 'Une erreur inattendue s\'est produite.';
+                    },
+                    toggleSterilizationDetails() {
+                        // Cette méthode est appelée par les boutons radio dans le formulaire de création
+                        // Le v-show gère automatiquement l'affichage selon newAnimal.sterilization
+                    },
                 toggleMenu() {
                     this.isMenuOpen = !this.isMenuOpen;
                 },
@@ -1824,7 +1909,7 @@
                         // Vérifier si l'utilisateur est admin
                         await this.checkAdminStatus();
                     } catch (error) {
-                        this.error = error.message;
+                        this.error = this.translateFirebaseError(error);
                     }
                 },
                 async register() {
@@ -1867,7 +1952,7 @@
                         // Vérifier si l'utilisateur est admin
                         await this.checkAdminStatus();
                     } catch (error) {
-                        this.error = error.message;
+                        this.error = this.translateFirebaseError(error);
                     }
                 },
                 // Méthode pour mettre à jour l'affichage des photos
@@ -1930,7 +2015,7 @@
                         this.currentPage = 'home';
                     } catch (error) {
                         console.error('Error during logout:', error);
-                        this.error = error.message;
+                        this.error = this.translateFirebaseError(error);
                     }
                 },
                 async sendMessage() {
