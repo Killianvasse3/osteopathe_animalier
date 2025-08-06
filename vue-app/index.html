@@ -389,7 +389,15 @@
                         <div v-else class="animals-list">
                             <div v-for="animal in animals" :key="animal.id" class="animal-card">
                                 <div class="animal-info">
-                                    <img v-if="animal.photoBase64" :src="animal.photoBase64" :alt="animal.name" class="animal-photo">
+                                    <div v-if="animal.photos && animal.photos.length > 0" class="animal-photos-container">
+                                        <img :src="animal.photos[0]" :alt="animal.name" class="animal-photo">
+                                        <div v-if="animal.photos.length > 1" class="photo-count-badge">
+                                            +{{ animal.photos.length - 1 }}
+                                        </div>
+                                    </div>
+                                    <div v-else-if="animal.photoBase64" class="animal-photo-container">
+                                        <img :src="animal.photoBase64" :alt="animal.name" class="animal-photo">
+                                    </div>
                                     <div v-else class="animal-photo placeholder">
                                         <span>Pas de photo</span>
                                     </div>
@@ -593,11 +601,14 @@
                                         <textarea id="newAnimalNotes" v-model="newAnimal.notes" rows="3"></textarea>
                                     </div>
                                     <div class="form-group">
-                                        <label for="newAnimalPhoto">Photo de l'animal</label>
-                                        <input type="file" id="newAnimalPhoto" accept="image/*" @change="handlePhotoUpload">
-                                        <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB)</small>
-                                        <div v-if="newAnimal.photoPreview" class="photo-preview">
-                                            <img :src="newAnimal.photoPreview" alt="Aperçu de la photo" style="max-width: 200px; margin-top: 1rem;">
+                                        <label for="newAnimalPhotos">Photos de l'animal</label>
+                                        <input type="file" id="newAnimalPhotos" accept="image/*" multiple @change="handlePhotosUpload">
+                                        <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB par image, max 10 images)</small>
+                                        <div v-if="newAnimal.photosPreview && newAnimal.photosPreview.length > 0" class="photos-preview">
+                                            <div v-for="(preview, index) in newAnimal.photosPreview" :key="index" class="photo-item">
+                                                <img :src="preview" alt="Aperçu de la photo" style="max-width: 150px; max-height: 150px; object-fit: cover; margin: 0.5rem;">
+                                                <button type="button" @click="removePhoto(index)" class="btn-remove-photo">×</button>
+                                            </div>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -1328,7 +1339,15 @@
                 <div class="animals-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
                     <div v-for="animal in clientAnimals" :key="animal.id" class="animal-card">
                         <div class="animal-info">
-                            <img v-if="animal.photoBase64" :src="animal.photoBase64" :alt="animal.name" class="animal-photo">
+                            <div v-if="animal.photos && animal.photos.length > 0" class="animal-photos-container">
+                                <img :src="animal.photos[0]" :alt="animal.name" class="animal-photo">
+                                <div v-if="animal.photos.length > 1" class="photo-count-badge">
+                                    +{{ animal.photos.length - 1 }}
+                                </div>
+                            </div>
+                            <div v-else-if="animal.photoBase64" class="animal-photo-container">
+                                <img :src="animal.photoBase64" :alt="animal.name" class="animal-photo">
+                            </div>
                             <div v-else class="animal-photo placeholder">
                                 <span>Pas de photo</span>
                             </div>
@@ -1897,6 +1916,33 @@
                         await this.checkAdminStatus();
                     } catch (error) {
                         this.error = error.message;
+                    }
+                },
+                // Méthode pour mettre à jour l'affichage des photos
+                updatePhotosDisplay(modal, photos) {
+                    const photosGrid = modal.querySelector('.photos-grid');
+                    if (photosGrid) {
+                        if (photos.length > 0) {
+                            photosGrid.innerHTML = photos.map((photo, index) => `
+                                <div class="photo-item">
+                                    <img src="${photo}" alt="Photo de l'animal" class="animal-photo">
+                                    <button type="button" class="btn-remove-photo" data-index="${index}">×</button>
+                                </div>
+                            `).join('');
+                            
+                            // Ajouter les gestionnaires d'événements pour les boutons de suppression
+                            const removeButtons = photosGrid.querySelectorAll('.btn-remove-photo');
+                            removeButtons.forEach(button => {
+                                button.addEventListener('click', (e) => {
+                                    e.preventDefault();
+                                    const index = parseInt(button.getAttribute('data-index'));
+                                    // Déclencher l'événement de suppression
+                                    modal.dispatchEvent(new CustomEvent('delete-photo', { detail: index }));
+                                });
+                            });
+                        } else {
+                            photosGrid.innerHTML = '<p>Aucune photo</p>';
+                        }
                     }
                 },
                 async logout() {
@@ -2532,8 +2578,8 @@
                             documents: this.newAnimal.documents || []
                         };
 
-                    if (this.newAnimal.photoBase64) {
-                        animalData.photoBase64 = this.newAnimal.photoBase64;
+                    if (this.newAnimal.photosBase64 && this.newAnimal.photosBase64.length > 0) {
+                        animalData.photos = this.newAnimal.photosBase64;
                     }
 
                         console.log('Envoi à Firestore...');
@@ -2557,9 +2603,8 @@
                             treatment: '',
                             behavior: '',
                                 notes: '',
-                            photoUrl: '',
-                                photoPreview: null,
-                            photoBase64: null,
+                            photosPreview: [],
+                            photosBase64: [],
                             documents: [],
                             userId: '' // Ajout du champ userId
                             };
@@ -2590,7 +2635,18 @@
                             <h2>Détails de ${animal.name}</h2>
                             <div class="animal-details-row">
                                 <div class="animal-profile-pic">
-                                    ${animal.photoBase64 ? `<img src="${animal.photoBase64}" alt="${animal.name}" class="animal-photo" id="animal-photo-preview">` : ''}
+                                    ${animal.photos && animal.photos.length > 0 
+                                        ? `<div class="animal-photos-grid">
+                                            ${animal.photos.map((photo, index) => `
+                                                <div class="animal-photo-item">
+                                                    <img src="${photo}" alt="${animal.name} - Photo ${index + 1}" class="animal-photo" onclick="this.dispatchEvent(new CustomEvent('view-photo', {detail: {photo: '${photo}', index: ${index}, total: ${animal.photos.length}}, bubbles: true}))">
+                                                </div>
+                                            `).join('')}
+                                           </div>`
+                                        : animal.photoBase64 
+                                            ? `<img src="${animal.photoBase64}" alt="${animal.name}" class="animal-photo" id="animal-photo-preview">`
+                                            : '<div class="animal-photo placeholder"><span>Pas de photo</span></div>'
+                                    }
                                 </div>
                                 <div class="animal-basic-info-right">
                                     <p><strong>Espèce :</strong> <span id="animal-species">${animal.species}</span></p>
@@ -2745,6 +2801,41 @@
                         }
                     });
 
+                    // Gestion des événements de photos
+                    modal.addEventListener('view-photo', (e) => {
+                        const { photo, index, total } = e.detail;
+                        const fullscreenModal = window.document.createElement('div');
+                        fullscreenModal.className = 'modal';
+                        fullscreenModal.style.cssText = 'z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.9);';
+                        fullscreenModal.innerHTML = `
+                            <div class="modal-content" style="max-width: 90vw; max-height: 90vh; background: transparent; box-shadow: none; padding: 0; position: relative;">
+                                <button onclick="this.closest('.modal').remove()" style="position: absolute; top: -40px; right: 0; background: #ff4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;">×</button>
+                                <img src="${photo}" alt="Photo ${index + 1} de ${total}" style="width: 100%; height: auto; max-height: 90vh; object-fit: contain; border-radius: 8px;">
+                                <div style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">
+                                    Photo ${index + 1} sur ${total}
+                                </div>
+                            </div>
+                        `;
+                        document.body.appendChild(fullscreenModal);
+
+                        // Ajouter un gestionnaire pour fermer avec la touche Echap
+                        const handleEscape = (event) => {
+                            if (event.key === 'Escape') {
+                                fullscreenModal.remove();
+                                window.removeEventListener('keydown', handleEscape);
+                            }
+                        };
+                        window.addEventListener('keydown', handleEscape);
+
+                        // Fermer en cliquant en dehors de l'image
+                        fullscreenModal.addEventListener('click', (event) => {
+                            if (event.target === fullscreenModal) {
+                                fullscreenModal.remove();
+                                window.removeEventListener('keydown', handleEscape);
+                            }
+                        });
+                    });
+
                     // Ajout de la logique d'édition
                     document.getElementById('edit-animal-btn').onclick = () => {
                         this.showEditAnimalForm(animal, modal);
@@ -2793,8 +2884,19 @@
                         <form id="edit-animal-form">
                             <div class="animal-details-row">
                                 <div class="animal-profile-pic">
-                                    <img id="edit-animal-photo-preview" src="${animal.photoBase64 || ''}" alt="${animal.name}" class="animal-photo">
-                                    <input type="file" id="edit-animal-photo" accept="image/*" style="margin-top:1rem;">
+                                    <div class="photos-grid">
+                                        ${animal.photos && animal.photos.length > 0 
+                                            ? animal.photos.map((photo, index) => `
+                                                <div class="photo-item">
+                                                    <img src="${photo}" alt="${animal.name}" class="animal-photo">
+                                                    <button type="button" class="btn-remove-photo" data-index="${index}">×</button>
+                                                </div>
+                                            `).join('')
+                                            : '<p>Aucune photo</p>'
+                                        }
+                                    </div>
+                                    <input type="file" id="edit-animal-photos" accept="image/*" multiple style="margin-top:1rem;">
+                                    <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB par image, max 10 images)</small>
                                 </div>
                                 <div class="animal-basic-info-right">
                                     <label>Nom :</label>
@@ -2894,7 +2996,7 @@
                                         : '<p>Aucun document</p>'
                                     }
                                 </div>
-                                <input type="file" id="edit-animal-documents" accept="image/*" style="margin-top: 1rem;">
+                                <input type="file" id="edit-animal-documents" accept="image/*" multiple style="margin-top: 1rem;">
                                 <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : JPG, PNG</small>
                             </div>
 
@@ -2905,30 +3007,102 @@
                         </form>
                     `;
 
-                    // Prévisualisation de la photo
-                    const photoInput = modal.querySelector('#edit-animal-photo');
-                    const photoPreview = modal.querySelector('#edit-animal-photo-preview');
-                    let newPhotoBase64 = animal.photoBase64;
-                    photoInput.addEventListener('change', (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
-                            if (file.size > 5 * 1024 * 1024) {
-                                alert('La photo ne doit pas dépasser 5MB');
-                                e.target.value = '';
-                                return;
-                            }
-                            if (!file.type.startsWith('image/')) {
-                                alert('Le fichier doit être une image');
-                                e.target.value = '';
-                                return;
-                            }
-                            const reader = new FileReader();
-                            reader.onload = (ev) => {
-                                photoPreview.src = ev.target.result;
-                                newPhotoBase64 = ev.target.result;
-                            };
-                            reader.readAsDataURL(file);
+                    // Gestion des photos multiples
+                    const photosInput = modal.querySelector('#edit-animal-photos');
+                    let currentPhotos = animal.photos || [];
+                    
+                    // Initialiser les gestionnaires d'événements pour les boutons de suppression existants
+                    const initialRemoveButtons = modal.querySelectorAll('.btn-remove-photo');
+                    initialRemoveButtons.forEach(button => {
+                        button.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            const index = parseInt(button.getAttribute('data-index'));
+                            currentPhotos.splice(index, 1);
+                            this.updatePhotosDisplay(modal, currentPhotos);
+                        });
+                    });
+                    
+                    // Gestionnaire pour la suppression de photos (pour les nouvelles photos ajoutées)
+                    modal.addEventListener('delete-photo', (e) => {
+                        const index = e.detail;
+                        currentPhotos.splice(index, 1);
+                        // Mettre à jour l'affichage
+                        this.updatePhotosDisplay(modal, currentPhotos);
+                    });
+                    
+                    photosInput.addEventListener('change', (e) => {
+                        const files = Array.from(e.target.files);
+                        if (files.length === 0) return;
+
+                        if (files.length > 10) {
+                            alert('Vous ne pouvez pas sélectionner plus de 10 images à la fois.');
+                            e.target.value = '';
+                            return;
                         }
+
+                        files.forEach(file => {
+                            if (!file.type.startsWith('image/')) {
+                                alert(`Le fichier ${file.name} doit être une image`);
+                                return;
+                            }
+
+                            try {
+                                // Créer un aperçu de l'image
+                                const reader = new FileReader();
+                                reader.onload = async (ev) => {
+                                    // Créer une image pour le redimensionnement
+                                    const img = new Image();
+                                    img.onload = async () => {
+                                        // Créer un canvas pour le redimensionnement
+                                        const canvas = document.createElement('canvas');
+                                        let width = img.width;
+                                        let height = img.height;
+                                        
+                                        // Calculer les nouvelles dimensions en gardant le ratio
+                                        const MAX_WIDTH = 800;
+                                        const MAX_HEIGHT = 800;
+                                        
+                                        if (width > height) {
+                                            if (width > MAX_WIDTH) {
+                                                height *= MAX_WIDTH / width;
+                                                width = MAX_WIDTH;
+                                            }
+                                        } else {
+                                            if (height > MAX_HEIGHT) {
+                                                width *= MAX_HEIGHT / height;
+                                                height = MAX_HEIGHT;
+                                            }
+                                        }
+                                        
+                                        canvas.width = width;
+                                        canvas.height = height;
+                                        
+                                        // Dessiner l'image redimensionnée
+                                        const ctx = canvas.getContext('2d');
+                                        ctx.drawImage(img, 0, 0, width, height);
+                                        
+                                        // Convertir en base64 avec compression
+                                        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
+                                        
+                                        // Vérifier la taille finale
+                                        const base64Size = resizedBase64.length * 3 / 4;
+                                        if (base64Size > 900000) { // ~900KB pour avoir une marge
+                                            alert(`L'image ${file.name} est trop grande même après compression. Veuillez choisir une image plus petite.`);
+                                            return;
+                                        }
+                                        
+                                        // Ajouter à la liste des photos
+                                        currentPhotos.push(resizedBase64);
+                                        this.updatePhotosDisplay(modal, currentPhotos);
+                                    };
+                                    img.src = ev.target.result;
+                                };
+                                reader.readAsDataURL(file);
+                            } catch (error) {
+                                console.error('Erreur lors du traitement de l\'image:', error);
+                                alert(`Erreur lors du traitement de l'image ${file.name}. Veuillez réessayer avec une autre image.`);
+                            }
+                        });
                     });
 
                     // Annuler l'édition
@@ -2965,60 +3139,10 @@
                             behavior: modal.querySelector('#edit-animal-behavior').value,
                             notes: modal.querySelector('#edit-animal-notes').value,
                             travelTime: modal.querySelector('#edit-animal-travel-time').value,
-                            photoBase64: newPhotoBase64,
+                            photos: currentPhotos,
+                            documents: currentDocuments,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
-
-                        // Ajouter le gestionnaire de documents
-                        const documentsInput = modal.querySelector('#edit-animal-documents');
-                        if (documentsInput.files.length > 0) {
-                            const file = documentsInput.files[0];
-                            try {
-                                if (!file.type.startsWith('image/')) {
-                                    alert('Le fichier doit être une image');
-                                    return;
-                                }
-
-                                const reader = new FileReader();
-                                reader.onload = async (e) => {
-                                    const img = new Image();
-                                    img.onload = async () => {
-                                        const canvas = document.createElement('canvas');
-                                        let width = img.width;
-                                        let height = img.height;
-                                        
-                                        const MAX_WIDTH = 1400;
-                                        const MAX_HEIGHT = 1400;
-                                        
-                                        if (width > MAX_WIDTH) {
-                                            height *= MAX_WIDTH / width;
-                                            width = MAX_WIDTH;
-                                        }
-                                        
-                                        if (height > MAX_HEIGHT) {
-                                            width *= MAX_HEIGHT / height;
-                                            height = MAX_HEIGHT;
-                                        }
-                                        
-                                        canvas.width = width;
-                                        canvas.height = height;
-                                        
-                                        const ctx = canvas.getContext('2d');
-                                        ctx.drawImage(img, 0, 0, width, height);
-                                        
-                                        const resizedBase64 = canvas.toDataURL('image/jpeg', 0.7);
-                                        
-                                        const newDocument = {
-                                            id: Date.now().toString(),
-                                            name: file.name,
-                                            date: new Date().toISOString(),
-                                            data: resizedBase64
-                                        };
-
-                                        if (!updatedAnimal.documents) {
-                                            updatedAnimal.documents = [];
-                                        }
-                                        updatedAnimal.documents.push(newDocument);
 
                         try {
                             await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
@@ -3026,41 +3150,25 @@
                             modal.remove();
                             this.loadAnimals();
                         } catch (err) {
-                                            console.error('Erreur lors de la sauvegarde:', err);
+                            console.error('Erreur lors de la sauvegarde:', err);
                             alert('Erreur lors de la sauvegarde : ' + err.message);
-                        }
-                    };
-                                    img.src = e.target.result;
-                                };
-                                reader.readAsDataURL(file);
-                            } catch (error) {
-                                console.error('Erreur lors du traitement du document:', error);
-                                alert('Erreur lors du traitement du document. Veuillez réessayer.');
-                            }
-                        } else {
-                            try {
-                                await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
-                                alert('Modifications enregistrées !');
-                                modal.remove();
-                                this.loadAnimals();
-                            } catch (err) {
-                                console.error('Erreur lors de la sauvegarde:', err);
-                                alert('Erreur lors de la sauvegarde : ' + err.message);
-                            }
                         }
                     };
 
                     // Gestion des documents
                     const documentsInput = modal.querySelector('#edit-animal-documents');
+                    let currentDocuments = animal.documents || [];
+                    
                     documentsInput.addEventListener('change', async (e) => {
-                        const file = e.target.files[0];
-                        if (file) {
+                        const files = Array.from(e.target.files);
+                        if (files.length === 0) return;
+
+                        for (const file of files) {
                             try {
                                 // Vérifier le type de fichier
                                 if (!file.type.startsWith('image/')) {
-                                    alert('Le fichier doit être une image');
-                                    e.target.value = '';
-                                    return;
+                                    alert(`Le fichier ${file.name} doit être une image`);
+                                    continue;
                                 }
 
                                 // Créer un aperçu de l'image
@@ -3102,21 +3210,18 @@
                                         
                                         // Créer un nouvel objet document
                                         const newDocument = {
-                                            id: Date.now().toString(),
+                                            id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                                             name: file.name,
                                             date: new Date().toISOString(),
                                             data: resizedBase64
                                         };
 
                                         // Ajouter le document à la liste
-                                        if (!animal.documents) {
-                                            animal.documents = [];
-                                        }
-                                        animal.documents.push(newDocument);
+                                        currentDocuments.push(newDocument);
 
                                         // Mettre à jour l'affichage
                                         const documentsGrid = modal.querySelector('.documents-grid');
-                                        documentsGrid.innerHTML = animal.documents.map(doc => `
+                                        documentsGrid.innerHTML = currentDocuments.map(doc => `
                                             <div class="document-card">
                                                 <img src="${doc.data}" alt="${doc.name}">
                                                 <p>${doc.name}</p>
@@ -3132,33 +3237,25 @@
                                 reader.readAsDataURL(file);
                             } catch (error) {
                                 console.error('Erreur lors du traitement du document:', error);
-                                alert('Erreur lors du traitement du document. Veuillez réessayer.');
-                                e.target.value = '';
+                                alert(`Erreur lors du traitement du document ${file.name}. Veuillez réessayer.`);
                             }
                         }
+                        
+                        // Réinitialiser l'input
+                        e.target.value = '';
                     });
 
                     // Gestion de la suppression des documents
                     modal.addEventListener('delete-document', async (e) => {
                         const documentId = e.detail;
                         try {
-                            // Récupérer l'animal actuel
-                            const animalDoc = await firebase.firestore().collection('animals').doc(animal.id).get();
-                            const currentAnimal = animalDoc.data();
-                            
                             // Filtrer les documents pour retirer celui qu'on veut supprimer
-                            const updatedDocuments = currentAnimal.documents.filter(doc => doc.id !== documentId);
+                            currentDocuments = currentDocuments.filter(doc => doc.id !== documentId);
                             
-                            // Mettre à jour l'animal avec la nouvelle liste de documents
-                            await firebase.firestore().collection('animals').doc(animal.id).update({
-                                documents: updatedDocuments,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-
                             // Mettre à jour l'affichage
                             const documentsGrid = modal.querySelector('.documents-grid');
-                            if (updatedDocuments.length > 0) {
-                                documentsGrid.innerHTML = updatedDocuments.map(doc => `
+                            if (currentDocuments.length > 0) {
+                                documentsGrid.innerHTML = currentDocuments.map(doc => `
                                     <div class="document-card">
                                         <img src="${doc.data}" alt="${doc.name}">
                                         <p>${doc.name}</p>
@@ -3171,9 +3268,6 @@
                             } else {
                                 documentsGrid.innerHTML = '<p>Aucun document</p>';
                             }
-
-                            // Mettre à jour la référence locale
-                            animal.documents = updatedDocuments;
                         } catch (error) {
                             console.error('Erreur lors de la suppression du document:', error);
                             alert('Erreur lors de la suppression du document. Veuillez réessayer.');
@@ -3924,14 +4018,26 @@
                         this.availableDates = [];
                     }
                 },
-                async handlePhotoUpload(event) {
-                    const file = event.target.files[0];
-                    if (file) {
+                async handlePhotosUpload(event) {
+                    const files = Array.from(event.target.files);
+                    if (files.length === 0) return;
+
+                    // Vérifier le nombre maximum d'images
+                    if (files.length > 10) {
+                        alert('Vous ne pouvez pas sélectionner plus de 10 images à la fois.');
+                        event.target.value = '';
+                        return;
+                    }
+
+                    // Initialiser les tableaux si nécessaire
+                    if (!this.newAnimal.photosPreview) this.newAnimal.photosPreview = [];
+                    if (!this.newAnimal.photosBase64) this.newAnimal.photosBase64 = [];
+
+                    for (const file of files) {
                         // Vérifier le type de fichier
                         if (!file.type.startsWith('image/')) {
-                            alert('Le fichier doit être une image');
-                            event.target.value = '';
-                            return;
+                            alert(`Le fichier ${file.name} doit être une image`);
+                            continue;
                         }
 
                         try {
@@ -3975,22 +4081,27 @@
                                     // Vérifier la taille finale
                                     const base64Size = resizedBase64.length * 3 / 4;
                                     if (base64Size > 900000) { // ~900KB pour avoir une marge
-                                        alert('L\'image est trop grande même après compression. Veuillez choisir une image plus petite.');
-                                        event.target.value = '';
+                                        alert(`L'image ${file.name} est trop grande même après compression. Veuillez choisir une image plus petite.`);
                                         return;
                                     }
                                     
-                                    this.newAnimal.photoPreview = resizedBase64;
-                                    this.newAnimal.photoBase64 = resizedBase64;
+                                    // Ajouter à la liste des photos
+                                    this.newAnimal.photosPreview.push(resizedBase64);
+                                    this.newAnimal.photosBase64.push(resizedBase64);
                                 };
                                 img.src = e.target.result;
                             };
                             reader.readAsDataURL(file);
                         } catch (error) {
                             console.error('Erreur lors du traitement de l\'image:', error);
-                            alert('Erreur lors du traitement de l\'image. Veuillez réessayer avec une autre image.');
-                            event.target.value = '';
+                            alert(`Erreur lors du traitement de l'image ${file.name}. Veuillez réessayer avec une autre image.`);
                         }
+                    }
+                },
+                removePhoto(index) {
+                    if (this.newAnimal.photosPreview && this.newAnimal.photosBase64) {
+                        this.newAnimal.photosPreview.splice(index, 1);
+                        this.newAnimal.photosBase64.splice(index, 1);
                     }
                 },
                 async handleDocumentUpload(event) {
