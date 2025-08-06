@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=11.1">
+    <link rel="stylesheet" href="styles.css?v=11.4">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -451,6 +451,18 @@
                                 @click="switchAdminTab('messages')">
                             Messages
                             <span v-if="unreadMessagesCount > 0" class="notification-badge">{{ unreadMessagesCount }}</span>
+                        </button>
+                        <button 
+                            class="admin-tab force-admin-btn"
+                            @click="forceAdminRole"
+                            title="Forcer l'ajout du rôle administrateur pour les notifications">
+                            🔔 Force Admin
+                        </button>
+                        <button 
+                            class="admin-tab sync-admin-btn"
+                            @click="syncAllAdminDevices"
+                            title="Synchroniser tous les appareils administrateurs">
+                            🔄 Sync All Admins
                         </button>
                     </div>
 
@@ -2025,6 +2037,233 @@
                         this.error = this.translateFirebaseError(error);
                     }
                 },
+                async forceAdminRole() {
+                    try {
+                        // Vérifier si l'utilisateur est connecté
+                        if (!firebase.auth().currentUser) {
+                            alert('Vous devez être connecté pour forcer le rôle administrateur.');
+                            return;
+                        }
+
+                        // Vérifier si l'utilisateur est déjà admin
+                        if (!this.isAdmin) {
+                            alert('Vous devez être administrateur pour utiliser cette fonction.');
+                            return;
+                        }
+
+                        // Forcer l'ajout du tag administrateur sur OneSignal
+                        if (window.OneSignal) {
+                            window.OneSignal.push(function() {
+                                OneSignal.sendTag('role', 'admin');
+                                console.log('Tag administrateur forcé sur OneSignal');
+                                
+                                // Vérifier les tags après 1 seconde
+                                setTimeout(() => {
+                                    OneSignal.getTags().then(tags => {
+                                        console.log('Tags actuels après forçage:', tags);
+                                        if (tags.role === 'admin') {
+                                            console.log('✅ Tag admin confirmé');
+                                        } else {
+                                            console.log('❌ Tag admin non confirmé');
+                                        }
+                                    });
+                                }, 1000);
+                            });
+
+                            // Envoyer une notification de test à TOUS les administrateurs
+                            const notificationData = {
+                                app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
+                                contents: {
+                                    en: "Test de notification administrateur - Force Admin",
+                                    fr: "Test de notification administrateur - Force Admin"
+                                },
+                                headings: {
+                                    en: "🔔 Test Force Admin",
+                                    fr: "🔔 Test Force Admin"
+                                },
+                                subtitle: {
+                                    en: "Vérification des notifications admin",
+                                    fr: "Vérification des notifications admin"
+                                },
+                                url: window.location.origin + "/#admin",
+                                // Envoyer à TOUS les appareils avec le tag admin
+                                filters: [
+                                    {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
+                                ],
+                                // Ajouter des données pour identifier le test
+                                data: {
+                                    type: "admin_force_test",
+                                    message: "Test de notification forcée pour tous les admins",
+                                    timestamp: new Date().toISOString(),
+                                    sender: firebase.auth().currentUser.email
+                                }
+                            };
+
+                            const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                                },
+                                body: JSON.stringify(notificationData)
+                            });
+
+                            if (response.ok) {
+                                const responseData = await response.json();
+                                console.log('OneSignal response:', responseData);
+                                alert(`✅ Rôle administrateur forcé !\n\n📱 Notification envoyée à tous les administrateurs.\n\n📊 Réponse OneSignal: ${responseData.recipients || 'En cours...'} destinataires.\n\nVérifiez votre téléphone et celui de la seconde administratrice.`);
+                            } else {
+                                const errorText = await response.text();
+                                console.error('OneSignal error:', errorText);
+                                alert(`❌ Erreur lors de l'envoi: ${response.status} ${response.statusText}\n\nDétails: ${errorText}`);
+                            }
+                        } else {
+                            alert('OneSignal n\'est pas initialisé. Veuillez rafraîchir la page.');
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors du forçage du rôle admin:', error);
+                        alert('Erreur lors du forçage du rôle administrateur: ' + error.message);
+                    }
+                },
+                async syncAllAdminDevices() {
+                    try {
+                        // Vérifier si l'utilisateur est connecté
+                        if (!firebase.auth().currentUser) {
+                            alert('Vous devez être connecté pour synchroniser les appareils administrateurs.');
+                            return;
+                        }
+
+                        // Vérifier si l'utilisateur est déjà admin
+                        if (!this.isAdmin) {
+                            alert('Vous devez être administrateur pour utiliser cette fonction.');
+                            return;
+                        }
+
+                        // Forcer la synchronisation de tous les appareils admin
+                        if (window.OneSignal) {
+                            // 1. Forcer l'ajout du tag admin sur l'appareil actuel
+                            window.OneSignal.push(function() {
+                                OneSignal.sendTag('role', 'admin');
+                                console.log('Tag administrateur ajouté sur l\'appareil actuel');
+                                
+                                // Vérifier les tags après 1 seconde
+                                setTimeout(() => {
+                                    OneSignal.getTags().then(tags => {
+                                        console.log('Tags actuels après sync:', tags);
+                                        if (tags.role === 'admin') {
+                                            console.log('✅ Tag admin confirmé sur cet appareil');
+                                        } else {
+                                            console.log('❌ Tag admin non confirmé sur cet appareil');
+                                        }
+                                    });
+                                }, 1000);
+                            });
+
+                            // 2. Envoyer une notification de synchronisation à TOUS les administrateurs
+                            const syncNotificationData = {
+                                app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
+                                contents: {
+                                    en: "Synchronisation des appareils administrateurs",
+                                    fr: "Synchronisation des appareils administrateurs"
+                                },
+                                headings: {
+                                    en: "🔄 Sync Admin Devices",
+                                    fr: "🔄 Sync Admin Devices"
+                                },
+                                subtitle: {
+                                    en: "Mise à jour des notifications admin",
+                                    fr: "Mise à jour des notifications admin"
+                                },
+                                url: window.location.origin + "/#admin",
+                                // Envoyer à TOUS les appareils avec le tag admin
+                                filters: [
+                                    {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
+                                ],
+                                // Ajouter des données pour identifier la synchronisation
+                                data: {
+                                    type: "admin_sync",
+                                    message: "Synchronisation forcée de tous les appareils admin",
+                                    timestamp: new Date().toISOString(),
+                                    sender: firebase.auth().currentUser.email,
+                                    action: "sync_all_admin_devices"
+                                }
+                            };
+
+                            const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                                },
+                                body: JSON.stringify(syncNotificationData)
+                            });
+
+                            if (response.ok) {
+                                const responseData = await response.json();
+                                console.log('Sync OneSignal response:', responseData);
+                                alert(`🔄 Synchronisation des appareils administrateurs !\n\n📱 Notification de sync envoyée à tous les admins.\n\n📊 Réponse OneSignal: ${responseData.recipients || 'En cours...'} appareils synchronisés.\n\n✅ Vérifiez que tous les téléphones admin reçoivent cette notification.`);
+                            } else {
+                                const errorText = await response.text();
+                                console.error('Sync OneSignal error:', errorText);
+                                alert(`❌ Erreur lors de la synchronisation: ${response.status} ${response.statusText}\n\nDétails: ${errorText}`);
+                            }
+
+                            // 3. Envoyer une deuxième notification de test après 3 secondes
+                            setTimeout(async () => {
+                                const testNotificationData = {
+                                    app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
+                                    contents: {
+                                        en: "Test de notification après synchronisation",
+                                        fr: "Test de notification après synchronisation"
+                                    },
+                                    headings: {
+                                        en: "✅ Test Post-Sync",
+                                        fr: "✅ Test Post-Sync"
+                                    },
+                                    subtitle: {
+                                        en: "Confirmation de la synchronisation",
+                                        fr: "Confirmation de la synchronisation"
+                                    },
+                                    url: window.location.origin + "/#admin",
+                                    filters: [
+                                        {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
+                                    ],
+                                    data: {
+                                        type: "admin_test_post_sync",
+                                        message: "Test après synchronisation",
+                                        timestamp: new Date().toISOString(),
+                                        sender: firebase.auth().currentUser.email
+                                    }
+                                };
+
+                                try {
+                                    const testResponse = await fetch('https://onesignal.com/api/v1/notifications', {
+                                        method: 'POST',
+                                        headers: {
+                                            'Content-Type': 'application/json',
+                                            'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                                        },
+                                        body: JSON.stringify(testNotificationData)
+                                    });
+
+                                    if (testResponse.ok) {
+                                        console.log('Test post-sync envoyé avec succès');
+                                    } else {
+                                        console.error('Erreur test post-sync:', testResponse.status);
+                                    }
+                                } catch (error) {
+                                    console.error('Erreur test post-sync:', error);
+                                }
+                            }, 3000);
+
+                        } else {
+                            alert('OneSignal n\'est pas initialisé. Veuillez rafraîchir la page.');
+                        }
+                    } catch (error) {
+                        console.error('Erreur lors de la synchronisation des appareils admin:', error);
+                        alert('Erreur lors de la synchronisation: ' + error.message);
+                    }
+                },
                 async sendMessage() {
                     // Vérification des champs requis
                     if (!this.contactForm.name || !this.contactForm.email || !this.contactForm.message) {
@@ -2060,15 +2299,15 @@
                                 fr: `Nouveau message de ${this.contactForm.name}`
                             },
                             headings: {
-                                en: "Nouveau message de contact",
-                                fr: "Nouveau message de contact"
+                                en: "📧 Nouveau message de contact",
+                                fr: "📧 Nouveau message de contact"
                             },
                             subtitle: {
                                 en: `Email: ${this.contactForm.email}`,
                                 fr: `Email: ${this.contactForm.email}`
                             },
                             url: window.location.origin + "/#admin", // Lien vers la section admin
-                            // Envoyer uniquement aux administrateurs via les tags
+                            // Envoyer à TOUS les administrateurs via les tags
                             filters: [
                                 {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
                             ],
@@ -2077,7 +2316,8 @@
                                 type: "contact_message",
                                 messageId: messageRef.id,
                                 senderName: this.contactForm.name,
-                                senderEmail: this.contactForm.email
+                                senderEmail: this.contactForm.email,
+                                timestamp: new Date().toISOString()
                             }
                         };
 
