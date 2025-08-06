@@ -617,15 +617,16 @@
                     <!-- Onglet Rendez-vous -->
                     <div v-if="adminActiveTab === 'appointments'" class="admin-content">
                         <div class="admin-header-actions">
-                        <div class="search-bar">
-                            <input 
-                                type="text" 
-                                v-model="appointmentsSearch" 
-                                placeholder="Rechercher un rendez-vous...">
+                            <div class="search-bar">
+                                <input 
+                                    type="text" 
+                                    v-model="appointmentsSearch" 
+                                    placeholder="Rechercher un rendez-vous...">
                             </div>
                             <button class="btn primary" @click="showAdminNewAppointmentModal = true">
                                 Nouveau rendez-vous
                             </button>
+
                             <div class="view-toggle">
                                 <button 
                                     :class="['btn', appointmentsView === 'list' ? 'primary' : 'secondary']"
@@ -1972,21 +1973,46 @@
                                 en: "Nouveau message de contact",
                                 fr: "Nouveau message de contact"
                             },
+                            subtitle: {
+                                en: `Email: ${this.contactForm.email}`,
+                                fr: `Email: ${this.contactForm.email}`
+                            },
                             url: window.location.origin + "/#admin", // Lien vers la section admin
+                            // Envoyer uniquement aux administrateurs via les tags
                             filters: [
                                 {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
-                            ]
+                            ],
+                            // Ajouter des données personnalisées
+                            data: {
+                                type: "contact_message",
+                                messageId: messageRef.id,
+                                senderName: this.contactForm.name,
+                                senderEmail: this.contactForm.email
+                            }
                         };
 
-                        // Envoyer la notification via l'API REST de OneSignal
-                        await fetch('https://onesignal.com/api/v1/notifications', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da' // Vous devrez remplacer ceci par votre API Key OneSignal
-                            },
-                            body: JSON.stringify(notificationData)
-                        });
+                        try {
+                            // Envoyer la notification via l'API REST de OneSignal
+                            const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                                },
+                                body: JSON.stringify(notificationData)
+                            });
+
+                            if (!response.ok) {
+                                console.error('OneSignal API error:', response.status, response.statusText);
+                                const errorText = await response.text();
+                                console.error('OneSignal error details:', errorText);
+                            } else {
+                                console.log('Notification de contact envoyée avec succès');
+                            }
+                        } catch (notificationError) {
+                            console.error('Erreur lors de l\'envoi de la notification:', notificationError);
+                            // Ne pas bloquer l'envoi du message si la notification échoue
+                        }
 
                         alert('Message envoyé ! Nous vous contacterons bientôt.');
                         this.contactForm = {
@@ -2316,20 +2342,44 @@
                                 fr: `Contact: ${this.appointmentForm.phone}`
                             },
                             url: window.location.origin + "/#admin",
+                            // Envoyer uniquement aux administrateurs via les tags
                             filters: [
                                 {"field": "tag", "key": "role", "relation": "=", "value": "admin"}
-                            ]
+                            ],
+                            // Ajouter des données personnalisées
+                            data: {
+                                type: "new_appointment",
+                                appointmentId: appointmentRef.id,
+                                animalName: this.appointmentForm.animalName,
+                                animalType: this.appointmentForm.animalType,
+                                date: this.appointmentForm.date,
+                                time: this.appointmentForm.time,
+                                phone: this.appointmentForm.phone
+                            }
                         };
 
-                        // Envoyer la notification
-                        await fetch('https://onesignal.com/api/v1/notifications', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
-                            },
-                            body: JSON.stringify(notificationData)
-                        });
+                        try {
+                            // Envoyer la notification
+                            const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                                },
+                                body: JSON.stringify(notificationData)
+                            });
+
+                            if (!response.ok) {
+                                console.error('OneSignal API error:', response.status, response.statusText);
+                                const errorText = await response.text();
+                                console.error('OneSignal error details:', errorText);
+                            } else {
+                                console.log('Notification de rendez-vous envoyée avec succès');
+                            }
+                        } catch (notificationError) {
+                            console.error('Erreur lors de l\'envoi de la notification:', notificationError);
+                            // Ne pas bloquer la création du rendez-vous si la notification échoue
+                        }
 
                         // Réinitialiser le formulaire
                         this.appointmentForm = {
@@ -3153,6 +3203,13 @@
                                     OneSignal.init({
                                         appId: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
                                         safari_web_id: "web.onesignal.auto.xxx",
+                                        // Configuration améliorée pour la compatibilité
+                                        allowLocalhostAsSecureOrigin: true,
+                                        autoRegister: true,
+                                        autoResubscribe: true,
+                                        persistNotification: true,
+                                        // Utiliser le service worker par défaut d'OneSignal
+                                        // Configuration des notifications
                                         notifyButton: {
                                             enable: true,
                                             size: 'medium',
@@ -3179,7 +3236,7 @@
                                                 'dialog.blocked.message': 'Suivez ces instructions pour autoriser les notifications:'
                                             }
                                         },
-                                        allowLocalhostAsSecureOrigin: true,
+                                        // Configuration des prompts
                                         promptOptions: {
                                             slidedown: {
                                                 prompts: [
@@ -3194,11 +3251,114 @@
                                                     }
                                                 ]
                                             }
+                                        },
+                                        // Configuration pour les anciens navigateurs
+                                        welcomeNotification: {
+                                            disable: false,
+                                            title: "Notifications activées !",
+                                            message: "Vous recevrez maintenant les notifications administrateur"
+                                        },
+                                        // Configuration des permissions
+                                        permissionDialog: {
+                                            enable: true,
+                                            title: "Notifications Emmy Vasse",
+                                            message: "Recevez les notifications importantes de votre activité d'ostéopathe animalier",
+                                            acceptButtonText: "Autoriser",
+                                            cancelButtonText: "Plus tard"
                                         }
                                     });
-                                    OneSignal.showSlidedownPrompt(); // <-- Ajout ici
+                                    
+                                    // Attendre que OneSignal soit prêt
+                                    OneSignal.on('subscriptionChange', function(isSubscribed) {
+                                        console.log('OneSignal subscription changed:', isSubscribed);
+                                    });
+                                    
+                                    OneSignal.on('notificationPermissionChange', function(permission) {
+                                        console.log('OneSignal permission changed:', permission);
+                                    });
+                                    
+                                    // Afficher le prompt après un délai
+                                    setTimeout(() => {
+                                        OneSignal.showSlidedownPrompt();
+                                    }, 2000);
+                                    
+                                    // Tagger l'utilisateur si c'est un admin
+                                    if (this.isAdmin) {
+                                        OneSignal.push(function() {
+                                            OneSignal.sendTag('role', 'admin');
+                                            console.log('Utilisateur tagué comme admin');
+                                            
+                                            // Vérifier les tags après 2 secondes
+                                            setTimeout(() => {
+                                                OneSignal.getTags().then(tags => {
+                                                    console.log('Tags actuels:', tags);
+                                                });
+                                            }, 2000);
+                                        });
+                                    } else {
+                                        // Tagger les utilisateurs non-admin avec 'user'
+                                        OneSignal.push(function() {
+                                            OneSignal.sendTag('role', 'user');
+                                            console.log('Utilisateur tagué comme user');
+                                            
+                                            // Vérifier les tags après 2 secondes
+                                            setTimeout(() => {
+                                                OneSignal.getTags().then(tags => {
+                                                    console.log('Tags actuels:', tags);
+                                                });
+                                            }, 2000);
+                                        });
+                                    }
+                                    
                                     window.OneSignal.initialized = true;
                                 });
+                                
+
+                                
+                                // Fonction pour envoyer une notification à des appareils spécifiques
+                                window.sendNotificationToSpecificDevices = async function(deviceIds, title, message, url = null) {
+                                    const notificationData = {
+                                        app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
+                                        contents: {
+                                            en: message,
+                                            fr: message
+                                        },
+                                        headings: {
+                                            en: title,
+                                            fr: title
+                                        },
+                                        include_player_ids: deviceIds,
+                                        data: {
+                                            type: "custom_notification",
+                                            customUrl: url
+                                        }
+                                    };
+
+                                    if (url) {
+                                        notificationData.url = url;
+                                    }
+
+                                    try {
+                                        const response = await fetch('https://onesignal.com/api/v1/notifications', {
+                                            method: 'POST',
+                                            headers: {
+                                                'Content-Type': 'application/json',
+                                                'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                                            },
+                                            body: JSON.stringify(notificationData)
+                                        });
+
+                                        if (!response.ok) {
+                                            console.error('OneSignal API error:', response.status, response.statusText);
+                                            const errorText = await response.text();
+                                            console.error('OneSignal error details:', errorText);
+                                        } else {
+                                            console.log('Notification envoyée aux appareils spécifiés');
+                                        }
+                                    } catch (error) {
+                                        console.error('Erreur lors de l\'envoi de la notification:', error);
+                                    }
+                                };
                             }
                             // Afficher le bouton de notification
                             setTimeout(() => {

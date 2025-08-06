@@ -1,14 +1,28 @@
 {
     "name": "Emmy VASSE - Ostéopathe Animalier",
     "short_name": "Emmy VASSE",
+    "description": "Application de gestion pour ostéopathe animalier",
     "start_url": "/",
     "display": "standalone",
+    "orientation": "portrait",
+    "theme_color": "#4CAF50",
+    "background_color": "#ffffff",
     "gcm_sender_id": "482941778795",
     "icons": [
         {
             "src": "images/logo_emmy.png",
             "sizes": "192x192",
-            "type": "image/png"
+            "type": "image/png",
+            "purpose": "any maskable"
+        },
+        {
+            "src": "images/logo_emmy.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "any maskable"
         }
-    ]
+    ],
+    "categories": ["business", "medical"],
+    "lang": "fr",
+    "dir": "ltr"
 } 
