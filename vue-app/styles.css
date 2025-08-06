@@ -1529,12 +1529,14 @@ body {
 }
 
 .tutorial-highlight {
-    position: relative;
-    z-index: 10002;
+    position: relative !important;
+    z-index: 10002 !important;
     box-shadow: 0 0 0 4px var(--accent-color) !important;
-    border-radius: 4px;
-    animation: pulse 1.5s infinite;
+    border-radius: 4px !important;
+    animation: pulse 1.5s infinite !important;
     pointer-events: auto !important;
+    outline: 2px solid var(--accent-color) !important;
+    outline-offset: 2px !important;
 }
 
 /* Ajustements responsive pour le tutoriel */

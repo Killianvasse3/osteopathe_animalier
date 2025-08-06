@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=10.5">
+    <link rel="stylesheet" href="styles.css?v=11.1">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -54,20 +54,20 @@
                     
                     <!-- Navigation principale -->
                     <div class="nav-section">
-                        <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
-                        <a href="#" @click.prevent="navigateToSection('about'); closeMenu()">À propos</a>
-                        <a href="#" @click.prevent="navigateToSection('blog'); closeMenu()">Blog</a>
-                        <a href="#" @click.prevent="navigateToSection('contact'); closeMenu()">Contact</a>
+                    <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
+                    <a href="#" @click.prevent="navigateToSection('about'); closeMenu()">À propos</a>
+                    <a href="#" @click.prevent="navigateToSection('blog'); closeMenu()">Blog</a>
+                    <a href="#" @click.prevent="navigateToSection('contact'); closeMenu()">Contact</a>
                     </div>
                     
                     <!-- Actions utilisateur -->
                     <template v-if="isAuthenticated">
                         <div class="nav-separator"></div>
                         <div class="nav-section user-actions">
-                            <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
-                            <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
+                        <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
+                        <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
                             <a href="#" @click.prevent="navigateTo('profile'); closeMenu()">Mon Profil</a>
-                            <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
+                        <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
                         </div>
                         <div class="nav-separator"></div>
                         <div class="nav-section">
@@ -426,32 +426,32 @@
                     </div>
 
                     <div class="admin-tabs">
-                                                    <button 
-                                :class="['admin-tab', { active: adminActiveTab === 'animals' }]"
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'animals' }]"
                                 @click="switchAdminTab('animals')">
-                                Dossiers Animaux
-                            </button>
-                            <button 
-                                :class="['admin-tab', { active: adminActiveTab === 'appointments' }]"
+                            Dossiers Animaux
+                        </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'appointments' }]"
                                 @click="switchAdminTab('appointments')">
-                                Rendez-vous
-                            </button>
-                            <button 
-                                :class="['admin-tab', { active: adminActiveTab === 'slots' }]"
-                                @click="switchToSlotsTab">
-                                Créneaux
-                            </button>
-                            <button 
-                                :class="['admin-tab', { active: adminActiveTab === 'clients' }]"
+                            Rendez-vous
+                        </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'slots' }]"
+                            @click="switchToSlotsTab">
+                            Créneaux
+                        </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'clients' }]"
                                 @click="switchAdminTab('clients')">
-                                Clients
-                            </button>
-                            <button 
-                                :class="['admin-tab', { active: adminActiveTab === 'messages' }]"
+                            Clients
+                        </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'messages' }]"
                                 @click="switchAdminTab('messages')">
-                                Messages
-                                <span v-if="unreadMessagesCount > 0" class="notification-badge">{{ unreadMessagesCount }}</span>
-                            </button>
+                            Messages
+                            <span v-if="unreadMessagesCount > 0" class="notification-badge">{{ unreadMessagesCount }}</span>
+                        </button>
                     </div>
 
                     <!-- Onglet Dossiers Animaux -->
@@ -623,11 +623,11 @@
                     <!-- Onglet Rendez-vous -->
                     <div v-if="adminActiveTab === 'appointments'" class="admin-content">
                         <div class="admin-header-actions">
-                            <div class="search-bar">
-                                <input 
-                                    type="text" 
+                        <div class="search-bar">
+                            <input 
+                                type="text" 
                                     v-model="appointmentsSearch" 
-                                    placeholder="Rechercher un rendez-vous...">
+                                placeholder="Rechercher un rendez-vous...">
                             </div>
                             <button class="btn primary" @click="showAdminNewAppointmentModal = true">
                                 Nouveau rendez-vous
@@ -1508,7 +1508,7 @@
                     tutorialSteps: [
                         {
                             title: "Bienvenue !",
-                            content: "Je vais vous guider à travers les principales fonctionnalités de l'application.",
+                            content: "Je vais vous guider à travers les principales fonctionnalités de l'application pour gérer vos animaux et prendre rendez-vous.",
                             position: {
                                 top: '50%',
                                 left: '50%',
@@ -1516,36 +1516,43 @@
                             }
                         },
                         {
-                            title: "Créer un compte",
-                            content: "Pour commencer, créez un compte ou connectez-vous en cliquant sur 'Connexion' dans le menu.",
+                            title: "Connexion/Déconnexion",
+                            content: "Pour commencer, connectez-vous ou créez un compte en cliquant sur 'Connexion' dans le menu. Vous pourrez ensuite vous déconnecter via le même bouton.",
                             position: {
                                 top: '80px',
                                 right: '20px'
                             }
                         },
                         {
-                            title: "Dossier ostéopathique",
-                            content: "Une fois connecté, accédez à votre dossier ostéopathique pour gérer vos animaux.",
+                            title: "Dossier de vos animaux",
+                            content: "Accédez à votre dossier animaux pour voir les fiches de soin de vos compagnons et leur historique de traitements.",
                             position: {
                                 top: '80px',
-                                right: '150px'
+                                right: '20px'
                             }
                         },
                         {
-                            title: "Ajouter un animal",
-                            content: "Dans votre dossier, vous pourrez ajouter vos animaux et suivre leur historique de soins.",
+                            title: "Contacter Emmy VASSE",
+                            content: "Pour ajouter le dossier de votre animal sur votre compte et garantir son suivi, contactez Emmy VASSE directement.",
                             position: {
-                                top: '50%',
-                                left: '50%',
-                                transform: 'translate(-50%, -50%)'
+                                top: '80px',
+                                right: '20px'
                             }
                         },
                         {
                             title: "Prendre rendez-vous",
-                            content: "Une fois votre animal ajouté, vous pourrez facilement prendre rendez-vous en quelques clics.",
+                            content: "Prenez rendez-vous pour votre animal en quelques clics. Sélectionnez la date et l'heure qui vous conviennent.",
                             position: {
                                 top: '80px',
-                                right: '250px'
+                                right: '20px'
+                            }
+                        },
+                        {
+                            title: "Profil",
+                            content: "Gérez vos informations de compte et changez votre mot de passe dans votre profil.",
+                            position: {
+                                top: '80px',
+                                right: '20px'
                             }
                         }
                     ],
@@ -1788,7 +1795,7 @@
                     }
                 },
             },
-                            methods: {
+            methods: {
                     // Fonction pour traduire les erreurs Firebase
                     translateFirebaseError(error) {
                         const errorCode = error.code;
@@ -2075,15 +2082,15 @@
                         };
 
                         try {
-                            // Envoyer la notification via l'API REST de OneSignal
+                        // Envoyer la notification via l'API REST de OneSignal
                             const response = await fetch('https://onesignal.com/api/v1/notifications', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
                                     'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
-                                },
-                                body: JSON.stringify(notificationData)
-                            });
+                            },
+                            body: JSON.stringify(notificationData)
+                        });
 
                             if (!response.ok) {
                                 console.error('OneSignal API error:', response.status, response.statusText);
@@ -2442,15 +2449,15 @@
                         };
 
                         try {
-                            // Envoyer la notification
+                        // Envoyer la notification
                             const response = await fetch('https://onesignal.com/api/v1/notifications', {
-                                method: 'POST',
-                                headers: {
-                                    'Content-Type': 'application/json',
-                                    'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
-                                },
-                                body: JSON.stringify(notificationData)
-                            });
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
+                            },
+                            body: JSON.stringify(notificationData)
+                        });
 
                             if (!response.ok) {
                                 console.error('OneSignal API error:', response.status, response.statusText);
@@ -2957,28 +2964,28 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Nom :</label>
-                                        <input type="text" id="edit-animal-name" value="${animal.name}" required>
+                                    <label>Nom :</label>
+                                    <input type="text" id="edit-animal-name" value="${animal.name}" required>
                                     </div>
                                     
                                     <div class="form-group">
-                                        <label>Espèce :</label>
-                                        <select id="edit-animal-species" required>
-                                            <option value="chien" ${animal.species === 'chien' ? 'selected' : ''}>Chien</option>
-                                            <option value="chat" ${animal.species === 'chat' ? 'selected' : ''}>Chat</option>
-                                            <option value="cheval" ${animal.species === 'cheval' ? 'selected' : ''}>Cheval</option>
-                                            <option value="autre" ${animal.species === 'autre' ? 'selected' : ''}>Autre</option>
-                                        </select>
+                                    <label>Espèce :</label>
+                                    <select id="edit-animal-species" required>
+                                        <option value="chien" ${animal.species === 'chien' ? 'selected' : ''}>Chien</option>
+                                        <option value="chat" ${animal.species === 'chat' ? 'selected' : ''}>Chat</option>
+                                        <option value="cheval" ${animal.species === 'cheval' ? 'selected' : ''}>Cheval</option>
+                                        <option value="autre" ${animal.species === 'autre' ? 'selected' : ''}>Autre</option>
+                                    </select>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Race :</label>
-                                        <input type="text" id="edit-animal-race" value="${animal.race || ''}">
+                                    <label>Race :</label>
+                                    <input type="text" id="edit-animal-race" value="${animal.race || ''}">
                                     </div>
                                     
                                     <div class="form-group">
-                                        <label>Date de naissance :</label>
-                                        <input type="date" id="edit-animal-birthdate" value="${animal.birthdate}" required>
+                                    <label>Date de naissance :</label>
+                                    <input type="date" id="edit-animal-birthdate" value="${animal.birthdate}" required>
                                     </div>
 
                                     <div class="form-group">
@@ -2990,13 +2997,13 @@
                                             <button type="button" class="radio-btn ${!animal.sterilization ? 'selected' : ''}" data-value="false">
                                                 Non
                                             </button>
-                                        </div>
+                                </div>
                                         <input type="hidden" id="edit-animal-sterilization" value="${animal.sterilization}">
-                                    </div>
+                            </div>
                                     
                                     <div class="form-group sterilization-details" style="display: ${animal.sterilization ? 'block' : 'none'};">
-                                        <label>Détails de la stérilisation :</label>
-                                        <textarea id="edit-animal-sterilization-details" rows="2" placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc.">${animal.sterilizationDetails || ''}</textarea>
+                                <label>Détails de la stérilisation :</label>
+                                <textarea id="edit-animal-sterilization-details" rows="2" placeholder="Date de stérilisation, type d'intervention, vétérinaire, etc.">${animal.sterilizationDetails || ''}</textarea>
                                     </div>
                                 </div>
                             </div>
@@ -3102,9 +3109,9 @@
 
                         if (files.length > 10) {
                             alert('Vous ne pouvez pas sélectionner plus de 10 images à la fois.');
-                            e.target.value = '';
-                            return;
-                        }
+                                e.target.value = '';
+                                return;
+                            }
 
                         files.forEach(file => {
                             if (!file.type.startsWith('image/')) {
@@ -3114,7 +3121,7 @@
 
                             try {
                                 // Créer un aperçu de l'image
-                                const reader = new FileReader();
+                            const reader = new FileReader();
                                 reader.onload = async (ev) => {
                                     // Créer une image pour le redimensionnement
                                     const img = new Image();
@@ -3162,12 +3169,12 @@
                                         this.updatePhotosDisplay(modal, currentPhotos);
                                     };
                                     img.src = ev.target.result;
-                                };
-                                reader.readAsDataURL(file);
+                            };
+                            reader.readAsDataURL(file);
                             } catch (error) {
                                 console.error('Erreur lors du traitement de l\'image:', error);
                                 alert(`Erreur lors du traitement de l'image ${file.name}. Veuillez réessayer avec une autre image.`);
-                            }
+                        }
                         });
                     });
 
@@ -3178,7 +3185,7 @@
                     };
 
                     // Gestion de l'affichage du champ détails de stérilisation
-
+                    
 
                     // Soumission du formulaire
                     modal.querySelector('#edit-animal-form').onsubmit = async (e) => {
@@ -3210,7 +3217,7 @@
                             modal.remove();
                             this.loadAnimals();
                         } catch (err) {
-                            console.error('Erreur lors de la sauvegarde:', err);
+                                            console.error('Erreur lors de la sauvegarde:', err);
                             alert('Erreur lors de la sauvegarde : ' + err.message);
                         }
                     };
@@ -3311,7 +3318,7 @@
                         try {
                             // Filtrer les documents pour retirer celui qu'on veut supprimer
                             currentDocuments = currentDocuments.filter(doc => doc.id !== documentId);
-                            
+
                             // Mettre à jour l'affichage
                             const documentsGrid = modal.querySelector('.documents-grid');
                             if (currentDocuments.length > 0) {
@@ -4078,8 +4085,8 @@
                     // Vérifier le nombre maximum d'images
                     if (files.length > 10) {
                         alert('Vous ne pouvez pas sélectionner plus de 10 images à la fois.');
-                        event.target.value = '';
-                        return;
+                            event.target.value = '';
+                            return;
                     }
 
                     // Initialiser les tableaux si nécessaire
@@ -4516,53 +4523,70 @@
                     }
                 },
                 nextTutorialStep() {
+                    // Retirer les highlights précédents
                     this.removeHighlights();
+                    
                     if (this.currentTutorialStepIndex < this.tutorialSteps.length - 1) {
                         this.currentTutorialStepIndex++;
+                        
                         // Ouvrir le menu burger sur mobile pour les étapes concernées
                         if (window.innerWidth <= 768) {
                             if ([1, 2, 4].includes(this.currentTutorialStepIndex)) {
                                 this.isMenuOpen = true;
                             }
                         }
+                        
+                        // Attendre un peu que le DOM soit mis à jour avant de highlight
+                        setTimeout(() => {
                         this.highlightCurrentElement();
+                        }, 100);
                     }
                 },
                 highlightCurrentElement() {
+                    // Retirer les highlights précédents
                     this.removeHighlights();
+                    
                     let elementToHighlight;
                     const isMobile = window.innerWidth <= 768;
                     let retryCount = 0;
+                    
                     const tryHighlight = () => {
+                        // Retirer les highlights avant de chercher le nouvel élément
+                        this.removeHighlights();
+                        
                         switch(this.currentTutorialStepIndex) {
                             case 0: // Bienvenue
                                 // Pas de highlight
                                 break;
-                            case 1: // Connexion
-                                elementToHighlight = document.querySelector('.nav-links a[href="#"]');
+                            case 1: // Connexion/Déconnexion
+                                // Chercher d'abord le bouton de déconnexion, puis le bouton de connexion
+                                elementToHighlight = document.querySelector('.nav-logout') || document.querySelector('.nav-login');
                                 break;
-                            case 2: // Dossier ostéopathique
-                                elementToHighlight = document.querySelector('.nav-links a[href="#dossier"]');
+                            case 2: // Dossier de vos animaux
+                                elementToHighlight = Array.from(document.querySelectorAll('.nav-links a')).find(a => a.textContent.includes('Dossier Animaux'));
                                 break;
-                            case 3: // Ajouter un animal
-                                if (this.currentPage === 'dossier') {
-                                    elementToHighlight = document.querySelector('.add-animal, .btn.add-animal');
-                                }
+                            case 3: // Contacter Emmy VASSE
+                                elementToHighlight = Array.from(document.querySelectorAll('.nav-links a')).find(a => a.textContent.includes('Contact'));
                                 break;
                             case 4: // Prendre rendez-vous
-                                elementToHighlight = document.querySelector('.nav-links a[href="#appointment"]');
+                                elementToHighlight = Array.from(document.querySelectorAll('.nav-links a')).find(a => a.textContent.includes('Prendre RDV'));
+                                break;
+                            case 5: // Profil
+                                elementToHighlight = Array.from(document.querySelectorAll('.nav-links a')).find(a => a.textContent.includes('Profil'));
                                 break;
                         }
+                        
                         if (elementToHighlight) {
+                            // Ajouter le highlight avec un petit délai pour s'assurer que le DOM est prêt
+                            setTimeout(() => {
                             elementToHighlight.classList.add('tutorial-highlight');
                             if (isMobile) {
-                                setTimeout(() => {
                                     elementToHighlight.scrollIntoView({
                                         behavior: 'smooth',
                                         block: 'center'
                                     });
-                                }, 500);
                             }
+                            }, 100);
                         } else if (retryCount < 3) {
                             retryCount++;
                             setTimeout(tryHighlight, 200);
@@ -4570,7 +4594,9 @@
                             console.warn('Aucun élément à surligner pour l\'étape du tutoriel', this.currentTutorialStepIndex);
                         }
                     };
-                    tryHighlight();
+                    
+                    // Démarrer avec un petit délai pour s'assurer que le DOM est prêt
+                    setTimeout(tryHighlight, 50);
                 },
                 removeHighlights() {
                     document.querySelectorAll('.tutorial-highlight').forEach(el => {
