@@ -489,9 +489,6 @@
                                             <button class="btn-view" @click="viewAnimalDetails(animal)">
                                                 Voir
                                             </button>
-                                            <button class="btn-edit" @click="editAnimal(animal)">
-                                                Modifier
-                                            </button>
                                             <button class="btn-delete" @click="deleteAnimal(animal)">
                                                 Supprimer
                                             </button>
@@ -1164,52 +1161,7 @@
             </div>
         </div>
 
-        <!-- Modal d'édition pour les animaux -->
-        <div v-if="showEditAnimalModal" class="edit-modal">
-            <div class="edit-modal-content">
-                <h2>Modifier l'animal</h2>
-                <form @submit.prevent="updateAnimal">
-                    <div class="edit-form-group">
-                        <label for="editAnimalOwner">Propriétaire</label>
-                        <select id="editAnimalOwner" v-model="editingAnimal.userId" required>
-                            <option v-for="client in allClients" :key="client.id" :value="client.id">
-                                {{ client.firstName }} {{ client.lastName }} ({{ client.email }})
-                            </option>
-                        </select>
-                    </div>
-                    <div class="edit-form-group">
-                        <label for="editAnimalName">Nom</label>
-                        <input type="text" id="editAnimalName" v-model="editingAnimal.name" required>
-                    </div>
-                    <div class="edit-form-group">
-                        <label for="editAnimalSpecies">Espèce</label>
-                        <select id="editAnimalSpecies" v-model="editingAnimal.species" required>
-                            <option value="">Sélectionnez une espèce</option>
-                            <option value="chien">Chien</option>
-                            <option value="chat">Chat</option>
-                            <option value="cheval">Cheval</option>
-                            <option value="autre">Autre</option>
-                        </select>
-                    </div>
-                    <div class="edit-form-group">
-                        <label for="editAnimalRace">Race</label>
-                        <input type="text" id="editAnimalRace" v-model="editingAnimal.race">
-                    </div>
-                    <div class="edit-form-group">
-                        <label for="editAnimalBirthdate">Date de naissance</label>
-                        <input type="date" id="editAnimalBirthdate" v-model="editingAnimal.birthdate" required>
-                    </div>
-                    <div class="edit-form-group">
-                        <label for="editAnimalNotes">Notes</label>
-                        <textarea id="editAnimalNotes" v-model="editingAnimal.notes" rows="3"></textarea>
-                    </div>
-                    <div class="edit-modal-actions">
-                        <button type="button" class="btn secondary" @click="showEditAnimalModal = false">Annuler</button>
-                        <button type="submit" class="btn primary">Enregistrer</button>
-                    </div>
-                </form>
-            </div>
-        </div>
+
 
         <!-- Modal d'édition pour les rendez-vous -->
         <div v-if="showEditAppointmentModal" class="edit-modal">
@@ -1521,9 +1473,7 @@
                     allAnimals: [],
                     allAppointments: [],
                     userEmails: {},
-                    showEditAnimalModal: false,
                     showEditAppointmentModal: false,
-                    editingAnimal: null,
                     editingAppointment: null,
                     currentMonth: new Date().getMonth(),
                     currentYear: new Date().getFullYear(),
@@ -2899,6 +2849,15 @@
                                     <small style="color: var(--text-color); font-size: 0.8rem;">Format recommandé : JPG, PNG (max 5MB par image, max 10 images)</small>
                                 </div>
                                 <div class="animal-basic-info-right">
+                                    <label>Propriétaire :</label>
+                                    <select id="edit-animal-owner" required>
+                                        ${this.allClients.map(client => `
+                                            <option value="${client.id}" ${animal.userId === client.id ? 'selected' : ''}>
+                                                ${client.firstName} ${client.lastName} (${client.email})
+                                            </option>
+                                        `).join('')}
+                                    </select>
+
                                     <label>Nom :</label>
                                     <input type="text" id="edit-animal-name" value="${animal.name}" required>
                                     
@@ -3125,6 +3084,7 @@
                     modal.querySelector('#edit-animal-form').onsubmit = async (e) => {
                         e.preventDefault();
                         const updatedAnimal = {
+                            userId: modal.querySelector('#edit-animal-owner').value,
                             name: modal.querySelector('#edit-animal-name').value,
                             species: modal.querySelector('#edit-animal-species').value,
                             race: modal.querySelector('#edit-animal-race').value,
@@ -3541,44 +3501,8 @@
                     if (!user) return 'Client non trouvé';
                     return `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.email || 'Client non trouvé';
                 },
-                async editAnimal(animal) {
-                    this.editingAnimal = { ...animal };
-                    this.showEditAnimalModal = true;
-                },
-                async updateAnimal() {
-                    try {
-                        await db.collection('animals').doc(this.editingAnimal.id).update({
-                            name: this.editingAnimal.name,
-                            species: this.editingAnimal.species,
-                            race: this.editingAnimal.race,
-                            birthdate: this.editingAnimal.birthdate,
-                            sterilization: this.editingAnimal.sterilization,
-                            sterilizationDetails: this.editingAnimal.sterilizationDetails,
-                            diet: this.editingAnimal.diet,
-                            activity: this.editingAnimal.activity,
-                            activityDetails: this.editingAnimal.activityDetails,
-                            medicalHistory: this.editingAnimal.medicalHistory,
-                            treatment: this.editingAnimal.treatment,
-                            behavior: this.editingAnimal.behavior,
-                            notes: this.editingAnimal.notes,
-                            userId: this.editingAnimal.userId,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
 
-                        // Mettre à jour la liste locale
-                        const index = this.allAnimals.findIndex(a => a.id === this.editingAnimal.id);
-                        if (index !== -1) {
-                            this.allAnimals[index] = { ...this.editingAnimal };
-                        }
 
-                        this.showEditAnimalModal = false;
-                        this.editingAnimal = null;
-                        alert('Animal modifié avec succès');
-                    } catch (error) {
-                        console.error('Error updating animal:', error);
-                        alert('Erreur lors de la modification: ' + error.message);
-                    }
-                },
                 async editAppointment(appointment) {
                     this.editingAppointment = { ...appointment };
                     await this.loadUnavailableSlots();
