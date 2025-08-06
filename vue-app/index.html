@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=10.1">
+    <link rel="stylesheet" href="styles.css?v=10.3">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -2757,13 +2757,13 @@
                     modal.addEventListener('view-photo', (e) => {
                         const { photo, index, total } = e.detail;
                         const fullscreenModal = window.document.createElement('div');
-                        fullscreenModal.className = 'modal';
-                        fullscreenModal.style.cssText = 'z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.9);';
+                        fullscreenModal.className = 'modal fullscreen-photo-modal';
+                        fullscreenModal.style.cssText = 'z-index: 1001; display: flex; align-items: center; justify-content: center; padding: 20px; background: rgba(0,0,0,0.9); position: fixed; top: 0; left: 0; right: 0; bottom: 0;';
                         fullscreenModal.innerHTML = `
-                            <div class="modal-content" style="max-width: 90vw; max-height: 90vh; background: transparent; box-shadow: none; padding: 0; position: relative;">
-                                <button onclick="this.closest('.modal').remove()" style="position: absolute; top: -40px; right: 0; background: #ff4444; color: white; border: none; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center;">×</button>
-                                <img src="${photo}" alt="Photo ${index + 1} de ${total}" style="width: 100%; height: auto; max-height: 90vh; object-fit: contain; border-radius: 8px;">
-                                <div style="position: absolute; bottom: -30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">
+                            <div class="modal-content fullscreen-photo-content" style="max-width: 80vw; max-height: 80vh; background: transparent; box-shadow: none; padding: 0; position: relative; display: flex; flex-direction: column; align-items: center;">
+                                <button class="close-photo-btn" onclick="this.closest('.fullscreen-photo-modal').remove()" style="position: absolute; top: 20px; right: 20px; background: #ff4444; color: white; border: none; border-radius: 50%; width: 50px; height: 50px; cursor: pointer; font-size: 24px; display: flex; align-items: center; justify-content: center; z-index: 1002; box-shadow: 0 2px 10px rgba(0,0,0,0.3);">×</button>
+                                <img src="${photo}" alt="Photo ${index + 1} de ${total}" style="max-width: 100%; max-height: 70vh; object-fit: contain; border-radius: 8px;">
+                                <div style="margin-top: 15px; background: rgba(0,0,0,0.7); color: white; padding: 8px 16px; border-radius: 20px; font-size: 14px;">
                                     Photo ${index + 1} sur ${total}
                                 </div>
                             </div>
@@ -2786,6 +2786,15 @@
                                 window.removeEventListener('keydown', handleEscape);
                             }
                         });
+
+                        // Fermer en cliquant sur le bouton de fermeture
+                        const closeBtn = fullscreenModal.querySelector('.close-photo-btn');
+                        if (closeBtn) {
+                            closeBtn.addEventListener('click', () => {
+                                fullscreenModal.remove();
+                                window.removeEventListener('keydown', handleEscape);
+                            });
+                        }
                     });
 
                     // Ajout de la logique d'édition
