@@ -4149,3 +4149,20 @@ select#animalOwner option {
         min-width: auto;
     }
 }
+
+/* Styles pour les dates de naissance flexibles */
+.birthdate-input-container {
+    margin-top: 0.5rem;
+}
+
+.birthdate-exact,
+.birthdate-approximate {
+    margin-top: 0.5rem;
+}
+
+.birthdate-approximate small {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--text-color);
+    opacity: 0.7;
+}
