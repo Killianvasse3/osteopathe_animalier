@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=12.0">
+    <link rel="stylesheet" href="styles.css?v=12.1">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -515,12 +515,31 @@
                                 <form @submit.prevent="addAnimal">
                                     <div class="form-group">
                                         <label for="animalOwner">Propriétaire</label>
-                                        <select id="animalOwner" v-model="newAnimal.userId" required>
-                                            <option value="">Sélectionnez un client</option>
-                                            <option v-for="client in allClients" :key="client.id" :value="client.id">
-                                                {{ client.firstName }} {{ client.lastName }} ({{ client.email }})
-                                            </option>
-                                        </select>
+                                        <div class="searchable-select">
+                                            <input 
+                                                type="text" 
+                                                id="animalOwnerSearch" 
+                                                v-model="ownerSearch"
+                                                placeholder="Rechercher un client..."
+                                                @focus="showOwnerDropdown = true"
+                                                @blur="setTimeout(() => showOwnerDropdown = false, 200)"
+                                                autocomplete="off">
+                                            <div class="select-dropdown" v-show="showOwnerDropdown && filteredOwnerClients.length > 0">
+                                                <div 
+                                                    v-for="client in filteredOwnerClients" 
+                                                    :key="client.id"
+                                                    class="select-option"
+                                                    @click="selectOwner(client)"
+                                                    :class="{ selected: newAnimal.userId === client.id }">
+                                                    <strong>{{ client.firstName }} {{ client.lastName }}</strong>
+                                                    <span class="client-email">{{ client.email }}</span>
+                                                </div>
+                                            </div>
+                                            <div v-if="newAnimal.userId" class="selected-owner">
+                                                <span>{{ getSelectedOwnerName() }}</span>
+                                                <button type="button" @click="clearOwnerSelection" class="clear-btn">×</button>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="form-group">
                                         <label for="newAnimalName">Nom de l'animal</label>
@@ -1528,6 +1547,10 @@
                     unsubscribeMessages: null,
                     allClients: [], // Ajouter allClients dans data
                     clientsData: [], // Nouvelle propriété pour stocker les données brutes des clients
+                    // Propriétés pour les sélecteurs avec recherche
+                    ownerSearch: '',
+                    editOwnerSearch: '',
+                    showOwnerDropdown: false,
                     // Données pour le tutoriel
                     showTutorial: false,
                     currentTutorialStepIndex: 0,
@@ -1709,6 +1732,15 @@
                 filteredClients() {
                     if (!this.clientsSearch) return this.allClients;
                     const search = this.clientsSearch.toLowerCase();
+                    return this.allClients.filter(client => 
+                        (client.lastName || '').toLowerCase().includes(search) ||
+                        (client.firstName || '').toLowerCase().includes(search) ||
+                        client.email.toLowerCase().includes(search)
+                    );
+                },
+                filteredOwnerClients() {
+                    if (!this.ownerSearch) return this.allClients;
+                    const search = this.ownerSearch.toLowerCase();
                     return this.allClients.filter(client => 
                         (client.lastName || '').toLowerCase().includes(search) ||
                         (client.firstName || '').toLowerCase().includes(search) ||
@@ -1918,6 +1950,25 @@
                         } else {
                             this.newAnimal.birthdate = '';
                         }
+                    },
+                    selectOwner(client) {
+                        this.newAnimal.userId = client.id;
+                        this.ownerSearch = `${client.firstName} ${client.lastName}`;
+                        this.showOwnerDropdown = false;
+                    },
+                    clearOwnerSelection() {
+                        this.newAnimal.userId = '';
+                        this.ownerSearch = '';
+                    },
+                    getSelectedOwnerName() {
+                        if (!this.newAnimal.userId) return '';
+                        const client = this.allClients.find(c => c.id === this.newAnimal.userId);
+                        return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
+                    },
+                    getSelectedOwnerNameForEdit(animal) {
+                        if (!animal.userId) return '';
+                        const client = this.allClients.find(c => c.id === animal.userId);
+                        return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
                     },
                 toggleMenu() {
                     this.isMenuOpen = !this.isMenuOpen;
@@ -3022,13 +3073,26 @@
                                 <div class="animal-basic-info-right">
                                     <div class="form-group">
                                         <label>Propriétaire :</label>
-                                        <select id="edit-animal-owner" required>
-                                            ${this.allClients.map(client => `
-                                                <option value="${client.id}" ${animal.userId === client.id ? 'selected' : ''}>
-                                                    ${client.firstName} ${client.lastName} (${client.email})
-                                                </option>
-                                            `).join('')}
-                                        </select>
+                                        <div class="searchable-select">
+                                            <input 
+                                                type="text" 
+                                                id="edit-animal-owner-search" 
+                                                placeholder="Rechercher un client..."
+                                                value="${this.getSelectedOwnerNameForEdit(animal)}"
+                                                autocomplete="off">
+                                            <div class="select-dropdown" id="edit-owner-dropdown" style="display: none;">
+                                                ${this.allClients.map(client => `
+                                                    <div class="select-option ${animal.userId === client.id ? 'selected' : ''}" 
+                                                         data-value="${client.id}" 
+                                                         data-name="${client.firstName} ${client.lastName}"
+                                                         data-email="${client.email}">
+                                                        <strong>${client.firstName} ${client.lastName}</strong>
+                                                        <span class="client-email">${client.email}</span>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                            <input type="hidden" id="edit-animal-owner" value="${animal.userId || ''}">
+                                        </div>
                                     </div>
 
                                     <div class="form-group">
@@ -3297,6 +3361,62 @@
                                 // Vider le champ exact
                                 modal.querySelector('#edit-animal-birthdate').value = '';
                             }
+                        });
+                    });
+
+                    // Gestion du sélecteur avec recherche pour le propriétaire
+                    const ownerSearchInput = modal.querySelector('#edit-animal-owner-search');
+                    const ownerDropdown = modal.querySelector('#edit-owner-dropdown');
+                    const ownerHiddenInput = modal.querySelector('#edit-animal-owner');
+                    const ownerOptions = ownerDropdown.querySelectorAll('.select-option');
+
+                    ownerSearchInput.addEventListener('input', (e) => {
+                        const searchTerm = e.target.value.toLowerCase();
+                        
+                        ownerOptions.forEach(option => {
+                            const name = option.querySelector('strong').textContent.toLowerCase();
+                            const email = option.querySelector('.client-email').textContent.toLowerCase();
+                            
+                            if (name.includes(searchTerm) || email.includes(searchTerm)) {
+                                option.style.display = 'block';
+                            } else {
+                                option.style.display = 'none';
+                            }
+                        });
+                        
+                        // Afficher le dropdown s'il y a des résultats
+                        const visibleOptions = Array.from(ownerOptions).filter(option => option.style.display !== 'none');
+                        ownerDropdown.style.display = visibleOptions.length > 0 ? 'block' : 'none';
+                    });
+
+                    ownerSearchInput.addEventListener('focus', () => {
+                        ownerDropdown.style.display = 'block';
+                    });
+
+                    ownerSearchInput.addEventListener('blur', () => {
+                        setTimeout(() => {
+                            ownerDropdown.style.display = 'none';
+                        }, 200);
+                    });
+
+                    ownerOptions.forEach(option => {
+                        option.addEventListener('click', () => {
+                            const value = option.getAttribute('data-value');
+                            const name = option.getAttribute('data-name');
+                            const email = option.getAttribute('data-email');
+                            
+                            // Mettre à jour l'input de recherche
+                            ownerSearchInput.value = `${name} (${email})`;
+                            
+                            // Mettre à jour l'input caché
+                            ownerHiddenInput.value = value;
+                            
+                            // Mettre à jour la sélection visuelle
+                            ownerOptions.forEach(opt => opt.classList.remove('selected'));
+                            option.classList.add('selected');
+                            
+                            // Masquer le dropdown
+                            ownerDropdown.style.display = 'none';
                         });
                     });
 
