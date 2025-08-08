@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=11.4">
+    <link rel="stylesheet" href="styles.css?v=11.7">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -194,7 +194,7 @@
                             <div class="contact-info-block" style="background: #f8fafc; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.04); padding: 1.2rem 1.5rem; margin-bottom: 1.2rem;">
                                 <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem;">
                                     <img src="images/location.svg" alt="Adresse" style="width: 22px; height: 22px; opacity: 0.7;">
-                                    <a href="https://www.google.com/maps/place//data=!4m2!3m1!1s0x6c2f3832ff1c07a1:0xc10ae36728d79394?sa=X&ved=1t:8290&hl=fr&ictx=111" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">61 Grande Rue, 39240 Thoirette-Coisia</a>
+                                    <a href="https://www.google.com/maps/place//data=!4m2!3m1!1s0x6c2f3832ff1c07a1:0xc10ae36728d79394?sa=X&ved=1t:8290&hl=fr&ictx=111" target="_blank" style="color: var(--primary-color); text-decoration: none; font-weight: 500;">Thoirette-Coisia</a>
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem;">
                                     <img src="images/phone.svg" alt="Téléphone" style="width: 22px; height: 22px; opacity: 0.7;">
@@ -202,12 +202,15 @@
                                 </div>
                                 <div style="display: flex; align-items: center; gap: 0.7rem; margin-bottom: 0.5rem;">
                                     <img src="images/mail.svg" alt="Mail" style="width: 22px; height: 22px; opacity: 0.7;">
-                                    <a href="mailto:mystereandemmy@gmail.com" style="color: var(--primary-color); text-decoration: none; font-weight: 500; overflow-wrap: anywhere; word-break: break-all;">mystereandemmy@gmail.com</a>
+                                    <a href="mailto:mystereandemmy@gmail.com" style="color: var(--primary-color); text-decoration: none; font-weight: 500; overflow-wrap: anywhere; word-break: break-all;">emmyvasse.pro@gmail.com</a>
                                 </div>
                             </div>
                             <div class="contact-socials" style="display: flex; gap: 1.2rem; align-items: center; margin-top: 0.5rem;">
                                 <a href="https://www.facebook.com/people/Th%C3%A9rapeute-Manuelle-Animalier-Emmy-Vasse/61555277590644/" target="_blank" aria-label="Facebook" style="display: flex; align-items: center; gap: 0.5rem; color: #1877f3; font-weight: 600; text-decoration: none; font-size: 1.1rem;">
                                     <img src="images/facebook.svg" alt="Facebook" style="width: 28px; height: 28px;"> Facebook
+                                </a>
+                                <a href="https://www.instagram.com/emmyvasse.therapieanimale?igsh=MWNsZTMxYzBnaXVqeA==" target="_blank" aria-label="Instagram" style="display: flex; align-items: center; gap: 0.5rem; color: #e4405f; font-weight: 600; text-decoration: none; font-size: 1.1rem;">
+                                    <img src="images/instagram.svg" alt="Instagram" style="width: 28px; height: 28px;"> Instagram
                                 </a>
                             </div>
                         </div>
@@ -5446,10 +5449,27 @@
                     }
                 });
 
-                // Gestion du responsive
-                window.addEventListener('resize', () => {
+                // Gestion du responsive et du zoom
+                const checkZoomAndResponsive = () => {
                     this.isMobile = window.innerWidth <= 768;
-                });
+                    
+                    // Détecter le niveau de zoom de manière plus précise
+                    const zoomLevel = window.outerWidth / window.innerWidth;
+                    const navContainer = document.querySelector('.nav-container');
+                    
+                    if (navContainer) {
+                        // Activer le menu burger quand le zoom dépasse 110% (1.1)
+                        if (zoomLevel > 1.1 && window.innerWidth > 768) {
+                            navContainer.classList.add('nav-zoomed');
+                        } else {
+                            navContainer.classList.remove('nav-zoomed');
+                        }
+                    }
+                };
+                
+                window.addEventListener('resize', checkZoomAndResponsive);
+                window.addEventListener('load', checkZoomAndResponsive);
+                checkZoomAndResponsive();
 
                 this.loadBlogPosts();
                 
