@@ -446,6 +446,32 @@ body {
     background-color: #e9ecef;
 }
 
+.auth-form button.forgot-password {
+    background: none;
+    border: none;
+    color: var(--primary-color);
+    cursor: pointer;
+    font-size: 0.9rem;
+    text-decoration: underline;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    transition: color 0.3s ease;
+}
+
+.auth-form button.forgot-password:hover {
+    color: var(--secondary-color);
+}
+
+.auth-form .success {
+    color: #27ae60;
+    background-color: #d5f4e6;
+    border: 1px solid #27ae60;
+    padding: 0.8rem;
+    border-radius: 5px;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
 /* Footer */
 .footer {
     background-color: var(--primary-color);

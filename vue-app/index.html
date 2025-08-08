@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=12.5">
+    <link rel="stylesheet" href="styles.css?v=12.6">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -1201,12 +1201,27 @@
                 <input type="password" v-model="password" placeholder="Mot de passe">
                 <button class="primary" @click="isLogin ? login() : register()">{{ isLogin ? 'Se connecter' : 'S\'inscrire' }}</button>
                 <button class="secondary" @click="isLogin = !isLogin">{{ isLogin ? 'Créer un compte' : 'Déjà un compte ?' }}</button>
+                <button v-if="isLogin" class="forgot-password" @click="showForgotPassword = true">Mot de passe oublié ?</button>
                 <button class="close" @click="showAuth = false">Fermer</button>
                 <p class="error" v-if="error">{{ error }}</p>
             </div>
         </div>
 
-
+        <!-- Modal de mot de passe oublié -->
+        <div v-if="showForgotPassword" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;">
+            <div class="auth-form">
+                <h3>Mot de passe oublié</h3>
+                <p style="margin-bottom: 1rem; color: var(--text-color); font-size: 0.9rem;">
+                    Entrez votre adresse email pour recevoir un lien de réinitialisation.
+                </p>
+                <input type="email" v-model="forgotPasswordEmail" placeholder="Votre adresse email" required>
+                <button class="primary" @click="sendPasswordResetEmail">Envoyer le lien</button>
+                <button class="secondary" @click="showForgotPassword = false">Retour à la connexion</button>
+                <button class="close" @click="showForgotPassword = false">Fermer</button>
+                <p class="error" v-if="forgotPasswordError">{{ forgotPasswordError }}</p>
+                <p class="success" v-if="forgotPasswordSuccess">{{ forgotPasswordSuccess }}</p>
+            </div>
+        </div>
 
         <!-- Modal d'édition pour les rendez-vous -->
         <div v-if="showEditAppointmentModal" class="edit-modal">
@@ -1463,6 +1478,11 @@
                     phone: '',
                     address: '',
                     error: '',
+                    // Données pour le mot de passe oublié
+                    showForgotPassword: false,
+                    forgotPasswordEmail: '',
+                    forgotPasswordError: '',
+                    forgotPasswordSuccess: '',
                     isAuthenticated: false,
                     userEmail: '',
                     showAuth: false,
@@ -1983,10 +2003,55 @@
                         const client = this.allClients.find(c => c.id === animal.userId);
                         return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
                     },
-                    getSelectedOwnerNameForEdit(animal) {
-                        if (!animal.userId) return '';
-                        const client = this.allClients.find(c => c.id === animal.userId);
-                        return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
+                    async sendPasswordResetEmail() {
+                        try {
+                            // Réinitialiser les messages
+                            this.forgotPasswordError = '';
+                            this.forgotPasswordSuccess = '';
+                            
+                            // Valider l'email
+                            if (!this.forgotPasswordEmail) {
+                                this.forgotPasswordError = 'Veuillez saisir votre adresse email';
+                                return;
+                            }
+                            
+                            // Envoyer l'email de réinitialisation
+                            await firebase.auth().sendPasswordResetEmail(this.forgotPasswordEmail);
+                            
+                            // Message de succès
+                            this.forgotPasswordSuccess = 'Un email de réinitialisation a été envoyé à votre adresse. Vérifiez votre boîte de réception et vos spams.';
+                            
+                            // Réinitialiser le champ email
+                            this.forgotPasswordEmail = '';
+                            
+                            // Fermer la modal après 3 secondes
+                            setTimeout(() => {
+                                this.showForgotPassword = false;
+                                this.forgotPasswordSuccess = '';
+                            }, 3000);
+                            
+                        } catch (error) {
+                            console.error('Error sending password reset email:', error);
+                            
+                            // Traduire les erreurs Firebase
+                            let errorMessage = 'Une erreur est survenue lors de l\'envoi de l\'email';
+                            
+                            switch (error.code) {
+                                case 'auth/user-not-found':
+                                    errorMessage = 'Aucun compte trouvé avec cette adresse email';
+                                    break;
+                                case 'auth/invalid-email':
+                                    errorMessage = 'Adresse email invalide';
+                                    break;
+                                case 'auth/too-many-requests':
+                                    errorMessage = 'Trop de tentatives. Veuillez réessayer plus tard';
+                                    break;
+                                default:
+                                    errorMessage = 'Erreur lors de l\'envoi de l\'email de réinitialisation';
+                            }
+                            
+                            this.forgotPasswordError = errorMessage;
+                        }
                     },
                 toggleMenu() {
                     this.isMenuOpen = !this.isMenuOpen;
