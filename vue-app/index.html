@@ -270,10 +270,11 @@
                                 <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Prise de contact nécessaire</h3>
                                 <p style="margin-bottom: 1rem;">Pour ce type de consultation, merci de me contacter directement via :</p>
                                 <ul style="list-style: none; margin-bottom: 1rem;">
-                                    <li style="margin-bottom: 0.5rem;">📞 Téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
+                                    <li style="margin-bottom: 0.5rem;">📞 Téléphone : <a href="tel:0651082126">06 51 08 21 26</a></li>
+                                    <li style="margin-bottom: 0.5rem;">📧 Email : <a href="mailto:emmyvasse.pro@gmail.com">emmyvasse.pro@gmail.com</a></li>
                                     <li style="margin-bottom: 0.5rem;">📱 Réseaux sociaux : 
-                                        <a href="#" style="margin-right: 0.5rem;">Instagram</a>
-                                        <a href="#">Facebook</a>
+                                        <a href="https://www.instagram.com/emmyvasse.therapieanimale?igsh=MWNsZTMxYzBnaXVqeA==" target="_blank" style="margin-right: 0.5rem;">Instagram</a>
+                                        <a href="https://www.facebook.com/people/Th%C3%A9rapeute-Manuelle-Animalier-Emmy-Vasse/61555277590644/" target="_blank">Facebook</a>
                                     </li>
                                 </ul>
                                 <p>Ou utilisez le <a href="#contact" @click="scrollToContact">formulaire de contact</a> ci-dessous.</p>
@@ -297,10 +298,11 @@
                                     <h3 style="color: var(--primary-color); margin-bottom: 1rem;">Nouvel animal</h3>
                                     <p style="margin-bottom: 1rem;">Pour un nouvel animal, merci de me contacter directement via :</p>
                                     <ul style="list-style: none; margin-bottom: 1rem;">
-                                        <li style="margin-bottom: 0.5rem;">📞 Téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
+                                        <li style="margin-bottom: 0.5rem;">📞 Téléphone : <a href="tel:0651082126">06 51 08 21 26</a></li>
+                                        <li style="margin-bottom: 0.5rem;">📧 Email : <a href="mailto:emmyvasse.pro@gmail.com">emmyvasse.pro@gmail.com</a></li>
                                         <li style="margin-bottom: 0.5rem;">📱 Réseaux sociaux : 
-                                            <a href="#" style="margin-right: 0.5rem;">Instagram</a>
-                                            <a href="#">Facebook</a>
+                                            <a href="https://www.instagram.com/emmyvasse.therapieanimale?igsh=MWNsZTMxYzBnaXVqeA==" target="_blank" style="margin-right: 0.5rem;">Instagram</a>
+                                            <a href="https://www.facebook.com/people/Th%C3%A9rapeute-Manuelle-Animalier-Emmy-Vasse/61555277590644/" target="_blank">Facebook</a>
                                         </li>
                                     </ul>
                                     <p>Ou utilisez le <a href="#contact" @click="scrollToContact">formulaire de contact</a> ci-dessous.</p>
@@ -356,7 +358,8 @@
                                 <div class="info-message" style="margin-top: 1rem; color: var(--text-color); font-style: italic; background: var(--light-bg); padding: 1rem; border-radius: 8px;">
                                     D'autres créneaux peuvent être disponibles. N'hésitez pas à me contacter directement :
                                     <ul style="list-style: none; margin-top: 0.5rem;">
-                                        <li style="margin-bottom: 0.3rem;">📞 Par téléphone : <a href="tel:0612345678">06 12 34 56 78</a></li>
+                                        <li style="margin-bottom: 0.3rem;">📞 Par téléphone : <a href="tel:0651082126">06 51 08 21 26</a></li>
+                                        <li style="margin-bottom: 0.3rem;">📧 Par email : <a href="mailto:emmyvasse.pro@gmail.com">emmyvasse.pro@gmail.com</a></li>
                                         <li>💬 Par message : <a href="#contact" @click="scrollToContact">formulaire de contact</a></li>
                                     </ul>
                                 </div>
@@ -2538,9 +2541,24 @@
                     }
                 },
                 scrollToContact() {
-                    const contactSection = document.getElementById('contact');
-                    if (contactSection) {
-                        contactSection.scrollIntoView({ behavior: 'smooth' });
+                    // S'assurer qu'on est sur la page d'accueil
+                    if (this.currentPage !== 'home') {
+                        this.currentPage = 'home';
+                        // Attendre que la page soit chargée avant de faire le scroll
+                        this.$nextTick(() => {
+                            setTimeout(() => {
+                                window.scrollTo({
+                                    top: document.body.scrollHeight,
+                                    behavior: 'smooth'
+                                });
+                            }, 200);
+                        });
+                    } else {
+                        // Si on est déjà sur la page d'accueil, faire le scroll directement
+                        window.scrollTo({
+                            top: document.body.scrollHeight,
+                            behavior: 'smooth'
+                        });
                     }
                 },
                 navigateTo(page) {
