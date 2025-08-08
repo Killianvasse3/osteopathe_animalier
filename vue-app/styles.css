@@ -4240,6 +4240,12 @@ select#animalOwner option {
     color: #666;
 }
 
+.client-phone {
+    font-size: 0.8rem;
+    color: #888;
+    font-style: italic;
+}
+
 .selected-owner {
     margin-top: 0.5rem;
     padding: 0.5rem;

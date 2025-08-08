@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=12.1">
+    <link rel="stylesheet" href="styles.css?v=12.5">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -533,6 +533,7 @@
                                                     :class="{ selected: newAnimal.userId === client.id }">
                                                     <strong>{{ client.firstName }} {{ client.lastName }}</strong>
                                                     <span class="client-email">{{ client.email }}</span>
+                                                    <span class="client-phone">{{ client.phone || 'N/A' }}</span>
                                                 </div>
                                             </div>
                                             <div v-if="newAnimal.userId" class="selected-owner">
@@ -571,8 +572,8 @@
                                                 </button>
                                             </div>
                                             <div v-if="newAnimal.birthdateType === 'exact'" class="birthdate-exact">
-                                                <input type="date" id="newAnimalBirthdate" v-model="newAnimal.birthdate" required>
-                                            </div>
+                                        <input type="date" id="newAnimalBirthdate" v-model="newAnimal.birthdate" required>
+                                    </div>
                                             <div v-else-if="newAnimal.birthdateType === 'approximate'" class="birthdate-approximate">
                                                 <input type="text" id="newAnimalBirthdateApprox" v-model="newAnimal.birthdateApprox" 
                                                        placeholder="Ex: 2018, 2 ans, début 2020, etc.">
@@ -992,6 +993,7 @@
                                     <th>Nom</th>
                                     <th>Prénom</th>
                                     <th>Email</th>
+                                    <th>Téléphone</th>
                                     <th>Date d'inscription</th>
                                     <th>Nombre d'animaux</th>
                                     <th>Actions</th>
@@ -1002,6 +1004,7 @@
                                     <td>{{ client.lastName || 'N/A' }}</td>
                                     <td>{{ client.firstName || 'N/A' }}</td>
                                     <td>{{ client.email }}</td>
+                                    <td>{{ client.phone || 'N/A' }}</td>
                                     <td>{{ formatDate(client.createdAt) }}</td>
                                     <td>{{ client.animalsCount }}</td>
                                     <td>
@@ -1019,7 +1022,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="filteredClients.length === 0">
-                                    <td colspan="6" class="text-center">Aucun client trouvé</td>
+                                    <td colspan="7" class="text-center">Aucun client trouvé</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1191,6 +1194,7 @@
                 <template v-if="!isLogin">
                     <input type="text" v-model="firstName" placeholder="Prénom" required>
                     <input type="text" v-model="lastName" placeholder="Nom" required>
+                    <input type="tel" v-model="phone" placeholder="Téléphone (ex: 0612345678)" pattern="[0-9]{10}" required>
                     <textarea v-model="address" placeholder="Adresse complète" rows="3" required style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
                 </template>
                 <input type="email" v-model="email" placeholder="Email">
@@ -1311,6 +1315,11 @@
                     <div class="edit-form-group">
                         <label for="editClientEmail">Email</label>
                         <input type="email" id="editClientEmail" v-model="editingClient.email" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientPhone">Téléphone</label>
+                        <input type="tel" id="editClientPhone" v-model="editingClient.phone" pattern="[0-9]{10}" placeholder="0612345678" required>
+                        <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
                     </div>
                     <div class="edit-form-group">
                         <label for="editClientAddress">Adresse</label>
@@ -1451,6 +1460,7 @@
                     password: '',
                     firstName: '',
                     lastName: '',
+                    phone: '',
                     address: '',
                     error: '',
                     isAuthenticated: false,
@@ -1545,6 +1555,7 @@
                     messages: [],
                     unreadMessagesCount: 0,
                     unsubscribeMessages: null,
+                    unsubscribeClients: null,
                     allClients: [], // Ajouter allClients dans data
                     clientsData: [], // Nouvelle propriété pour stocker les données brutes des clients
                     // Propriétés pour les sélecteurs avec recherche
@@ -1735,7 +1746,8 @@
                     return this.allClients.filter(client => 
                         (client.lastName || '').toLowerCase().includes(search) ||
                         (client.firstName || '').toLowerCase().includes(search) ||
-                        client.email.toLowerCase().includes(search)
+                        client.email.toLowerCase().includes(search) ||
+                        (client.phone || '').toLowerCase().includes(search)
                     );
                 },
                 filteredOwnerClients() {
@@ -1744,7 +1756,8 @@
                     return this.allClients.filter(client => 
                         (client.lastName || '').toLowerCase().includes(search) ||
                         (client.firstName || '').toLowerCase().includes(search) ||
-                        client.email.toLowerCase().includes(search)
+                        client.email.toLowerCase().includes(search) ||
+                        (client.phone || '').toLowerCase().includes(search)
                     );
                 },
                 getClientAnimalsCount() {
@@ -1970,6 +1983,11 @@
                         const client = this.allClients.find(c => c.id === animal.userId);
                         return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
                     },
+                    getSelectedOwnerNameForEdit(animal) {
+                        if (!animal.userId) return '';
+                        const client = this.allClients.find(c => c.id === animal.userId);
+                        return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
+                    },
                 toggleMenu() {
                     this.isMenuOpen = !this.isMenuOpen;
                 },
@@ -2010,6 +2028,10 @@
                             this.error = 'Le nom et le prénom sont requis';
                             return;
                         }
+                        if (!this.phone) {
+                            this.error = 'Le numéro de téléphone est requis';
+                            return;
+                        }
                         if (!this.address) {
                             this.error = 'L\'adresse est requise';
                             return;
@@ -2024,6 +2046,7 @@
                             email: userCredential.user.email,
                             firstName: this.firstName,
                             lastName: this.lastName,
+                            phone: this.phone,
                             address: this.address,
                             role: adminIds.includes(userCredential.user.uid) ? 'admin' : 'user',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -2037,6 +2060,7 @@
                         // Réinitialiser les champs
                         this.firstName = '';
                         this.lastName = '';
+                        this.phone = '';
                         this.address = '';
                         this.email = '';
                         this.password = '';
@@ -2080,6 +2104,10 @@
                         if (this.unsubscribeAnimals) {
                             this.unsubscribeAnimals();
                             this.unsubscribeAnimals = null;
+                        }
+                        if (this.unsubscribeClients) {
+                            this.unsubscribeClients();
+                            this.unsubscribeClients = null;
                         }
                         
                         // Réinitialiser les données
@@ -3085,9 +3113,11 @@
                                                     <div class="select-option ${animal.userId === client.id ? 'selected' : ''}" 
                                                          data-value="${client.id}" 
                                                          data-name="${client.firstName} ${client.lastName}"
-                                                         data-email="${client.email}">
+                                                         data-email="${client.email}"
+                                                         data-phone="${client.phone || 'N/A'}">
                                                         <strong>${client.firstName} ${client.lastName}</strong>
                                                         <span class="client-email">${client.email}</span>
+                                                        <span class="client-phone">${client.phone || 'N/A'}</span>
                                                     </div>
                                                 `).join('')}
                                             </div>
@@ -3116,7 +3146,7 @@
                                     </div>
                                     
                                     <div class="form-group">
-                                        <label>Date de naissance :</label>
+                                    <label>Date de naissance :</label>
                                         <div class="birthdate-input-container">
                                             <div class="radio-buttons">
                                                 <button type="button" class="radio-btn ${animal.birthdateType === 'approximate' ? '' : 'selected'}" data-value="exact">
@@ -3863,10 +3893,34 @@
                                 firstName: doc.data().firstName || '',
                                 lastName: doc.data().lastName || '',
                                 email: doc.data().email,
+                                phone: doc.data().phone || '',
                                 address: doc.data().address || '',
                                 createdAt: doc.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
                                 animalsCount: this.allAnimals.filter(animal => animal.userId === doc.id).length
                             }));
+
+                        // Mettre en place l'écoute en temps réel pour les clients
+                        if (this.unsubscribeClients) {
+                            this.unsubscribeClients();
+                        }
+
+                        this.unsubscribeClients = db.collection('users')
+                            .where('role', '!=', 'admin')
+                            .onSnapshot(snapshot => {
+                                this.allClients = snapshot.docs.map(doc => ({
+                                    id: doc.id,
+                                    firstName: doc.data().firstName || '',
+                                    lastName: doc.data().lastName || '',
+                                    email: doc.data().email,
+                                    phone: doc.data().phone || '',
+                                    address: doc.data().address || '',
+                                    createdAt: doc.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
+                                    animalsCount: this.allAnimals.filter(animal => animal.userId === doc.id).length
+                                }));
+                                console.log('Liste des clients mise à jour en temps réel');
+                            }, error => {
+                                console.error('Erreur dans l\'écoute des clients:', error);
+                            });
 
                         await this.loadMessages();
                     } catch (error) {
@@ -4637,7 +4691,8 @@
                 async editClient(client) {
                     this.editingClient = { 
                         ...client,
-                        address: client.address || '' // S'assurer que l'adresse est définie
+                        address: client.address || '', // S'assurer que l'adresse est définie
+                        phone: client.phone || '' // S'assurer que le téléphone est défini
                     };
                     this.showEditClientModal = true;
                 },
@@ -4647,9 +4702,11 @@
                             firstName: this.editingClient.firstName,
                             lastName: this.editingClient.lastName,
                             email: this.editingClient.email,
+                            phone: this.editingClient.phone,
                             address: this.editingClient.address,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
+                        
                         this.showEditClientModal = false;
                         alert('Client modifié avec succès');
                     } catch (error) {
