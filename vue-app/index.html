@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=12.9">
+    <link rel="stylesheet" href="styles.css?v=13.0">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -67,7 +67,7 @@
                         <a href="#" @click.prevent="navigateTo('appointment'); closeMenu()">Prendre RDV</a>
                         <a href="#" @click.prevent="navigateTo('dossier'); closeMenu()">Dossier Animaux</a>
                             <a href="#" @click.prevent="navigateTo('profile'); closeMenu()">Mon Profil</a>
-                        <a href="#" @click="navigateTo('admin')" v-if="isAdmin">Administration</a>
+                        <a href="#" @click.prevent="navigateTo('admin')" v-if="isAdmin">Administration</a>
                         </div>
                         <div class="nav-separator"></div>
                         <div class="nav-section">
@@ -723,8 +723,21 @@
                                     </div>
                                     <div class="form-group">
                                         <label for="newAnimalDocuments">Documents</label>
-                                        <input type="file" id="newAnimalDocuments" @change="handleDocumentUpload">
-                                        <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : PDF, JPG, PNG (max 10MB)</small>
+                                        <input type="file" id="newAnimalDocuments" @change="handleDocumentUpload" accept="image/*" multiple>
+                                        <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : JPG, PNG (max 10MB)</small>
+                                        
+                                        <!-- Preview des documents -->
+                                        <div v-if="newAnimal.documents && newAnimal.documents.length > 0" class="documents-preview" style="margin-top: 1rem;">
+                                            <h4 style="margin-bottom: 0.5rem; color: var(--primary-color);">Documents sélectionnés :</h4>
+                                            <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
+                                                <div v-for="(doc, index) in newAnimal.documents" :key="doc.id" class="document-card" style="background: white; padding: 0.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative;">
+                                                    <img :src="doc.data" :alt="doc.name" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                                                    <p style="font-size: 0.8rem; color: var(--text-color); margin: 0; word-break: break-word;">{{ doc.name }}</p>
+                                                    <p style="font-size: 0.7rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">{{ formatDate(doc.date) }}</p>
+                                                    <button type="button" @click="removeDocument(index)" class="btn-remove-photo" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="modal-actions">
                                         <button type="button" class="btn secondary" @click="showAddAnimalModal = false">Annuler</button>
@@ -2781,13 +2794,16 @@
                 },
                 navigateTo(page) {
                     this.closeMenu();
-                    this.currentPage = page;
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
-                    if (page === 'admin' && this.isAdmin) {
-                        this.loadAllData();
-                    } else if (page === 'profile' && this.isAuthenticated) {
-                        this.loadProfileData();
-                    }
+                    // Forcer la mise à jour de l'état
+                    this.$nextTick(() => {
+                        this.currentPage = page;
+                        window.scrollTo({ top: 0, behavior: 'smooth' });
+                        if (page === 'admin' && this.isAdmin) {
+                            this.loadAllData();
+                        } else if (page === 'profile' && this.isAuthenticated) {
+                            this.loadProfileData();
+                        }
+                    });
                 },
                 async loadAnimals() {
                     try {
@@ -4600,19 +4616,26 @@
                     }
                 },
                 async handleDocumentUpload(event) {
-                    const file = event.target.files[0];
-                    if (file) {
+                    const files = Array.from(event.target.files);
+                    if (files.length === 0) return;
+
+                    if (files.length > 10) {
+                        alert('Vous ne pouvez pas sélectionner plus de 10 documents à la fois.');
+                        event.target.value = '';
+                        return;
+                    }
+
+                    for (const file of files) {
                         try {
                             console.log('Début du traitement du document:', file.name);
 
-                        if (!file.type.startsWith('image/')) {
-                            alert('Le fichier doit être une image');
-                            event.target.value = '';
-                            return;
-                        }
+                            if (!file.type.startsWith('image/')) {
+                                alert(`Le fichier ${file.name} doit être une image`);
+                                continue;
+                            }
 
-                        const reader = new FileReader();
-                        reader.onload = (e) => {
+                            const reader = new FileReader();
+                            reader.onload = (e) => {
                                 const img = new Image();
                                 img.onload = async () => {
                                     console.log('Image chargée, début du redimensionnement');
@@ -4644,7 +4667,7 @@
                                     console.log('Image redimensionnée, taille:', resizedBase64.length);
                                     
                                     const newDocument = {
-                                        id: Date.now().toString(),
+                                        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
                                         name: file.name,
                                         date: new Date().toISOString(),
                                         data: resizedBase64
@@ -4664,13 +4687,21 @@
                                     this.$forceUpdate();
                                 };
                                 img.src = e.target.result;
-                        };
-                        reader.readAsDataURL(file);
+                            };
+                            reader.readAsDataURL(file);
                         } catch (error) {
                             console.error('Erreur détaillée lors du traitement du document:', error);
-                            alert('Erreur lors du traitement du document. Veuillez réessayer.');
-                            event.target.value = '';
+                            alert(`Erreur lors du traitement du document ${file.name}. Veuillez réessayer.`);
                         }
+                    }
+                    
+                    // Réinitialiser l'input pour permettre de sélectionner les mêmes fichiers
+                    event.target.value = '';
+                },
+                removeDocument(index) {
+                    if (this.newAnimal.documents && this.newAnimal.documents.length > index) {
+                        this.newAnimal.documents.splice(index, 1);
+                        this.$forceUpdate();
                     }
                 },
                 // Ajout d'une méthode pour gérer les annotations sur le plan du corps
