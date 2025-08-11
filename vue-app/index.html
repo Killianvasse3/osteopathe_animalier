@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=13.3">
+    <link rel="stylesheet" href="styles.css?v=13.5">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -277,7 +277,7 @@
                                         <a href="https://www.facebook.com/people/Th%C3%A9rapeute-Manuelle-Animalier-Emmy-Vasse/61555277590644/" target="_blank">Facebook</a>
                                     </li>
                                 </ul>
-                                <p>Ou utilisez le <a href="#contact" @click="scrollToContact">formulaire de contact</a> ci-dessous.</p>
+                                <p>Ou utilisez le <a href="#" @click.prevent="scrollToContact">formulaire de contact</a> ci-dessous.</p>
                             </div>
 
                             <!-- Formulaire pour consultation de suivi -->
@@ -305,7 +305,7 @@
                                             <a href="https://www.facebook.com/people/Th%C3%A9rapeute-Manuelle-Animalier-Emmy-Vasse/61555277590644/" target="_blank">Facebook</a>
                                         </li>
                                     </ul>
-                                    <p>Ou utilisez le <a href="#contact" @click="scrollToContact">formulaire de contact</a> ci-dessous.</p>
+                                    <p>Ou utilisez le <a href="#" @click.prevent="scrollToContact">formulaire de contact</a> ci-dessous.</p>
                             </div>
 
                                 <!-- Formulaire de rendez-vous pour un animal existant -->
@@ -360,7 +360,7 @@
                                     <ul style="list-style: none; margin-top: 0.5rem;">
                                         <li style="margin-bottom: 0.3rem;">📞 Par téléphone : <a href="tel:0651082126">06 51 08 21 26</a></li>
                                         <li style="margin-bottom: 0.3rem;">📧 Par email : <a href="mailto:emmyvasse.pro@gmail.com">emmyvasse.pro@gmail.com</a></li>
-                                        <li>💬 Par message : <a href="#contact" @click="scrollToContact">formulaire de contact</a></li>
+                                        <li>💬 Par message : <a href="#" @click.prevent="scrollToContact">formulaire de contact</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -2770,28 +2770,17 @@
                     }
                 },
                 scrollToContact() {
-                    // S'assurer qu'on est sur la page d'accueil
-                    if (this.currentPage !== 'home') {
-                        this.currentPage = 'home';
-                        // Attendre que la page soit chargée avant de faire le scroll
-                        this.$nextTick(() => {
-                            setTimeout(() => {
-                                window.scrollTo({
-                                    top: document.body.scrollHeight,
-                                    behavior: 'smooth'
-                                });
-                            }, 200);
-                        });
-                    } else {
-                        // Si on est déjà sur la page d'accueil, faire le scroll directement
-                        window.scrollTo({
-                            top: document.body.scrollHeight,
-                            behavior: 'smooth'
-                        });
-                    }
+                    // Utiliser navigateToSection pour une navigation cohérente
+                    this.navigateToSection('contact');
                 },
                 navigateTo(page) {
                     this.closeMenu();
+                    // Mettre à jour l'URL selon la page
+                    if (page === 'home') {
+                        window.location.hash = '';
+                    } else {
+                        window.location.hash = page;
+                    }
                     // Forcer la mise à jour de l'état
                     this.$nextTick(() => {
                         this.currentPage = page;
@@ -5580,6 +5569,8 @@
                     // Si on n'est pas sur la page d'accueil, d'abord y aller
                     if (this.currentPage !== 'home') {
                         this.currentPage = 'home';
+                        // Mettre à jour l'URL pour refléter la navigation vers la section
+                        window.location.hash = sectionId;
                         // Attendre que la page soit chargée avant de faire le scroll
                         this.$nextTick(() => {
                             setTimeout(() => {
@@ -5588,6 +5579,7 @@
                         });
                     } else {
                         // Si on est déjà sur la page d'accueil, faire le scroll directement
+                        window.location.hash = sectionId;
                         this.smoothScrollTo(sectionId);
                     }
                 },
