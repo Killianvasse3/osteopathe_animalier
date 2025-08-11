@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=13.9">
+    <link rel="stylesheet" href="styles.css?v=14.3">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -54,8 +54,8 @@
                     
                     <!-- Navigation principale -->
                     <div class="nav-section">
-                    <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
                     <a href="#" @click.prevent="navigateToSection('about'); closeMenu()">À propos</a>
+                    <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
                     <a href="#" @click.prevent="navigateToSection('blog'); closeMenu()">Blog</a>
                     <a href="#" @click.prevent="navigateToSection('contact'); closeMenu()">Contact</a>
                     </div>
@@ -149,6 +149,82 @@
                     </div>
                 </section>
 
+                <section id="about" class="section">
+                    <h2 class="section-title">À Propos de moi</h2>
+                    <div class="about">
+                        <div>
+                            <h3>Je suis Emmy VASSE,</h3>
+                            <p><strong>Thérapeute manuelle animalier</strong>, spécialisée dans une approche globale du bien-être animal.</p>
+
+                            <p>Formée pendant cinq ans en <strong>ostéopathie animale</strong> au CNESOA, j'ai acquis de nombreuses techniques de soin (structurelles, crâniennes, tissulaires…). Mon parcours m'a permis de travailler avec une grande diversité d'animaux : chiens, chats, chevaux, ruminants, NAC...</p>
+
+                            <p>Je me suis ensuite formée en <strong>éducation canine (MEC1)</strong>, en <strong>naturopathie animalière</strong> (nutrition, homéopathie, fleurs de Bach, etc.) et en <strong>magnétisme</strong>, afin d'intégrer une dimension <strong>énergétique et émotionnelle</strong> à ma pratique.</p>
+
+                            <p>Aujourd'hui, j'interviens à domicile dans l'<strong>Ain</strong> et le <strong>Jura</strong>, ainsi qu'au <strong>club canin Jura Sud (ACJS)</strong> à Jeurre, où je propose également des cours d'éducation.</p>
+                        </div>
+                        <img src="\images\Emmy_pratique.jpg" alt="Emmy pratique sur un chien" class="about-image">
+                    </div>
+                </section>
+
+                <!-- Section informative sur la thérapie manuelle animale -->
+                <section class="therapy-info-section">
+                    <div class="therapy-info-container">
+                        <h3 class="therapy-info-subtitle">Qu'est-ce que la thérapie manuelle animale ?</h3>
+                        <h2 class="therapy-info-title">SON BUT EST DE RÉÉQUILIBRER LE CORPS DE L'ANIMAL</h2>
+                        
+                        <div class="therapy-pillars">
+                            <div class="therapy-pillar">
+                                <div class="pillar-icon">
+                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                        <circle cx="30" cy="30" r="25" stroke="var(--primary-color)" stroke-width="2" fill="none"/>
+                                        <path d="M20 30 L28 38 L40 22" stroke="var(--primary-color)" stroke-width="3" fill="none"/>
+                                    </svg>
+                                </div>
+                                <h3 class="pillar-title">approche<br>naturelle</h3>
+                            </div>
+                            
+                            <div class="therapy-pillar">
+                                <div class="pillar-icon">
+                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                        <circle cx="30" cy="30" r="25" stroke="var(--primary-color)" stroke-width="2" fill="none"/>
+                                        <path d="M20 25 L40 25 M20 30 L40 30 M20 35 L40 35" stroke="var(--primary-color)" stroke-width="2" fill="none"/>
+                                    </svg>
+                                </div>
+                                <h3 class="pillar-title">BIEN-ÊTRE<br>PHYSIQUE</h3>
+                            </div>
+                            
+                            <div class="therapy-pillar">
+                                <div class="pillar-icon">
+                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                        <circle cx="30" cy="30" r="25" stroke="var(--primary-color)" stroke-width="2" fill="none"/>
+                                        <path d="M25 25 Q30 20 35 25 Q30 30 25 35 Q30 40 35 35" stroke="var(--primary-color)" stroke-width="2" fill="none"/>
+                                    </svg>
+                                </div>
+                                <h3 class="pillar-title">BIEN-ÊTRE<br>ÉMOTIONNEL</h3>
+                            </div>
+                            
+                            <div class="therapy-pillar">
+                                <div class="pillar-icon">
+                                    <svg width="60" height="60" viewBox="0 0 60 60" fill="none">
+                                        <circle cx="30" cy="30" r="25" stroke="var(--primary-color)" stroke-width="2" fill="none"/>
+                                        <path d="M20 25 L40 25 M20 30 L40 30 M20 35 L40 35" stroke="var(--primary-color)" stroke-width="2" fill="none"/>
+                                        <circle cx="30" cy="30" r="3" fill="var(--primary-color)"/>
+                                    </svg>
+                                </div>
+                                <h3 class="pillar-title">COMPLÉMENTAIRE<br>de la médecine vétérinaire</h3>
+                            </div>
+                        </div>
+                        
+                        <div class="therapy-description">
+                            <p>La thérapie manuelle animale est une approche naturelle visant à restaurer l'équilibre physique et émotionnel de votre animal. En tant que <strong>thérapeute manuelle animalier</strong>, j'utilise des techniques manuelles précises et non invasives, agissant sur le système musculo-squelettique, viscéral et crânien pour soulager les douleurs et améliorer la mobilité de votre animal. <span class="highlight">Cette méthode est complémentaire à la médecine vétérinaire traditionnelle. Elle offre des avantages pour diverses indications telles que les problèmes articulaires, les douleurs musculaires, les troubles de la locomotion, et bien plus encore.</span></p>
+                            
+                            <p class="therapy-focus">Offrez à votre compagnon le bien-être qu'il mérite grâce à une approche attentive et individualisée.</p>
+                            
+                            <p class="therapy-personalized"><span class="highlight">J'élabore un <span class="underline">plan de traitement personnalisé</span> pour chaque animal, adapté à ses besoins spécifiques et à sa personnalité unique.</span></p>
+                        </div>
+                    </div>
+                </section>
+
                 <section id="services" class="section services">
                     <h2 class="section-title">Mes Outils Thérapeutiques</h2>
                     <div class="services-grid">
@@ -176,23 +252,6 @@
                             <h3>Nutrition</h3>
                             <p>Analyse et personnalisation des rations proposées à l'animal en fonction de ses besoins et spécificité.</p>
                         </div>
-                    </div>
-                </section>
-
-                <section id="about" class="section">
-                    <h2 class="section-title">À Propos de moi</h2>
-                    <div class="about">
-                        <div>
-                            <h3>Je suis Emmy VASSE,</h3>
-                            <p><strong>Thérapeute manuelle animalier</strong>, spécialisée dans une approche globale du bien-être animal.</p>
-
-                            <p>Formée pendant cinq ans en <strong>ostéopathie animale</strong> au CNESOA, j'ai acquis de nombreuses techniques de soin (structurelles, crâniennes, tissulaires…). Mon parcours m'a permis de travailler avec une grande diversité d'animaux : chiens, chats, chevaux, ruminants, NAC...</p>
-
-                            <p>Je me suis ensuite formée en <strong>éducation canine (MEC1)</strong>, en <strong>naturopathie animalière</strong> (nutrition, homéopathie, fleurs de Bach, etc.) et en <strong>magnétisme</strong>, afin d'intégrer une dimension <strong>énergétique et émotionnelle</strong> à ma pratique.</p>
-
-                            <p>Aujourd'hui, j'interviens à domicile dans l'<strong>Ain</strong> et le <strong>Jura</strong>, ainsi qu'au <strong>club canin Jura Sud (ACJS)</strong> à Jeurre, où je propose également des cours d'éducation.</p>
-                        </div>
-                        <img src="\images\Emmy_pratique.jpg" alt="Emmy pratique sur un chien" class="about-image">
                     </div>
                 </section>
 
