@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=13.1">
+    <link rel="stylesheet" href="styles.css?v=13.2">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -408,7 +408,7 @@
                                         <span>Pas de photo</span>
                                     </div>
                                     <h3>{{ animal.name }}</h3>
-                                    <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
+                                    <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate, animal.birthdateType, animal.birthdateApprox) }}</p>
                                 </div>
                                 <div class="animal-actions">
                                     <button v-if="animal.documents && animal.documents.length > 0" 
@@ -561,7 +561,7 @@
                                     <td>{{ animal.name }}</td>
                                     <td>{{ animal.species }}</td>
                                     <td>{{ getUserFullName(animal.userId) }}</td>
-                                    <td>{{ formatDate(animal.birthdate) }}</td>
+                                    <td>{{ formatDate(animal.birthdate, animal.birthdateType, animal.birthdateApprox) }}</td>
                                     <td>
                                         <div class="action-buttons">
                                             <button class="btn-view" @click="viewAnimalDetails(animal)">
@@ -1440,27 +1440,25 @@
             <div class="modal-content" style="max-width: 900px;">
                 <h2>Dossiers des animaux de {{ selectedClient ? (selectedClient.firstName + ' ' + selectedClient.lastName) : '' }}</h2>
                 
-                <div class="animals-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.5rem; margin-top: 1.5rem;">
-                    <div v-for="animal in clientAnimals" :key="animal.id" class="animal-card">
+                <div class="animals-list" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1.5rem;">
+                    <div v-for="animal in clientAnimals" :key="animal.id" class="animal-card" style="background: white; padding: 1rem; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1); text-align: center; transition: transform 0.2s ease; cursor: pointer;" @mouseenter="$event.target.style.transform = 'translateY(-2px)'" @mouseleave="$event.target.style.transform = 'translateY(0)'">
                         <div class="animal-info">
-                            <div v-if="animal.photos && animal.photos.length > 0" class="animal-photos-container">
-                                <img :src="animal.photos[0]" :alt="animal.name" class="animal-photo">
-                                <div v-if="animal.photos.length > 1" class="photo-count-badge">
+                            <div v-if="animal.photos && animal.photos.length > 0" class="animal-photos-container" style="position: relative; margin-bottom: 0.8rem;">
+                                <img :src="animal.photos[0]" :alt="animal.name" class="animal-photo" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0;">
+                                <div v-if="animal.photos.length > 1" class="photo-count-badge" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem;">
                                     +{{ animal.photos.length - 1 }}
                                 </div>
                             </div>
-                            <div v-else-if="animal.photoBase64" class="animal-photo-container">
-                                <img :src="animal.photoBase64" :alt="animal.name" class="animal-photo">
+                            <div v-else-if="animal.photoBase64" class="animal-photo-container" style="margin-bottom: 0.8rem;">
+                                <img :src="animal.photoBase64" :alt="animal.name" class="animal-photo" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
                             </div>
-                            <div v-else class="animal-photo placeholder">
-                                <span>Pas de photo</span>
+                            <div v-else class="animal-photo placeholder" style="width: 100%; height: 120px; background: #f0f0f0; border-radius: 8px; display: flex; align-items: center; justify-content: center; margin-bottom: 0.8rem; border: 2px dashed #ccc;">
+                                <span style="color: #666; font-size: 0.8rem;">Pas de photo</span>
                             </div>
-                            <h3>{{ animal.name }}</h3>
-                            <p class="animal-birthdate">Né le: {{ formatDate(animal.birthdate) }}</p>
-                            <p v-if="animal.notes" class="animal-notes">{{ animal.notes }}</p>
+                            <h3 style="margin: 0 0 0.8rem 0; color: var(--primary-color); font-size: 1.1rem; font-family: 'Playfair Display', serif;">{{ animal.name }}</h3>
                         </div>
                         <div class="animal-actions">
-                            <button class="btn" @click="viewAnimalDetails(animal)">Voir le dossier</button>
+                            <button class="btn" @click="viewAnimalDetails(animal)" style="width: 100%; padding: 0.6rem; font-size: 0.9rem;">Voir le dossier</button>
                         </div>
                     </div>
                     <div v-if="clientAnimals.length === 0" class="no-animals" style="grid-column: 1/-1; text-align: center; padding: 2rem;">
