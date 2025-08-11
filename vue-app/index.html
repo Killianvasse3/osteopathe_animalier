@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=13.0">
+    <link rel="stylesheet" href="styles.css?v=13.1">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -3634,7 +3634,7 @@
                             notes: modal.querySelector('#edit-animal-notes').value,
                             travelTime: modal.querySelector('#edit-animal-travel-time').value,
                             photos: currentPhotos,
-                            documents: currentDocuments,
+                            documents: [...currentDocuments, ...tempDocuments], // Sauvegarder les documents originaux + temporaires
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
 
@@ -3651,7 +3651,8 @@
 
                     // Gestion des documents
                     const documentsInput = modal.querySelector('#edit-animal-documents');
-                    let currentDocuments = animal.documents || [];
+                    let currentDocuments = [...(animal.documents || [])]; // Copie pour éviter de modifier l'original
+                    let tempDocuments = []; // Documents temporaires qui ne seront sauvegardés que si on confirme
                     
                     documentsInput.addEventListener('change', async (e) => {
                         const files = Array.from(e.target.files);
@@ -3710,12 +3711,13 @@
                                             data: resizedBase64
                                         };
 
-                                        // Ajouter le document à la liste
-                                        currentDocuments.push(newDocument);
+                                        // Ajouter le document à la liste temporaire
+                                        tempDocuments.push(newDocument);
 
-                                        // Mettre à jour l'affichage
+                                        // Mettre à jour l'affichage avec tous les documents (originaux + temporaires)
+                                        const allDocuments = [...currentDocuments, ...tempDocuments];
                                         const documentsGrid = modal.querySelector('.documents-grid');
-                                        documentsGrid.innerHTML = currentDocuments.map(doc => `
+                                        documentsGrid.innerHTML = allDocuments.map(doc => `
                                             <div class="document-card">
                                                 <img src="${doc.data}" alt="${doc.name}">
                                                 <p>${doc.name}</p>
@@ -3743,13 +3745,19 @@
                     modal.addEventListener('delete-document', async (e) => {
                         const documentId = e.detail;
                         try {
-                            // Filtrer les documents pour retirer celui qu'on veut supprimer
-                            currentDocuments = currentDocuments.filter(doc => doc.id !== documentId);
+                            // Supprimer le document de la liste appropriée
+                            const isTempDocument = tempDocuments.some(doc => doc.id === documentId);
+                            if (isTempDocument) {
+                                tempDocuments = tempDocuments.filter(doc => doc.id !== documentId);
+                            } else {
+                                currentDocuments = currentDocuments.filter(doc => doc.id !== documentId);
+                            }
 
-                            // Mettre à jour l'affichage
+                            // Mettre à jour l'affichage avec tous les documents
+                            const allDocuments = [...currentDocuments, ...tempDocuments];
                             const documentsGrid = modal.querySelector('.documents-grid');
-                            if (currentDocuments.length > 0) {
-                                documentsGrid.innerHTML = currentDocuments.map(doc => `
+                            if (allDocuments.length > 0) {
+                                documentsGrid.innerHTML = allDocuments.map(doc => `
                                     <div class="document-card">
                                         <img src="${doc.data}" alt="${doc.name}">
                                         <p>${doc.name}</p>
