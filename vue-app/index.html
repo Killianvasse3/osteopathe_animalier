@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=12.6">
+    <link rel="stylesheet" href="styles.css?v=12.7">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -2939,6 +2939,7 @@
                                     <div class="detail-item">
                                         <h4>Activité</h4>
                                         <p>${animal.activity || 'Non renseignée'}</p>
+                                        ${animal.activityDetails ? `<p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--secondary-color);"><em>${animal.activityDetails}</em></p>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -4780,7 +4781,7 @@
                     }
                 },
                 async deleteClient(client) {
-                    if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ? Cette action supprimera également tous ses animaux et rendez-vous.`)) return;
+                    if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ? Cette action supprimera également tous ses animaux, rendez-vous ET son compte de connexion.`)) return;
                     try {
                         // Commencer une transaction batch
                         const batch = db.batch();
@@ -4812,8 +4813,18 @@
                         // 4. Supprimer le document utilisateur
                         batch.delete(db.collection('users').doc(client.id));
 
-                        // Exécuter toutes les opérations de suppression
+                        // Exécuter toutes les opérations de suppression Firestore
                         await batch.commit();
+
+                        // 5. Supprimer le compte d'authentification Firebase via Cloud Function
+                        try {
+                            const deleteUserFunction = firebase.functions().httpsCallable('deleteUserAccount');
+                            await deleteUserFunction({ userId: client.id });
+                            console.log('Compte d\'authentification supprimé avec succès');
+                        } catch (authError) {
+                            console.warn('Erreur lors de la suppression du compte d\'authentification:', authError);
+                            // Continuer même si la suppression du compte auth échoue
+                        }
 
                         // Mettre à jour la liste locale des clients
                         this.allClients = this.allClients.filter(c => c.id !== client.id);
