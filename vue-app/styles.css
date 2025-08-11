@@ -4308,3 +4308,92 @@ select#animalOwner option {
         padding: 0.6rem;
     }
 }
+
+/* Page CGU */
+.cgu-page {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.cgu-header {
+    text-align: center;
+    margin-bottom: 3rem;
+    padding-bottom: 2rem;
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.cgu-header h1 {
+    color: var(--primary-color);
+    margin-bottom: 1rem;
+    font-family: 'Playfair Display', serif;
+}
+
+.cgu-header p {
+    color: var(--secondary-color);
+    font-style: italic;
+}
+
+.cgu-content {
+    line-height: 1.6;
+}
+
+.cgu-section {
+    margin-bottom: 2.5rem;
+}
+
+.cgu-section h2 {
+    color: var(--primary-color);
+    font-size: 1.3rem;
+    margin-bottom: 1rem;
+    font-family: 'Playfair Display', serif;
+    border-left: 4px solid var(--primary-color);
+    padding-left: 1rem;
+}
+
+.cgu-section p {
+    margin-bottom: 1rem;
+    color: var(--text-color);
+}
+
+.cgu-section ul {
+    margin-left: 2rem;
+    margin-bottom: 1rem;
+}
+
+.cgu-section li {
+    margin-bottom: 0.5rem;
+    color: var(--text-color);
+}
+
+/* Footer link */
+.footer-link {
+    color: white;
+    text-decoration: none;
+    transition: color 0.3s ease;
+}
+
+.footer-link:hover {
+    color: #e0e0e0;
+    text-decoration: underline;
+}
+
+/* Responsive pour CGU */
+@media (max-width: 768px) {
+    .cgu-page {
+        padding: 1rem;
+    }
+    
+    .cgu-header {
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+    }
+    
+    .cgu-section {
+        margin-bottom: 2rem;
+    }
+    
+    .cgu-section h2 {
+        font-size: 1.2rem;
+    }
+}

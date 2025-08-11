@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=12.7">
+    <link rel="stylesheet" href="styles.css?v=12.9">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -418,6 +418,77 @@
                             </button>
                         </div>
                     </div>
+                        </div>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Page CGU -->
+            <template v-if="currentPage === 'cgu'">
+                <section class="cgu-page">
+                    <div class="cgu-header">
+                        <h1 class="section-title">Conditions Générales d'Utilisation</h1>
+                        <p>Dernière mise à jour : {{ new Date().toLocaleDateString('fr-FR') }}</p>
+                    </div>
+                    
+                    <div class="cgu-content">
+                        <div class="cgu-section">
+                            <h2>1. Présentation du service</h2>
+                            <p>Ce site web est dédié à la gestion des dossiers animaux et des rendez-vous pour les services de thérapie manuelle animale d'Emmy Vasse. Il permet aux propriétaires d'animaux de consulter les dossiers de leurs animaux et de prendre rendez-vous avec la thérapeute manuelle.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>2. Acceptation des conditions</h2>
+                            <p>L'utilisation de ce site implique l'acceptation pleine et entière des présentes conditions générales d'utilisation. Si vous n'acceptez pas ces conditions, veuillez ne pas utiliser ce service.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>3. Inscription et compte utilisateur</h2>
+                            <p>Pour accéder aux fonctionnalités du site, vous devez créer un compte en fournissant des informations exactes et à jour. Vous êtes responsable de la confidentialité de vos identifiants de connexion.</p>
+                            <p>Emmy Vasse se réserve le droit de refuser l'inscription ou de suspendre un compte en cas de non-respect des présentes conditions.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>4. Utilisation du service</h2>
+                            <p>Vous vous engagez à :</p>
+                            <ul>
+                                <li>Utiliser le service de manière conforme à sa destination</li>
+                                <li>Ne pas tenter d'accéder à des données d'autres utilisateurs</li>
+                                <li>Ne pas perturber le fonctionnement du site</li>
+                                <li>Fournir des informations exactes concernant vos animaux</li>
+                            </ul>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>5. Protection des données personnelles</h2>
+                            <p>Conformément au Règlement Général sur la Protection des Données (RGPD), vos données personnelles sont collectées et traitées uniquement dans le cadre de la gestion des dossiers animaux et des rendez-vous.</p>
+                            <p>Vous disposez d'un droit d'accès, de rectification, de suppression et d'opposition aux données vous concernant. Pour exercer ces droits, contactez Emmy Vasse.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>6. Responsabilité</h2>
+                            <p>Emmy Vasse s'efforce de maintenir le site accessible et fonctionnel, mais ne peut garantir une disponibilité continue. Le service peut être temporairement indisponible pour maintenance.</p>
+                            <p>Emmy Vasse ne peut être tenue responsable des dommages indirects résultant de l'utilisation du site.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>7. Propriété intellectuelle</h2>
+                            <p>Le contenu du site (textes, images, logos) est protégé par les droits de propriété intellectuelle. Toute reproduction sans autorisation est interdite.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>8. Modification des conditions</h2>
+                            <p>Emmy Vasse se réserve le droit de modifier ces conditions à tout moment. Les nouvelles conditions seront publiées sur le site et entreront en vigueur dès leur publication.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>9. Droit applicable</h2>
+                            <p>Les présentes conditions sont soumises au droit français. En cas de litige, les tribunaux français seront seuls compétents.</p>
+                        </div>
+
+                        <div class="cgu-section">
+                            <h2>10. Contact</h2>
+                            <p>Pour toute question concernant ces conditions, vous pouvez contacter Emmy Vasse via le formulaire de contact disponible sur le site.</p>
                         </div>
                     </div>
                 </section>
@@ -1160,6 +1231,9 @@
             <div class="footer-content">
                 <div class="footer-section">
                     <p>&copy; 2025 Thérapeute manuelle. Tous droits réservés.</p>
+                </div>
+                <div class="footer-section">
+                    <a href="#" @click.prevent="currentPage = 'cgu'" class="footer-link">Conditions Générales d'Utilisation</a>
                 </div>
             </div>
         </footer>
@@ -3274,12 +3348,12 @@
 
                             <div class="form-group">
                                 <label>Antécédents médicaux :</label>
-                                <textarea id="edit-animal-medical-history" rows="3" placeholder="Maladies, opérations, blessures passées, etc.">${animal.medicalHistory || ''}</textarea>
+                                <textarea id="edit-animal-medical-history" rows="3" placeholder="Maladies, opérations, blessures passées, etc."></textarea>
                             </div>
 
                             <div class="form-group">
                                 <label>Traitement en cours :</label>
-                                <textarea id="edit-animal-treatment" rows="2" placeholder="Médicaments, posologie, durée, etc.">${animal.treatment || ''}</textarea>
+                                <textarea id="edit-animal-treatment" rows="2" placeholder="Médicaments, posologie, durée, etc."></textarea>
                             </div>
 
                             <div class="form-group">
