@@ -284,7 +284,7 @@ body {
 
 /* Services */
 .services {
-    background-color: var(--light-bg);
+    background-color: var(--white);
 }
 
 .services-grid {
@@ -3934,7 +3934,7 @@ select#animalOwner option {
     content: '';
     position: absolute;
     left: -30%;
-    top: 30%;
+    top: 55%;
     transform: translateY(-50%) rotate(40deg);
     width: 70%;
     height: 120%;
@@ -4395,5 +4395,84 @@ select#animalOwner option {
     
     .cgu-section h2 {
         font-size: 1.2rem;
+    }
+}
+
+/* Styles pour le bandeau des zones d'intervention */
+.intervention-zones {
+    background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+    padding: 1.5rem 0;
+    margin: 0;
+    overflow: hidden;
+}
+
+.intervention-zones .section-title {
+    color: white;
+    text-align: center;
+    margin-bottom: 1rem;
+    font-size: 1.8rem;
+    font-weight: 600;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.marquee-container {
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+    height: 40px;
+}
+
+.marquee-content {
+    display: flex;
+    will-change: transform;
+    animation: marquee 120s linear infinite;
+    animation-delay: 250ms;
+}
+
+.marquee-tag {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    padding: 0 1.5rem;
+    margin: 0 0.5rem;
+    font-weight: 500;
+    font-size: 1.1rem;
+    white-space: nowrap;
+    min-width: max-content;
+}
+
+@keyframes marquee {
+    0% {
+        transform: translateX(0);
+    }
+    100% {
+        transform: translateX(-50%);
+    }
+}
+
+@media (max-width: 768px) {
+    .intervention-zones {
+        padding: 1rem 0;
+    }
+    
+    .intervention-zones .section-title {
+        font-size: 1.5rem;
+        margin-bottom: 0.8rem;
+    }
+    
+    .marquee-container {
+        height: 35px;
+    }
+    
+    .marquee-tag {
+        padding: 0 1.2rem;
+        font-size: 1rem;
+        margin: 0 0.3rem;
+    }
+    
+    .marquee-content {
+        animation-duration: 90s;
     }
 }
