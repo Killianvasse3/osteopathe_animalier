@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=13.2">
+    <link rel="stylesheet" href="styles.css?v=13.3">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -148,7 +148,7 @@
                         <div class="blog-header">
                             <h2 class="section-title">Actualités & Événements</h2>
                             <div v-if="isAdmin" class="admin-controls">
-                                <button class="btn" @click="showAddPostModal = true">
+                                <button class="btn" @click="resetBlogForm(); showAddPostModal = true">
                                     Ajouter un article
                                 </button>
                             </div>
@@ -1498,7 +1498,7 @@
                         <textarea id="postContent" v-model="newPost.content" rows="10" required></textarea>
                     </div>
                     <div class="modal-actions">
-                        <button type="button" class="btn secondary" @click="showAddPostModal = false">Annuler</button>
+                        <button type="button" class="btn secondary" @click="resetBlogForm(); showAddPostModal = false">Annuler</button>
                         <button type="submit" class="btn primary">{{ editingPost ? 'Mettre à jour' : 'Publier' }}</button>
                     </div>
                 </form>
@@ -5157,14 +5157,7 @@
                         }
 
                         this.showAddPostModal = false;
-                        this.editingPost = null;
-                        this.newPost = {
-                            title: '',
-                            content: '',
-                            excerpt: '',
-                            imageUrl: '',
-                            date: new Date().toISOString().split('T')[0]
-                        };
+                        this.resetBlogForm();
                     } catch (error) {
                         console.error('Error saving blog post:', error);
                         alert('Erreur lors de l\'enregistrement de l\'article');
@@ -5289,7 +5282,18 @@
 
                     document.body.appendChild(modal);
                 },
+                resetBlogForm() {
+                    this.editingPost = null;
+                    this.newPost = {
+                        title: '',
+                        content: '',
+                        excerpt: '',
+                        imageUrl: '',
+                        date: new Date().toISOString().split('T')[0]
+                    };
+                },
                 async editPost(post) {
+                    this.resetBlogForm(); // Réinitialiser d'abord
                     this.editingPost = post;
                     this.newPost = {
                         title: post.title,
