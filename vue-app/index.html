@@ -162,7 +162,9 @@
 
                             <p>Aujourd'hui, j'interviens à domicile dans l'<strong>Ain</strong> et le <strong>Jura</strong>, ainsi qu'au <strong>club canin Jura Sud (ACJS)</strong> à Jeurre, où je propose également des cours d'éducation.</p>
                         </div>
-                        <div class="carousel-container">
+                        <div class="carousel-container" 
+                             @mouseenter="stopCarouselAutoPlay" 
+                             @mouseleave="startCarouselAutoPlay">
                             <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentCarouselIndex * 12.5}%)` }">
                                 <img src="images/Carroussel1.jpeg" alt="Emmy en pratique" class="carousel-image">
                                 <img src="images/Carroussel2.JPG" alt="Emmy en pratique" class="carousel-image">
@@ -174,19 +176,13 @@
                                 <img src="images/Carroussel8.jpg" alt="Emmy en pratique" class="carousel-image">
                             </div>
                             <div class="carousel-controls">
-                                <button class="carousel-btn prev" @click="prevCarouselImage">
-                                    <span>&lt;</span>
-                                </button>
                                 <div class="carousel-indicators">
                                     <span v-for="(image, index) in 8" :key="index" 
                                           class="indicator" 
                                           :class="{ active: currentCarouselIndex === index }"
-                                          @click="goToCarouselImage(index)">
+                                          @click="goToCarouselImage(index); stopCarouselAutoPlay()">
                                     </span>
                                 </div>
-                                <button class="carousel-btn next" @click="nextCarouselImage">
-                                    <span>&gt;</span>
-                                </button>
                             </div>
                         </div>
                     </div>
@@ -1778,6 +1774,7 @@
                     isLoadingDates: false,
                     unsubscribeSlots: null,
                     currentCarouselIndex: 0,
+                    carouselInterval: null,
                     unsubscribeAppointments: null,
                     unsubscribeAdminSlots: null,
                     unsubscribeAvailableDates: null,
@@ -2198,6 +2195,17 @@
                     goToCarouselImage(index) {
                         this.currentCarouselIndex = index;
                         console.log('Go to image, index:', this.currentCarouselIndex);
+                    },
+                    startCarouselAutoPlay() {
+                        this.carouselInterval = setInterval(() => {
+                            this.nextCarouselImage();
+                        }, 4000); // Change d'image toutes les 4 secondes
+                    },
+                    stopCarouselAutoPlay() {
+                        if (this.carouselInterval) {
+                            clearInterval(this.carouselInterval);
+                            this.carouselInterval = null;
+                        }
                     },
                     toggleSterilizationDetails() {
                         // Cette méthode est appelée par les boutons radio dans le formulaire de création
@@ -5789,6 +5797,9 @@
                 window.addEventListener('hashchange', handleHashChange);
                 handleHashChange();
 
+                // Démarrer le défilement automatique du carrousel
+                this.startCarouselAutoPlay();
+
                 // Écouteur d'authentification Firebase
                 firebase.auth().onAuthStateChanged(async (user) => {
                     if (user) {
@@ -5886,6 +5897,8 @@
                 if (this.unsubscribeAdminAnimals) {
                     this.unsubscribeAdminAnimals();
                 }
+                // Arrêter le défilement automatique du carrousel
+                this.stopCarouselAutoPlay();
             }
         }).mount('#app')
 

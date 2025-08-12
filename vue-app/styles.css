@@ -360,8 +360,7 @@ body {
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    align-items: center;
-    gap: 15px;
+    justify-content: center;
     z-index: 10;
 }
 
@@ -780,13 +779,6 @@ body {
     
     .carousel-controls {
         bottom: 10px;
-        gap: 10px;
-    }
-    
-    .carousel-btn {
-        width: 30px;
-        height: 30px;
-        font-size: 16px;
     }
     
     .indicator {
