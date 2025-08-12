@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=16.6">
+    <link rel="stylesheet" href="styles.css?v=17.0">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -162,7 +162,33 @@
 
                             <p>Aujourd'hui, j'interviens à domicile dans l'<strong>Ain</strong> et le <strong>Jura</strong>, ainsi qu'au <strong>club canin Jura Sud (ACJS)</strong> à Jeurre, où je propose également des cours d'éducation.</p>
                         </div>
-                        <img src="\images\Emmy_pratique.jpg" alt="Emmy pratique sur un chien" class="about-image">
+                        <div class="carousel-container">
+                            <div class="carousel-wrapper" :style="{ transform: `translateX(-${currentCarouselIndex * 12.5}%)` }">
+                                <img src="images/Carroussel1.jpeg" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel2.JPG" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel3.JPG" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel4.JPG" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel5.JPG" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel6.jpg" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel7.jpg" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel8.jpg" alt="Emmy en pratique" class="carousel-image">
+                            </div>
+                            <div class="carousel-controls">
+                                <button class="carousel-btn prev" @click="prevCarouselImage">
+                                    <span>&lt;</span>
+                                </button>
+                                <div class="carousel-indicators">
+                                    <span v-for="(image, index) in 8" :key="index" 
+                                          class="indicator" 
+                                          :class="{ active: currentCarouselIndex === index }"
+                                          @click="goToCarouselImage(index)">
+                                    </span>
+                                </div>
+                                <button class="carousel-btn next" @click="nextCarouselImage">
+                                    <span>&gt;</span>
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -1751,6 +1777,7 @@
                     availableDates: [],
                     isLoadingDates: false,
                     unsubscribeSlots: null,
+                    currentCarouselIndex: 0,
                     unsubscribeAppointments: null,
                     unsubscribeAdminSlots: null,
                     unsubscribeAvailableDates: null,
@@ -2158,6 +2185,19 @@
                         
                         // Retourner la traduction si elle existe, sinon le message original
                         return translations[errorCode] || errorMessage || 'Une erreur inattendue s\'est produite.';
+                    },
+                    // Méthodes pour le carrousel
+                    nextCarouselImage() {
+                        this.currentCarouselIndex = (this.currentCarouselIndex + 1) % 8;
+                        console.log('Next image, index:', this.currentCarouselIndex);
+                    },
+                    prevCarouselImage() {
+                        this.currentCarouselIndex = this.currentCarouselIndex === 0 ? 7 : this.currentCarouselIndex - 1;
+                        console.log('Prev image, index:', this.currentCarouselIndex);
+                    },
+                    goToCarouselImage(index) {
+                        this.currentCarouselIndex = index;
+                        console.log('Go to image, index:', this.currentCarouselIndex);
                     },
                     toggleSterilizationDetails() {
                         // Cette méthode est appelée par les boutons radio dans le formulaire de création
