@@ -17,7 +17,7 @@
 
 html {
     scroll-behavior: smooth;
-    scroll-padding-top: 70px; /* Réduit de 80px à 70px pour descendre plus bas */
+    scroll-padding-top: 80px; /* Compensation pour la barre de navigation fixe */
 }
 
 body {
@@ -30,13 +30,18 @@ body {
 }
 
 .header {
-    background-color: rgba(255, 255, 255, 0.95);
+    background-color: rgba(255, 255, 255, 0.85);
     box-shadow: 0 2px 10px rgba(0,0,0,0.1);
     position: fixed;
     width: 100%;
     top: 0;
     z-index: 10001;
     height: 80px;
+}
+
+.page-container {
+    margin-top: 0;
+    padding-top: 0;
 }
 
 .nav-container {
@@ -188,13 +193,11 @@ body {
 
 .page-container {
     min-height: 100vh;
-    padding-top: 80px;
     margin: 0;
 }
 
 @media (max-width: 768px) {
     .page-container {
-        padding-top: 70px !important;
         margin: 0 !important;
         overflow: hidden !important;
     }
@@ -205,15 +208,17 @@ body {
     background: linear-gradient(rgba(45, 4, 162, 0.7), rgba(155, 177, 255, 0.7)),
                 url('images/Photo_cheval.jpg');
     background-size: cover;
-    background-position: 75% center;
-    min-height: calc(100vh - 80px);
+    background-position: 75% 40%;
+    height: 100vh;
     display: flex;
     align-items: center;
     justify-content: center;
     text-align: center;
     color: white;
     filter: contrast(120%) brightness(105%);
-    margin-top: -1px; /* Correction du décalage */
+    margin-top: 0;
+    position: relative;
+    z-index: 1;
 }
 
 .hero-content {
@@ -670,9 +675,8 @@ body {
     }
 
     .hero {
-        height: calc(100vh - 70px) !important;
-        min-height: calc(100vh - 70px) !important;
-        margin: 0 !important;
+        height: 100vh !important;
+        margin-top: 0 !important;
         padding: 0 !important;
     }
 
@@ -707,6 +711,10 @@ body {
 
     .nav-container {
         height: 70px !important;
+    }
+    
+    html {
+        scroll-padding-top: 70px;
     }
 }
 
@@ -1811,7 +1819,7 @@ body {
 /* Ajustements mobile */
 @media (max-width: 768px) {
     .page-container {
-        padding-top: 70px;
+        /*padding-top: 70px;*/
     }
 
     .hero {
