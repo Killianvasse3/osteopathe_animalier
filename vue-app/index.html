@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=17.0">
+    <link rel="stylesheet" href="styles.css?v=17.2">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -1399,7 +1399,7 @@
         </template>
 
         <!-- Modal d'authentification -->
-        <div v-if="showAuth" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;">
+        <div v-if="showAuth" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
             <div class="auth-form">
                 <h3>{{ isLogin ? 'Connexion' : 'Inscription' }}</h3>
                 <template v-if="!isLogin">
@@ -1419,7 +1419,7 @@
         </div>
 
         <!-- Modal de mot de passe oublié -->
-        <div v-if="showForgotPassword" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center;">
+        <div v-if="showForgotPassword" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
             <div class="auth-form">
                 <h3>Mot de passe oublié</h3>
                 <p style="margin-bottom: 1rem; color: var(--text-color); font-size: 0.9rem;">

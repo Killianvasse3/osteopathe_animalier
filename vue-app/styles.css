@@ -4728,3 +4728,21 @@ select#animalOwner option {
     
 
 }
+
+/* Padding-top pour les pages avec navigation fixe */
+.appointment-page,
+.dossier-page,
+.profile-page,
+.admin-page {
+    padding-top: 80px; /* Compensation pour la barre de navigation fixe */
+}
+
+/* Responsive pour mobile */
+@media (max-width: 768px) {
+    .appointment-page,
+    .dossier-page,
+    .profile-page,
+    .admin-page {
+        padding-top: 70px; /* Compensation pour la barre de navigation fixe sur mobile */
+    }
+}
