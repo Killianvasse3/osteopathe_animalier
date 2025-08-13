@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=17.2">
+    <link rel="stylesheet" href="styles.css?v=18.0">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -199,35 +199,35 @@
                         </div>
                         
                         <div class="animals-grid">
-                            <div class="animal-card">
+                            <div class="animal-card" @click="navigateTo('chien')">
                                 <div class="animal-image">
                                     <img src="images/body_map_chien.svg" alt="Thérapie manuelle pour chiens" class="animal-svg">
                                 </div>
                                 <h4 class="animal-title">Thérapie manuelle Chien</h4>
                             </div>
                             
-                            <div class="animal-card">
+                            <div class="animal-card" @click="navigateTo('chat')">
                                 <div class="animal-image">
                                     <img src="images/body_map_chat.svg" alt="Thérapie manuelle pour chats" class="animal-svg">
                                 </div>
                                 <h4 class="animal-title">Thérapie manuelle Chat</h4>
                             </div>
                             
-                            <div class="animal-card">
+                            <div class="animal-card" @click="navigateTo('cheval')">
                                 <div class="animal-image">
                                     <img src="images/body_map_cheval.svg" alt="Thérapie manuelle pour chevaux" class="animal-svg">
                                 </div>
                                 <h4 class="animal-title">Thérapie manuelle Cheval</h4>
                             </div>
                             
-                            <div class="animal-card">
+                            <div class="animal-card" @click="navigateTo('nac')">
                                 <div class="animal-image">
                                     <img src="images/body_map_nac.svg" alt="Thérapie manuelle pour NAC" class="animal-svg">
                                 </div>
                                 <h4 class="animal-title">Thérapie manuelle NAC</h4>
                             </div>
                             
-                            <div class="animal-card">
+                            <div class="animal-card" @click="navigateTo('bovins')">
                                 <div class="animal-image">
                                     <img src="images/body_map_vache.svg" alt="Thérapie manuelle pour bovins" class="animal-svg">
                                 </div>
@@ -1202,6 +1202,7 @@
                                     <th>Prénom</th>
                                     <th>Email</th>
                                     <th>Téléphone</th>
+                                    <th>Temps de trajet</th>
                                     <th>Date d'inscription</th>
                                     <th>Nombre d'animaux</th>
                                     <th>Actions</th>
@@ -1213,6 +1214,7 @@
                                     <td>{{ client.firstName || 'N/A' }}</td>
                                     <td>{{ client.email }}</td>
                                     <td>{{ client.phone || 'N/A' }}</td>
+                                    <td>{{ client.travelTime || 'Non renseigné' }}</td>
                                     <td>{{ formatDate(client.createdAt) }}</td>
                                     <td>{{ client.animalsCount }}</td>
                                     <td>
@@ -1230,7 +1232,7 @@
                                     </td>
                                 </tr>
                                 <tr v-if="filteredClients.length === 0">
-                                    <td colspan="7" class="text-center">Aucun client trouvé</td>
+                                    <td colspan="8" class="text-center">Aucun client trouvé</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -1359,6 +1361,806 @@
                                 </button>
                             </div>
                         </form>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Page Chien -->
+            <template v-if="currentPage === 'chien'">
+                <section class="animal-page chien-page">
+                    <!-- Hero Section -->
+                    <div class="animal-hero">
+                        <div class="hero-background">
+                            <img src="images/Photo_cheval.jpg" alt="Thérapie pour chiens" class="hero-image">
+                            <div class="hero-overlay"></div>
+                        </div>
+                        <div class="hero-content">
+                            <h1>Thérapie Manuelle pour Chiens</h1>
+                            <h2>SOULAGEMENT ET BIEN-ÊTRE POUR VOTRE CHIEN</h2>
+                            <p>Je propose des services de thérapie manuelle pour vos chiens et chiots de toute race et de tout âge, quelque soit son activité.</p>
+                        </div>
+                    </div>
+
+                    <!-- Présentation Section -->
+                    <div class="presentation-section">
+                        <div class="container">
+                            <div class="presentation-content">
+                                <div class="presentation-text">
+                                    <h3>EMMY VASSE</h3>
+                                    <h4>- Thérapeute manuelle animalier diplômée</h4>
+                                    <p>La thérapie manuelle canine est une approche thérapeutique douce visant à réharmoniser l'équilibre et la mobilité du corps des chiens. Grâce à des manipulations manuelles précises, la thérapeute cherche à traiter les troubles musculo-squelettiques, articulaires ou viscéraux. En mettant l'accent sur la globalité du corps, cette pratique favorise le bien-être et la santé globale de nos compagnons les chiens.</p>
+                                </div>
+                                <div class="presentation-image">
+                                    <img src="images/Emmy_pratique.jpg" alt="Emmy Vasse en pratique" class="profile-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avantages Section -->
+                    <div class="advantages-section">
+                        <div class="container">
+                            <h2>Les avantages de la thérapie manuelle pour les chiens</h2>
+                            <div class="advantages-grid">
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🐕</div>
+                                    <h4>Difficultés à <strong>monter</strong> ou <strong>descendre</strong></h4>
+                                    <p>Voiture, canapé, escaliers...</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦮</div>
+                                    <h4>Difficultés à <strong>se lever</strong> ou à <strong>s'assoir</strong></h4>
+                                    <p>Rigidité articulaire</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😔</div>
+                                    <h4><strong>Gémit</strong> quand il fait certains mouvements</h4>
+                                    <p>Douleurs articulaires</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤚</div>
+                                    <h4><strong>Evite le contact</strong> de la main ou des caresses</h4>
+                                    <p>Sensibilité accrue</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤢</div>
+                                    <h4><strong>Troubles digestifs</strong></h4>
+                                    <p>Vomissement ou constipation</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦮</div>
+                                    <h4><strong>Appréhende</strong> le harnais ou le collier</h4>
+                                    <p>Douleurs cervicales</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦮</div>
+                                    <h4>Chien qui <strong>tire en laisse</strong></h4>
+                                    <p>Déséquilibre postural</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😤</div>
+                                    <h4><strong>Changement de comportement</strong> et <strong>agressivité</strong></h4>
+                                    <p>Douleurs chroniques</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦴</div>
+                                    <h4><strong>Troubles chroniques</strong></h4>
+                                    <p>Arthrose, raideurs</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🏃‍♂️</div>
+                                    <h4><strong>Chien de sport</strong></h4>
+                                    <p>Refus d'aller au mordant, difficultés de saut, refus d'aller à l'eau, difficultés au slalom</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pourquoi choisir Section -->
+                    <div class="why-choose-section">
+                        <div class="container">
+                            <h2>Pourquoi choisir EMMY VASSE pour votre chien ?</h2>
+                            <div class="why-choose-content">
+                                <p>Passionnée par mon métier, j'accorde beaucoup d'importance à la relation privilégiée entre vous et votre compagnon à quatre pattes, c'est pourquoi je propose des <strong>soins personnalisés</strong>, conçus pour répondre aux <strong>besoins spécifiques de chaque animal.</strong></p>
+                                <p>Une approche professionnelle et <strong>respectueuse</strong> de votre animal. Je travaille également en <strong>collaboration</strong> avec un réseau de professionnels et vétérinaires <strong>bienveillants</strong> pour assurer une prise en charge globale et complète de la santé de votre chien. <strong>La santé et le bien-être de votre animal sont ma priorité</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarifs Section -->
+                    <div class="pricing-section">
+                        <div class="container">
+                            <h2>TARIFS SÉANCES DE THÉRAPIE MANUELLE</h2>
+                            <div class="pricing-grid">
+                                <div class="pricing-card">
+                                    <h3>Séance de thérapie manuelle canine au cabinet</h3>
+                                    <div class="price">60€</div>
+                                    <p class="location">49 Rue Pierre Corneille Lyon 6</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                                <div class="pricing-card featured">
+                                    <h3>Séance de thérapie manuelle canine à domicile</h3>
+                                    <div class="price">80€</div>
+                                    <p class="location">Hors frais de déplacement</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions Section -->
+                    <div class="instructions-section">
+                        <div class="container">
+                            <div class="instructions-grid">
+                                <div class="instruction-card">
+                                    <h3>Avant la séance</h3>
+                                    <ul>
+                                        <li>Évitez les longues promenades 2h avant la consultation</li>
+                                        <li>Ne donnez pas d'anti-inflammatoires 24h avant</li>
+                                        <li>Préparez un espace calme et confortable</li>
+                                        <li>Apportez le carnet de santé si disponible</li>
+                                    </ul>
+                                </div>
+                                <div class="instruction-card">
+                                    <h3>Après la séance</h3>
+                                    <ul>
+                                        <li>Repos complet pendant 24-48h</li>
+                                        <li>Évitez les exercices intenses pendant 1 semaine</li>
+                                        <li>Surveillez le comportement et l'appétit</li>
+                                        <li>Contactez-moi en cas de réaction inhabituelle</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Section -->
+                    <div class="cta-section">
+                        <div class="container">
+                            <h2>Réservez une séance avec Emmy</h2>
+                            <p>Contactez-moi dès aujourd'hui pour prendre rendez-vous et offrir à votre animal les bienfaits de la thérapie manuelle. Ensemble, nous pouvons améliorer sa qualité de vie.</p>
+                            <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary large">RÉSERVER UNE SÉANCE EN LIGNE</a>
+                        </div>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Page Chat -->
+            <template v-if="currentPage === 'chat'">
+                <section class="animal-page chat-page">
+                    <!-- Hero Section -->
+                    <div class="animal-hero">
+                        <div class="hero-background">
+                            <img src="images/Carroussel8.jpg" alt="Thérapie pour chats" class="hero-image">
+                            <div class="hero-overlay"></div>
+                        </div>
+                        <div class="hero-content">
+                            <h1>Thérapie Manuelle pour Chats</h1>
+                            <h2>SOULAGEMENT ET BIEN-ÊTRE POUR VOTRE CHAT</h2>
+                            <p>Je propose des services de thérapie manuelle pour vos chats et chatons de toute race et de tout âge, adaptés à leur sensibilité naturelle.</p>
+                        </div>
+                    </div>
+
+                    <!-- Présentation Section -->
+                    <div class="presentation-section">
+                        <div class="container">
+                            <div class="presentation-content">
+                                <div class="presentation-text">
+                                    <h3>EMMY VASSE</h3>
+                                    <h4>- Thérapeute manuelle animalier diplômée</h4>
+                                    <p>La thérapie manuelle féline est une approche thérapeutique douce et respectueuse visant à réharmoniser l'équilibre et la mobilité du corps des chats. Grâce à des manipulations manuelles délicates, la thérapeute cherche à traiter les troubles musculo-squelettiques, articulaires ou viscéraux. En respectant la sensibilité naturelle du chat, cette pratique favorise le bien-être et la santé globale de nos compagnons félins.</p>
+                                </div>
+                                <div class="presentation-image">
+                                    <img src="images/Photo_cheval.jpg" alt="Emmy Vasse en pratique" class="profile-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avantages Section -->
+                    <div class="advantages-section">
+                        <div class="container">
+                            <h2>Les avantages de la thérapie manuelle pour les chats</h2>
+                            <div class="advantages-grid">
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😿</div>
+                                    <h4>Difficultés à <strong>se déplacer</strong> ou <strong>sauter</strong></h4>
+                                    <p>Rigidité articulaire</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😔</div>
+                                    <h4><strong>Gémit</strong> quand il fait certains mouvements</h4>
+                                    <p>Douleurs articulaires</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤚</div>
+                                    <h4><strong>Evite le contact</strong> ou les caresses</h4>
+                                    <p>Sensibilité accrue</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤢</div>
+                                    <h4><strong>Troubles digestifs</strong></h4>
+                                    <p>Vomissement ou constipation</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😤</div>
+                                    <h4><strong>Changement de comportement</strong></h4>
+                                    <p>Stress ou agressivité</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😴</div>
+                                    <h4><strong>Troubles du sommeil</strong></h4>
+                                    <p>Insomnie ou hypersomnie</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦴</div>
+                                    <h4><strong>Troubles chroniques</strong></h4>
+                                    <p>Arthrose, raideurs</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😰</div>
+                                    <h4><strong>Stress et anxiété</strong></h4>
+                                    <p>Comportements compulsifs</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🏃‍♂️</div>
+                                    <h4><strong>Chat d'intérieur</strong></h4>
+                                    <p>Manque d'activité physique</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🐱</div>
+                                    <h4><strong>Chat senior</strong></h4>
+                                    <p>Maintien de la mobilité</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pourquoi choisir Section -->
+                    <div class="why-choose-section">
+                        <div class="container">
+                            <h2>Pourquoi choisir EMMY VASSE pour votre chat ?</h2>
+                            <div class="why-choose-content">
+                                <p>Passionnée par mon métier, j'accorde une attention particulière à la sensibilité naturelle des chats. Je propose des <strong>soins personnalisés</strong>, conçus pour répondre aux <strong>besoins spécifiques de chaque félin.</strong></p>
+                                <p>Une approche professionnelle et <strong>respectueuse</strong> de la nature indépendante du chat. Je travaille également en <strong>collaboration</strong> avec un réseau de professionnels et vétérinaires <strong>bienveillants</strong> pour assurer une prise en charge globale et complète de la santé de votre chat. <strong>La santé et le bien-être de votre animal sont ma priorité</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarifs Section -->
+                    <div class="pricing-section">
+                        <div class="container">
+                            <h2>TARIFS SÉANCES DE THÉRAPIE MANUELLE</h2>
+                            <div class="pricing-grid">
+                                <div class="pricing-card">
+                                    <h3>Séance de thérapie manuelle féline au cabinet</h3>
+                                    <div class="price">55€</div>
+                                    <p class="location">49 Rue Pierre Corneille Lyon 6</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                                <div class="pricing-card featured">
+                                    <h3>Séance de thérapie manuelle féline à domicile</h3>
+                                    <div class="price">75€</div>
+                                    <p class="location">Hors frais de déplacement</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions Section -->
+                    <div class="instructions-section">
+                        <div class="container">
+                            <div class="instructions-grid">
+                                <div class="instruction-card">
+                                    <h3>Avant la séance</h3>
+                                    <ul>
+                                        <li>Créez un environnement calme et familier</li>
+                                        <li>Évitez les changements d'alimentation 24h avant</li>
+                                        <li>Préparez une couverture ou un coussin confortable</li>
+                                        <li>Laissez le chat s'habituer à l'espace</li>
+                                    </ul>
+                                </div>
+                                <div class="instruction-card">
+                                    <h3>Après la séance</h3>
+                                    <ul>
+                                        <li>Repos dans un endroit calme pendant 24h</li>
+                                        <li>Évitez les interactions avec d'autres animaux</li>
+                                        <li>Surveillez l'appétit et le comportement</li>
+                                        <li>Respectez son besoin de tranquillité</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Section -->
+                    <div class="cta-section">
+                        <div class="container">
+                            <h2>Réservez une séance avec Emmy</h2>
+                            <p>Contactez-moi dès aujourd'hui pour prendre rendez-vous et offrir à votre chat les bienfaits de la thérapie manuelle. Ensemble, nous pouvons améliorer sa qualité de vie.</p>
+                            <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary large">RÉSERVER UNE SÉANCE EN LIGNE</a>
+                        </div>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Page Cheval -->
+            <template v-if="currentPage === 'cheval'">
+                <section class="animal-page cheval-page">
+                    <!-- Hero Section -->
+                    <div class="animal-hero">
+                        <div class="hero-background">
+                            <img src="images/Photo_cheval.jpg" alt="Thérapie pour chevaux" class="hero-image">
+                            <div class="hero-overlay"></div>
+                        </div>
+                        <div class="hero-content">
+                            <h1>Thérapie Manuelle pour Chevaux</h1>
+                            <h2>OPTIMISATION DES PERFORMANCES ET BIEN-ÊTRE ÉQUIN</h2>
+                            <p>Je propose des services de thérapie manuelle pour vos chevaux de toute race et de tout âge, adaptés aux besoins spécifiques de chaque équidé.</p>
+                        </div>
+                    </div>
+
+                    <!-- Présentation Section -->
+                    <div class="presentation-section">
+                        <div class="container">
+                            <div class="presentation-content">
+                                <div class="presentation-text">
+                                    <h3>EMMY VASSE</h3>
+                                    <h4>- Thérapeute manuelle animalier diplômée</h4>
+                                    <p>La thérapie manuelle équine est une approche thérapeutique spécialisée visant à optimiser les performances et le bien-être des chevaux. Grâce à des manipulations manuelles précises, la thérapeute cherche à traiter les troubles musculo-squelettiques, articulaires ou viscéraux. En mettant l'accent sur la globalité du corps, cette pratique favorise l'équilibre postural et la prévention des blessures de nos compagnons équins.</p>
+                                </div>
+                                <div class="presentation-image">
+                                    <img src="images/Emmy_pratique.jpg" alt="Emmy Vasse en pratique" class="profile-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avantages Section -->
+                    <div class="advantages-section">
+                        <div class="container">
+                            <h2>Les avantages de la thérapie manuelle pour les chevaux</h2>
+                            <div class="advantages-grid">
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🐎</div>
+                                    <h4>Difficultés à <strong>se déplacer</strong> ou <strong>galoper</strong></h4>
+                                    <p>Rigidité articulaire</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😔</div>
+                                    <h4><strong>Réactions</strong> lors du pansage</h4>
+                                    <p>Douleurs musculaires</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤚</div>
+                                    <h4><strong>Refus</strong> du harnachement</h4>
+                                    <p>Sensibilité dorsale</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🏇</div>
+                                    <h4><strong>Problèmes de dressage</strong></h4>
+                                    <p>Déséquilibre postural</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😤</div>
+                                    <h4><strong>Changement de comportement</strong></h4>
+                                    <p>Stress ou agressivité</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦴</div>
+                                    <h4><strong>Troubles chroniques</strong></h4>
+                                    <p>Arthrose, raideurs</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🏃‍♂️</div>
+                                    <h4><strong>Cheval de sport</strong></h4>
+                                    <p>Optimisation des performances</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🐴</div>
+                                    <h4><strong>Cheval de loisir</strong></h4>
+                                    <p>Maintien du bien-être</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">👴</div>
+                                    <h4><strong>Cheval senior</strong></h4>
+                                    <p>Préservation de la mobilité</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦴</div>
+                                    <h4><strong>Récupération post-traumatique</strong></h4>
+                                    <p>Rééducation fonctionnelle</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pourquoi choisir Section -->
+                    <div class="why-choose-section">
+                        <div class="container">
+                            <h2>Pourquoi choisir EMMY VASSE pour votre cheval ?</h2>
+                            <div class="why-choose-content">
+                                <p>Passionnée par mon métier, j'accorde une importance particulière à la relation entre le cavalier et son cheval. Je propose des <strong>soins personnalisés</strong>, conçus pour répondre aux <strong>besoins spécifiques de chaque équidé.</strong></p>
+                                <p>Une approche professionnelle et <strong>respectueuse</strong> de la nature du cheval. Je travaille également en <strong>collaboration</strong> avec un réseau de professionnels et vétérinaires <strong>bienveillants</strong> pour assurer une prise en charge globale et complète de la santé de votre cheval. <strong>La santé et le bien-être de votre animal sont ma priorité</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarifs Section -->
+                    <div class="pricing-section">
+                        <div class="container">
+                            <h2>TARIFS SÉANCES DE THÉRAPIE MANUELLE</h2>
+                            <div class="pricing-grid">
+                                <div class="pricing-card">
+                                    <h3>Séance de thérapie manuelle équine au cabinet</h3>
+                                    <div class="price">90€</div>
+                                    <p class="location">49 Rue Pierre Corneille Lyon 6</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                                <div class="pricing-card featured">
+                                    <h3>Séance de thérapie manuelle équine à domicile</h3>
+                                    <div class="price">120€</div>
+                                    <p class="location">Hors frais de déplacement</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions Section -->
+                    <div class="instructions-section">
+                        <div class="container">
+                            <div class="instructions-grid">
+                                <div class="instruction-card">
+                                    <h3>Avant la séance</h3>
+                                    <ul>
+                                        <li>Pas de travail intense 24h avant la consultation</li>
+                                        <li>Évitez les anti-inflammatoires 48h avant</li>
+                                        <li>Préparez un box ou un espace calme</li>
+                                        <li>Le cheval doit être propre et sec</li>
+                                    </ul>
+                                </div>
+                                <div class="instruction-card">
+                                    <h3>Après la séance</h3>
+                                    <ul>
+                                        <li>Repos complet pendant 48-72h</li>
+                                        <li>Reprise progressive du travail</li>
+                                        <li>Surveillance de l'attitude et de l'appétit</li>
+                                        <li>Évitez les terrains difficiles pendant 1 semaine</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Section -->
+                    <div class="cta-section">
+                        <div class="container">
+                            <h2>Réservez une séance avec Emmy</h2>
+                            <p>Contactez-moi dès aujourd'hui pour prendre rendez-vous et offrir à votre cheval les bienfaits de la thérapie manuelle. Ensemble, nous pouvons améliorer ses performances et sa qualité de vie.</p>
+                            <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary large">RÉSERVER UNE SÉANCE EN LIGNE</a>
+                        </div>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Page NAC -->
+            <template v-if="currentPage === 'nac'">
+                <section class="animal-page nac-page">
+                    <!-- Hero Section -->
+                    <div class="animal-hero">
+                        <div class="hero-background">
+                            <img src="images/Emmy_pratique.jpg" alt="Thérapie pour NAC" class="hero-image">
+                            <div class="hero-overlay"></div>
+                        </div>
+                        <div class="hero-content">
+                            <h1>Thérapie Manuelle pour NAC</h1>
+                            <h2>SOINS SPÉCIALISÉS POUR NOUVEAUX ANIMAUX DE COMPAGNIE</h2>
+                            <p>Je propose des services de thérapie manuelle pour vos NAC (lapins, rongeurs, oiseaux...) de toute espèce, adaptés à leurs besoins spécifiques.</p>
+                        </div>
+                    </div>
+
+                    <!-- Présentation Section -->
+                    <div class="presentation-section">
+                        <div class="container">
+                            <div class="presentation-content">
+                                <div class="presentation-text">
+                                    <h3>EMMY VASSE</h3>
+                                    <h4>- Thérapeute manuelle animalier diplômée</h4>
+                                    <p>La thérapie manuelle pour NAC est une approche thérapeutique douce et adaptée visant à améliorer le bien-être et la mobilité des nouveaux animaux de compagnie. Grâce à des manipulations manuelles délicates et respectueuses, la thérapeute cherche à traiter les troubles musculo-squelettiques, articulaires ou comportementaux. En tenant compte de la fragilité et de la sensibilité de ces animaux, cette pratique favorise leur équilibre et leur qualité de vie.</p>
+                                </div>
+                                <div class="presentation-image">
+                                    <img src="images/Photo_cheval.jpg" alt="Emmy Vasse en pratique" class="profile-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avantages Section -->
+                    <div class="advantages-section">
+                        <div class="container">
+                            <h2>Les avantages de la thérapie manuelle pour les NAC</h2>
+                            <div class="advantages-grid">
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🐰</div>
+                                    <h4>Difficultés à <strong>se déplacer</strong> ou <strong>sauter</strong></h4>
+                                    <p>Rigidité articulaire</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😔</div>
+                                    <h4><strong>Gémit</strong> lors des mouvements</h4>
+                                    <p>Douleurs articulaires</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤚</div>
+                                    <h4><strong>Evite le contact</strong> ou les caresses</h4>
+                                    <p>Sensibilité accrue</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤢</div>
+                                    <h4><strong>Troubles digestifs</strong></h4>
+                                    <p>Problèmes d'appétit</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😤</div>
+                                    <h4><strong>Changement de comportement</strong></h4>
+                                    <p>Stress ou agressivité</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😴</div>
+                                    <h4><strong>Troubles du sommeil</strong></h4>
+                                    <p>Insomnie ou hypersomnie</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦴</div>
+                                    <h4><strong>Troubles chroniques</strong></h4>
+                                    <p>Arthrose, raideurs</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😰</div>
+                                    <h4><strong>Stress et anxiété</strong></h4>
+                                    <p>Comportements compulsifs</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🏠</div>
+                                    <h4><strong>NAC d'intérieur</strong></h4>
+                                    <p>Manque d'activité physique</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">👴</div>
+                                    <h4><strong>NAC senior</strong></h4>
+                                    <p>Maintien de la mobilité</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pourquoi choisir Section -->
+                    <div class="why-choose-section">
+                        <div class="container">
+                            <h2>Pourquoi choisir EMMY VASSE pour votre NAC ?</h2>
+                            <div class="why-choose-content">
+                                <p>Passionnée par mon métier, j'accorde une attention particulière à la fragilité et à la sensibilité des nouveaux animaux de compagnie. Je propose des <strong>soins personnalisés</strong>, conçus pour répondre aux <strong>besoins spécifiques de chaque NAC.</strong></p>
+                                <p>Une approche professionnelle et <strong>respectueuse</strong> de la nature délicate de ces animaux. Je travaille également en <strong>collaboration</strong> avec un réseau de professionnels et vétérinaires <strong>spécialisés</strong> pour assurer une prise en charge globale et complète de la santé de votre NAC. <strong>La santé et le bien-être de votre animal sont ma priorité</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarifs Section -->
+                    <div class="pricing-section">
+                        <div class="container">
+                            <h2>TARIFS SÉANCES DE THÉRAPIE MANUELLE</h2>
+                            <div class="pricing-grid">
+                                <div class="pricing-card">
+                                    <h3>Séance de thérapie manuelle NAC au cabinet</h3>
+                                    <div class="price">45€</div>
+                                    <p class="location">49 Rue Pierre Corneille Lyon 6</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                                <div class="pricing-card featured">
+                                    <h3>Séance de thérapie manuelle NAC à domicile</h3>
+                                    <div class="price">60€</div>
+                                    <p class="location">Hors frais de déplacement</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions Section -->
+                    <div class="instructions-section">
+                        <div class="container">
+                            <div class="instructions-grid">
+                                <div class="instruction-card">
+                                    <h3>Avant la séance</h3>
+                                    <ul>
+                                        <li>Créez un environnement calme et sécurisé</li>
+                                        <li>Évitez les changements d'habitat 24h avant</li>
+                                        <li>Préparez une cage ou un espace familier</li>
+                                        <li>Laissez l'animal s'habituer à votre présence</li>
+                                    </ul>
+                                </div>
+                                <div class="instruction-card">
+                                    <h3>Après la séance</h3>
+                                    <ul>
+                                        <li>Repos dans son habitat habituel</li>
+                                        <li>Surveillance attentive du comportement</li>
+                                        <li>Évitez les manipulations inutiles</li>
+                                        <li>Contactez-moi en cas de changement notable</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Section -->
+                    <div class="cta-section">
+                        <div class="container">
+                            <h2>Réservez une séance avec Emmy</h2>
+                            <p>Contactez-moi dès aujourd'hui pour prendre rendez-vous et offrir à votre NAC les bienfaits de la thérapie manuelle. Ensemble, nous pouvons améliorer sa qualité de vie.</p>
+                            <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary large">RÉSERVER UNE SÉANCE EN LIGNE</a>
+                        </div>
+                    </div>
+                </section>
+            </template>
+
+            <!-- Page Bovins -->
+            <template v-if="currentPage === 'bovins'">
+                <section class="animal-page bovins-page">
+                    <!-- Hero Section -->
+                    <div class="animal-hero">
+                        <div class="hero-background">
+                            <img src="images/Photo_cheval.jpg" alt="Thérapie pour bovins" class="hero-image">
+                            <div class="hero-overlay"></div>
+                        </div>
+                        <div class="hero-content">
+                            <h1>Thérapie Manuelle pour Bovins</h1>
+                            <h2>OPTIMISATION DE LA PRODUCTION ET BIEN-ÊTRE DU TROUPEAU</h2>
+                            <p>Je propose des services de thérapie manuelle pour vos bovins de toute race et de tout âge, adaptés aux besoins spécifiques de chaque animal et de votre exploitation.</p>
+                        </div>
+                    </div>
+
+                    <!-- Présentation Section -->
+                    <div class="presentation-section">
+                        <div class="container">
+                            <div class="presentation-content">
+                                <div class="presentation-text">
+                                    <h3>EMMY VASSE</h3>
+                                    <h4>- Thérapeute manuelle animalier diplômée</h4>
+                                    <p>La thérapie manuelle bovine est une approche thérapeutique spécialisée visant à optimiser la santé, la production et le bien-être des bovins. Grâce à des manipulations manuelles précises, la thérapeute cherche à traiter les troubles musculo-squelettiques, articulaires ou viscéraux. En mettant l'accent sur la globalité du corps, cette pratique favorise l'amélioration de la production laitière, la reproduction et la santé générale du troupeau.</p>
+                                </div>
+                                <div class="presentation-image">
+                                    <img src="images/Carroussel8.jpg" alt="Emmy Vasse en pratique" class="profile-image">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Avantages Section -->
+                    <div class="advantages-section">
+                        <div class="container">
+                            <h2>Les avantages de la thérapie manuelle pour les bovins</h2>
+                            <div class="advantages-grid">
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🐄</div>
+                                    <h4>Difficultés à <strong>se lever</strong> ou <strong>se coucher</strong></h4>
+                                    <p>Rigidité articulaire</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">😔</div>
+                                    <h4><strong>Réactions</strong> lors de la traite</h4>
+                                    <p>Douleurs mammaires</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤚</div>
+                                    <h4><strong>Refus</strong> du contact</h4>
+                                    <p>Sensibilité accrue</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🥛</div>
+                                    <h4><strong>Baisse de production laitière</strong></h4>
+                                    <p>Problèmes de traite</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤰</div>
+                                    <h4><strong>Problèmes de reproduction</strong></h4>
+                                    <p>Fertilité réduite</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🤢</div>
+                                    <h4><strong>Troubles digestifs</strong></h4>
+                                    <p>Rumination difficile</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🦴</div>
+                                    <h4><strong>Troubles chroniques</strong></h4>
+                                    <p>Arthrose, raideurs</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🏃‍♂️</div>
+                                    <h4><strong>Vache laitière</strong></h4>
+                                    <p>Optimisation de la production</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">🐂</div>
+                                    <h4><strong>Vache allaitante</strong></h4>
+                                    <p>Amélioration du bien-être</p>
+                                </div>
+                                <div class="advantage-item">
+                                    <div class="advantage-icon">👴</div>
+                                    <h4><strong>Bovin senior</strong></h4>
+                                    <p>Préservation de la mobilité</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Pourquoi choisir Section -->
+                    <div class="why-choose-section">
+                        <div class="container">
+                            <h2>Pourquoi choisir EMMY VASSE pour vos bovins ?</h2>
+                            <div class="why-choose-content">
+                                <p>Passionnée par mon métier, j'accorde une importance particulière à la relation entre l'éleveur et son troupeau. Je propose des <strong>soins personnalisés</strong>, conçus pour répondre aux <strong>besoins spécifiques de chaque animal et de votre exploitation.</strong></p>
+                                <p>Une approche professionnelle et <strong>respectueuse</strong> de la nature des bovins. Je travaille également en <strong>collaboration</strong> avec un réseau de professionnels et vétérinaires <strong>spécialisés</strong> pour assurer une prise en charge globale et complète de la santé de votre troupeau. <strong>La santé et le bien-être de vos animaux sont ma priorité</strong>.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Tarifs Section -->
+                    <div class="pricing-section">
+                        <div class="container">
+                            <h2>TARIFS SÉANCES DE THÉRAPIE MANUELLE</h2>
+                            <div class="pricing-grid">
+                                <div class="pricing-card">
+                                    <h3>Séance de thérapie manuelle bovine au cabinet</h3>
+                                    <div class="price">100€</div>
+                                    <p class="location">49 Rue Pierre Corneille Lyon 6</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                                <div class="pricing-card featured">
+                                    <h3>Séance de thérapie manuelle bovine à domicile</h3>
+                                    <div class="price">150€</div>
+                                    <p class="location">Hors frais de déplacement</p>
+                                    <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Instructions Section -->
+                    <div class="instructions-section">
+                        <div class="container">
+                            <div class="instructions-grid">
+                                <div class="instruction-card">
+                                    <h3>Avant la séance</h3>
+                                    <ul>
+                                        <li>Isolez l'animal dans un espace calme</li>
+                                        <li>Évitez les traitements médicamenteux 24h avant</li>
+                                        <li>Préparez un espace de travail sécurisé</li>
+                                        <li>Vérifiez l'état général de l'animal</li>
+                                    </ul>
+                                </div>
+                                <div class="instruction-card">
+                                    <h3>Après la séance</h3>
+                                    <ul>
+                                        <li>Repos dans un environnement calme</li>
+                                        <li>Surveillance de l'appétit et du comportement</li>
+                                        <li>Évitez les manipulations inutiles</li>
+                                        <li>Contactez-moi en cas de réaction inhabituelle</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- CTA Section -->
+                    <div class="cta-section">
+                        <div class="container">
+                            <h2>Réservez une séance avec Emmy</h2>
+                            <p>Contactez-moi dès aujourd'hui pour prendre rendez-vous et offrir à vos bovins les bienfaits de la thérapie manuelle. Ensemble, nous pouvons améliorer la santé et les performances de votre troupeau.</p>
+                            <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary large">RÉSERVER UNE SÉANCE EN LIGNE</a>
+                        </div>
                     </div>
                 </section>
             </template>
@@ -1550,6 +2352,11 @@
                     <div class="edit-form-group">
                         <label for="editClientAddress">Adresse</label>
                         <textarea id="editClientAddress" v-model="editingClient.address" rows="3" required></textarea>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientTravelTime">Temps de trajet</label>
+                        <input type="text" id="editClientTravelTime" v-model="editingClient.travelTime" placeholder="Ex: 15 minutes, 30 min, 1h, etc.">
+                        <small style="color: var(--text-color); font-size: 0.8rem;">Temps estimé pour se rendre chez ce client</small>
                     </div>
                     <div class="edit-modal-actions">
                         <button type="button" class="btn secondary" @click="showEditClientModal = false">Annuler</button>
@@ -2186,15 +2993,12 @@
                     // Méthodes pour le carrousel
                     nextCarouselImage() {
                         this.currentCarouselIndex = (this.currentCarouselIndex + 1) % 8;
-                        console.log('Next image, index:', this.currentCarouselIndex);
                     },
                     prevCarouselImage() {
                         this.currentCarouselIndex = this.currentCarouselIndex === 0 ? 7 : this.currentCarouselIndex - 1;
-                        console.log('Prev image, index:', this.currentCarouselIndex);
                     },
                     goToCarouselImage(index) {
                         this.currentCarouselIndex = index;
-                        console.log('Go to image, index:', this.currentCarouselIndex);
                     },
                     startCarouselAutoPlay() {
                         this.carouselInterval = setInterval(() => {
@@ -2939,6 +3743,9 @@
                             this.loadAllData();
                         } else if (page === 'profile' && this.isAuthenticated) {
                             this.loadProfileData();
+                        } else if (['chien', 'chat', 'cheval', 'nac', 'bovins'].includes(page)) {
+                            // Les pages d'animaux sont déjà gérées par les templates
+                            // Pas besoin de chargement supplémentaire
                         }
                     });
                 },
@@ -3032,6 +3839,15 @@
                         console.log('Début de l\'ajout de l\'animal');
                         console.log('Documents à ajouter:', this.newAnimal.documents);
 
+                        // Récupérer le temps de trajet du client sélectionné si disponible
+                        let travelTime = this.newAnimal.travelTime || '';
+                        if (this.isAdmin && this.newAnimal.userId) {
+                            const selectedClient = this.allClients.find(client => client.id === this.newAnimal.userId);
+                            if (selectedClient && selectedClient.travelTime) {
+                                travelTime = selectedClient.travelTime;
+                            }
+                        }
+
                         const animalData = {
                         name: this.newAnimal.name,
                             species: this.newAnimal.species,
@@ -3048,7 +3864,7 @@
                             treatment: this.newAnimal.treatment || '',
                             behavior: this.newAnimal.behavior || '',
                         notes: this.newAnimal.notes || '',
-                            travelTime: this.newAnimal.travelTime || '',
+                            travelTime: travelTime,
                             // Utiliser l'ID du client sélectionné si on est admin, sinon l'ID de l'utilisateur connecté
                             userId: this.isAdmin ? this.newAnimal.userId : firebase.auth().currentUser.uid,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -3777,6 +4593,14 @@
 
                         try {
                             await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
+                            
+                            // Synchroniser le temps de trajet avec le client et tous les autres animaux si il a changé
+                            const newTravelTime = modal.querySelector('#edit-animal-travel-time').value;
+                            if (newTravelTime !== animal.travelTime) {
+                                await this.syncTravelTimeToClient(animal.userId, newTravelTime);
+                                await this.syncTravelTimeToAnimals(animal.userId, newTravelTime);
+                            }
+                            
                             alert('Modifications enregistrées !');
                             modal.remove();
                             this.loadAnimals();
@@ -4158,6 +4982,7 @@
                                 firstName: doc.data().firstName || '',
                                 lastName: doc.data().lastName || '',
                                 address: doc.data().address || '',
+                                travelTime: doc.data().travelTime || '',
                                 role: doc.data().role
                             };
                         });
@@ -4196,6 +5021,7 @@
                                 email: doc.data().email,
                                 phone: doc.data().phone || '',
                                 address: doc.data().address || '',
+                                travelTime: doc.data().travelTime || '',
                                 createdAt: doc.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
                                 animalsCount: this.allAnimals.filter(animal => animal.userId === doc.id).length
                             }));
@@ -4215,6 +5041,7 @@
                                     email: doc.data().email,
                                     phone: doc.data().phone || '',
                                     address: doc.data().address || '',
+                                    travelTime: doc.data().travelTime || '',
                                     createdAt: doc.data().createdAt || firebase.firestore.FieldValue.serverTimestamp(),
                                     animalsCount: this.allAnimals.filter(animal => animal.userId === doc.id).length
                                 }));
@@ -5008,7 +5835,8 @@
                     this.editingClient = { 
                         ...client,
                         address: client.address || '', // S'assurer que l'adresse est définie
-                        phone: client.phone || '' // S'assurer que le téléphone est défini
+                        phone: client.phone || '', // S'assurer que le téléphone est défini
+                        travelTime: client.travelTime || '' // S'assurer que le temps de trajet est défini
                     };
                     this.showEditClientModal = true;
                 },
@@ -5020,14 +5848,61 @@
                             email: this.editingClient.email,
                             phone: this.editingClient.phone,
                             address: this.editingClient.address,
+                            travelTime: this.editingClient.travelTime || '',
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
+                        
+                        // Synchroniser le temps de trajet avec tous les animaux du client
+                        if (this.editingClient.travelTime) {
+                            await this.syncTravelTimeToAnimals(this.editingClient.id, this.editingClient.travelTime);
+                        }
                         
                         this.showEditClientModal = false;
                         alert('Client modifié avec succès');
                     } catch (error) {
                         console.error('Error updating client:', error);
                         alert('Erreur lors de la modification: ' + error.message);
+                    }
+                },
+                async syncTravelTimeToClient(userId, travelTime) {
+                    try {
+                        // Mettre à jour le temps de trajet du client
+                        await db.collection('users').doc(userId).update({
+                            travelTime: travelTime,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        
+                        // Mettre à jour la liste locale des clients
+                        const clientIndex = this.allClients.findIndex(client => client.id === userId);
+                        if (clientIndex !== -1) {
+                            this.allClients[clientIndex].travelTime = travelTime;
+                        }
+                        
+                        console.log('Temps de trajet synchronisé avec le client');
+                    } catch (error) {
+                        console.error('Erreur lors de la synchronisation du temps de trajet avec le client:', error);
+                    }
+                },
+                async syncTravelTimeToAnimals(userId, travelTime) {
+                    try {
+                        // Récupérer tous les animaux du client
+                        const animalsSnapshot = await db.collection('animals')
+                            .where('userId', '==', userId)
+                            .get();
+                        
+                        // Mettre à jour le temps de trajet de tous les animaux
+                        const batch = db.batch();
+                        animalsSnapshot.docs.forEach(doc => {
+                            batch.update(doc.ref, {
+                                travelTime: travelTime,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        });
+                        
+                        await batch.commit();
+                        console.log(`Temps de trajet synchronisé pour ${animalsSnapshot.docs.length} animaux`);
+                    } catch (error) {
+                        console.error('Erreur lors de la synchronisation du temps de trajet:', error);
                     }
                 },
                 async deleteClient(client) {
@@ -5784,6 +6659,13 @@
                                 this.currentPage = 'profile';
                                 this.loadProfileData();
                             }
+                            break;
+                        case 'chien':
+                        case 'chat':
+                        case 'cheval':
+                        case 'nac':
+                        case 'bovins':
+                            this.currentPage = hash;
                             break;
                         default:
                             this.currentPage = 'home';
