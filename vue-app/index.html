@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=18.0">
+    <link rel="stylesheet" href="styles.css?v=18.2">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -820,11 +820,7 @@
                                         <textarea id="newAnimalTreatment" v-model="newAnimal.treatment" rows="2"
                                                 placeholder="Médicaments, posologie, durée, etc."></textarea>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="newAnimalTravelTime">Temps de trajet</label>
-                                        <input type="text" id="newAnimalTravelTime" v-model="newAnimal.travelTime"
-                                               placeholder="Ex: 30 minutes">
-                                    </div>
+
                                     <div class="form-group">
                                         <label for="newAnimalBehavior">Particularités comportementales</label>
                                         <textarea id="newAnimalBehavior" v-model="newAnimal.behavior" rows="2"
@@ -3602,12 +3598,17 @@
                             status: 'confirmed'
                         };
 
-                        // Si un animal existant est sélectionné, ajouter son ID et son temps de trajet
+                        // Si un animal existant est sélectionné, ajouter son ID et récupérer le temps de trajet du client
                         if (this.appointmentForm.selectedAnimalId) {
                             const selectedAnimal = this.animals.find(a => a.id === this.appointmentForm.selectedAnimalId);
                             appointmentData.animalId = this.appointmentForm.selectedAnimalId;
-                            if (selectedAnimal && selectedAnimal.travelTime) {
-                                appointmentData.travelTime = selectedAnimal.travelTime;
+                            
+                            // Récupérer le temps de trajet du client propriétaire de l'animal
+                            if (selectedAnimal && selectedAnimal.userId) {
+                                const client = this.allClients ? this.allClients.find(c => c.id === selectedAnimal.userId) : null;
+                                if (client && client.travelTime) {
+                                    appointmentData.travelTime = client.travelTime;
+                                }
                             }
                         }
 
@@ -3839,14 +3840,7 @@
                         console.log('Début de l\'ajout de l\'animal');
                         console.log('Documents à ajouter:', this.newAnimal.documents);
 
-                        // Récupérer le temps de trajet du client sélectionné si disponible
-                        let travelTime = this.newAnimal.travelTime || '';
-                        if (this.isAdmin && this.newAnimal.userId) {
-                            const selectedClient = this.allClients.find(client => client.id === this.newAnimal.userId);
-                            if (selectedClient && selectedClient.travelTime) {
-                                travelTime = selectedClient.travelTime;
-                            }
-                        }
+
 
                         const animalData = {
                         name: this.newAnimal.name,
@@ -3864,7 +3858,6 @@
                             treatment: this.newAnimal.treatment || '',
                             behavior: this.newAnimal.behavior || '',
                         notes: this.newAnimal.notes || '',
-                            travelTime: travelTime,
                             // Utiliser l'ID du client sélectionné si on est admin, sinon l'ID de l'utilisateur connecté
                             userId: this.isAdmin ? this.newAnimal.userId : firebase.auth().currentUser.uid,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -4325,10 +4318,7 @@
                                 <textarea id="edit-animal-treatment" rows="2" placeholder="Médicaments, posologie, durée, etc."></textarea>
                             </div>
 
-                            <div class="form-group">
-                                <label>Temps de trajet :</label>
-                                <input type="text" id="edit-animal-travel-time" value="${animal.travelTime || ''}" placeholder="Ex: 30 minutes">
-                            </div>
+
 
                             <div class="form-group">
                                 <label>Particularités comportementales :</label>
@@ -4585,7 +4575,6 @@
                             treatment: modal.querySelector('#edit-animal-treatment').value,
                             behavior: modal.querySelector('#edit-animal-behavior').value,
                             notes: modal.querySelector('#edit-animal-notes').value,
-                            travelTime: modal.querySelector('#edit-animal-travel-time').value,
                             photos: currentPhotos,
                             documents: [...currentDocuments, ...tempDocuments], // Sauvegarder les documents originaux + temporaires
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -4593,13 +4582,6 @@
 
                         try {
                             await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
-                            
-                            // Synchroniser le temps de trajet avec le client et tous les autres animaux si il a changé
-                            const newTravelTime = modal.querySelector('#edit-animal-travel-time').value;
-                            if (newTravelTime !== animal.travelTime) {
-                                await this.syncTravelTimeToClient(animal.userId, newTravelTime);
-                                await this.syncTravelTimeToAnimals(animal.userId, newTravelTime);
-                            }
                             
                             alert('Modifications enregistrées !');
                             modal.remove();
@@ -5852,10 +5834,7 @@
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                         
-                        // Synchroniser le temps de trajet avec tous les animaux du client
-                        if (this.editingClient.travelTime) {
-                            await this.syncTravelTimeToAnimals(this.editingClient.id, this.editingClient.travelTime);
-                        }
+
                         
                         this.showEditClientModal = false;
                         alert('Client modifié avec succès');
@@ -5864,47 +5843,8 @@
                         alert('Erreur lors de la modification: ' + error.message);
                     }
                 },
-                async syncTravelTimeToClient(userId, travelTime) {
-                    try {
-                        // Mettre à jour le temps de trajet du client
-                        await db.collection('users').doc(userId).update({
-                            travelTime: travelTime,
-                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
-                        
-                        // Mettre à jour la liste locale des clients
-                        const clientIndex = this.allClients.findIndex(client => client.id === userId);
-                        if (clientIndex !== -1) {
-                            this.allClients[clientIndex].travelTime = travelTime;
-                        }
-                        
-                        console.log('Temps de trajet synchronisé avec le client');
-                    } catch (error) {
-                        console.error('Erreur lors de la synchronisation du temps de trajet avec le client:', error);
-                    }
-                },
-                async syncTravelTimeToAnimals(userId, travelTime) {
-                    try {
-                        // Récupérer tous les animaux du client
-                        const animalsSnapshot = await db.collection('animals')
-                            .where('userId', '==', userId)
-                            .get();
-                        
-                        // Mettre à jour le temps de trajet de tous les animaux
-                        const batch = db.batch();
-                        animalsSnapshot.docs.forEach(doc => {
-                            batch.update(doc.ref, {
-                                travelTime: travelTime,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-                        });
-                        
-                        await batch.commit();
-                        console.log(`Temps de trajet synchronisé pour ${animalsSnapshot.docs.length} animaux`);
-                    } catch (error) {
-                        console.error('Erreur lors de la synchronisation du temps de trajet:', error);
-                    }
-                },
+
+
                 async deleteClient(client) {
                     if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ? Cette action supprimera également tous ses animaux, rendez-vous ET son compte de connexion.`)) return;
                     try {
