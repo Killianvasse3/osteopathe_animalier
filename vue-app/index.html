@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=18.2">
+    <link rel="stylesheet" href="styles.css?v=18.9">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -1184,11 +1184,16 @@
 
                     <!-- Onglet Clients -->
                     <div v-if="adminActiveTab === 'clients'" class="admin-content">
+                        <div class="admin-header-actions">
                         <div class="search-bar">
                             <input 
                                 type="text" 
-                                v-model="clientsSearch" 
+                                    v-model="clientsSearch" 
                                 placeholder="Rechercher un client...">
+                            </div>
+                            <button class="btn primary" @click="showAddClientModal = true">
+                                Nouveau client
+                            </button>
                         </div>
 
                         <table class="data-table">
@@ -2199,21 +2204,40 @@
         <!-- Modal d'authentification -->
         <div v-if="showAuth" class="auth-modal" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); display: flex; justify-content: center; align-items: center; z-index: 9999;">
             <div class="auth-form">
-                <h3>{{ isLogin ? 'Connexion' : 'Inscription' }}</h3>
-                <template v-if="!isLogin">
-                    <input type="text" v-model="firstName" placeholder="Prénom" required>
-                    <input type="text" v-model="lastName" placeholder="Nom" required>
-                    <input type="tel" v-model="phone" placeholder="Téléphone (ex: 0612345678)" pattern="[0-9]{10}" required>
-                    <textarea v-model="address" placeholder="Adresse complète" rows="3" required style="width: 100%; padding: 0.8rem; margin-bottom: 1rem; border: 1px solid #ddd; border-radius: 5px; font-family: inherit;"></textarea>
-                </template>
+                <!-- Formulaire de connexion -->
+                <div v-if="!showContactInfo">
+                    <h3>Connexion</h3>
                 <input type="email" v-model="email" placeholder="Email">
                 <input type="password" v-model="password" placeholder="Mot de passe">
-                <button class="primary" @click="isLogin ? login() : register()">{{ isLogin ? 'Se connecter' : 'S\'inscrire' }}</button>
-                <button class="secondary" @click="isLogin = !isLogin">{{ isLogin ? 'Créer un compte' : 'Déjà un compte ?' }}</button>
-                <button v-if="isLogin" class="forgot-password" @click="showForgotPassword = true">Mot de passe oublié ?</button>
+                    <button class="primary" @click="login()">Se connecter</button>
+                    <a href="#" @click.prevent="showContactInfo = true" class="contact-link">Pas encore de compte ?</a>
+                    <button class="forgot-password" @click="showForgotPassword = true">Mot de passe oublié ?</button>
                 <button class="close" @click="showAuth = false">Fermer</button>
                 <p class="error" v-if="error">{{ error }}</p>
-            </div>
+        </div>
+
+                <!-- Informations de contact pour création de compte -->
+                <div v-if="showContactInfo" class="contact-info-section">
+                    <div class="contact-info-header">
+                        <h4>Comment créer un compte ?</h4>
+                        <button class="close-info" @click="showContactInfo = false">×</button>
+                    </div>
+                    <div class="contact-info-content">
+                        <p>Pour créer un compte et accéder aux fonctionnalités du site, veuillez contacter Emmy Vasse :</p>
+                        <div class="contact-details">
+                            <div class="contact-item">
+                                <strong>📧 Email :</strong>
+                                <a href="mailto:emmy.vasse@example.com">emmy.vasse@example.com</a>
+                    </div>
+                            <div class="contact-item">
+                                <strong>📞 Téléphone :</strong>
+                                <a href="tel:+33612345678">06 12 34 56 78</a>
+                    </div>
+                    </div>
+                        <p class="contact-note">Emmy vous créera un compte avec vos informations et vous transmettra vos identifiants de connexion.</p>
+                    </div>
+                    </div>
+                    </div>
         </div>
 
         <!-- Modal de mot de passe oublié -->
@@ -2362,6 +2386,50 @@
             </div>
         </div>
 
+        <!-- Modal d'ajout de client -->
+        <div v-if="showAddClientModal" class="edit-modal">
+            <div class="edit-modal-content">
+                <h2>Nouveau client</h2>
+                <form @submit.prevent="addClient">
+                    <div class="edit-form-group">
+                        <label for="newClientFirstName">Prénom</label>
+                        <input type="text" id="newClientFirstName" v-model="newClient.firstName" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newClientLastName">Nom</label>
+                        <input type="text" id="newClientLastName" v-model="newClient.lastName" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newClientEmail">Email</label>
+                        <input type="email" id="newClientEmail" v-model="newClient.email" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newClientPhone">Téléphone</label>
+                        <input type="tel" id="newClientPhone" v-model="newClient.phone" pattern="[0-9]{10}" placeholder="0612345678" required>
+                        <small style="color: var(--text-color); font-size: 0.8rem;">Format: 10 chiffres (ex: 0612345678)</small>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newClientAddress">Adresse complète</label>
+                        <textarea id="newClientAddress" v-model="newClient.address" rows="3" required></textarea>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newClientTravelTime">Temps de trajet</label>
+                        <input type="text" id="newClientTravelTime" v-model="newClient.travelTime" placeholder="Ex: 15 minutes, 30 min, 1h, etc.">
+                        <small style="color: var(--text-color); font-size: 0.8rem;">Temps estimé pour se rendre chez ce client</small>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="newClientPassword">Mot de passe</label>
+                        <input type="text" id="newClientPassword" v-model="newClient.password" placeholder="Mot de passe pour le client" required>
+                        <small style="color: var(--text-color); font-size: 0.8rem;">Mot de passe que le client utilisera pour se connecter</small>
+                    </div>
+                    <div class="edit-modal-actions">
+                        <button type="button" class="btn secondary" @click="showAddClientModal = false">Annuler</button>
+                        <button type="submit" class="btn primary">Créer le client</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Modal pour voir les dossiers d'animaux d'un client -->
         <div v-if="showClientAnimalsModal" class="modal">
             <div class="modal-content" style="max-width: 900px;">
@@ -2374,7 +2442,7 @@
                                 <img :src="animal.photos[0]" :alt="animal.name" class="animal-photo" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px; margin-bottom: 0;">
                                 <div v-if="animal.photos.length > 1" class="photo-count-badge" style="position: absolute; top: 5px; right: 5px; background: rgba(0,0,0,0.7); color: white; padding: 2px 6px; border-radius: 10px; font-size: 0.7rem;">
                                     +{{ animal.photos.length - 1 }}
-                                </div>
+                            </div>
                             </div>
                             <div v-else-if="animal.photoBase64" class="animal-photo-container" style="margin-bottom: 0.8rem;">
                                 <img :src="animal.photoBase64" :alt="animal.name" class="animal-photo" style="width: 100%; height: 120px; object-fit: cover; border-radius: 8px;">
@@ -2498,7 +2566,8 @@
                     isAuthenticated: false,
                     userEmail: '',
                     showAuth: false,
-                    isLogin: true,
+                    showContactInfo: false,
+
                     isMenuOpen: false,
                     contactForm: {
                         name: '',
@@ -2583,6 +2652,7 @@
                     unsubscribeAvailableDates: null,
                     editingClient: null,
                     showEditClientModal: false,
+                    showAddClientModal: false,
                     showClientAnimalsModal: false,
                     selectedClient: null,
                     clientAnimals: [],
@@ -2592,6 +2662,15 @@
                     unsubscribeClients: null,
                     allClients: [], // Ajouter allClients dans data
                     clientsData: [], // Nouvelle propriété pour stocker les données brutes des clients
+                    newClient: {
+                        firstName: '',
+                        lastName: '',
+                        email: '',
+                        phone: '',
+                        address: '',
+                        travelTime: '',
+                        password: ''
+                    },
                     // Propriétés pour les sélecteurs avec recherche
                     ownerSearch: '',
                     editOwnerSearch: '',
@@ -3122,55 +3201,7 @@
                         this.error = this.translateFirebaseError(error);
                     }
                 },
-                async register() {
-                    try {
-                        if (!this.firstName || !this.lastName) {
-                            this.error = 'Le nom et le prénom sont requis';
-                            return;
-                        }
-                        if (!this.phone) {
-                            this.error = 'Le numéro de téléphone est requis';
-                            return;
-                        }
-                        if (!this.address) {
-                            this.error = 'L\'adresse est requise';
-                            return;
-                        }
-                        const userCredential = await firebase.auth().createUserWithEmailAndPassword(this.email, this.password);
-                        
-                        // Liste des IDs administrateurs
-                        const adminIds = ['4tYIuGIeMMMG7Wbv6OXjkeKOURI3', 'Rdzwjl02KwaNdgbISONjs0rPBQy1'];
-                        
-                        // Créer un document utilisateur dans Firestore
-                        await db.collection('users').doc(userCredential.user.uid).set({
-                            email: userCredential.user.email,
-                            firstName: this.firstName,
-                            lastName: this.lastName,
-                            phone: this.phone,
-                            address: this.address,
-                            role: adminIds.includes(userCredential.user.uid) ? 'admin' : 'user',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
 
-                        this.isAuthenticated = true;
-                        this.userEmail = userCredential.user.email;
-                        this.error = '';
-                        this.showAuth = false;
-
-                        // Réinitialiser les champs
-                        this.firstName = '';
-                        this.lastName = '';
-                        this.phone = '';
-                        this.address = '';
-                        this.email = '';
-                        this.password = '';
-
-                        // Vérifier si l'utilisateur est admin
-                        await this.checkAdminStatus();
-                    } catch (error) {
-                        this.error = this.translateFirebaseError(error);
-                    }
-                },
                 // Méthode pour mettre à jour l'affichage des photos
                 updatePhotosDisplay(modal, photos) {
                     const photosGrid = modal.querySelector('.photos-grid');
@@ -3738,16 +3769,16 @@
                     }
                     // Forcer la mise à jour de l'état
                     this.$nextTick(() => {
-                        this.currentPage = page;
-                        window.scrollTo({ top: 0, behavior: 'smooth' });
-                        if (page === 'admin' && this.isAdmin) {
-                            this.loadAllData();
+                    this.currentPage = page;
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    if (page === 'admin' && this.isAdmin) {
+                        this.loadAllData();
                         } else if (page === 'profile' && this.isAuthenticated) {
                             this.loadProfileData();
                         } else if (['chien', 'chat', 'cheval', 'nac', 'bovins'].includes(page)) {
                             // Les pages d'animaux sont déjà gérées par les templates
                             // Pas besoin de chargement supplémentaire
-                        }
+                    }
                     });
                 },
                 async loadAnimals() {
@@ -4372,7 +4403,7 @@
                             this.updatePhotosDisplay(modal, currentPhotos);
                         });
                     });
-                    
+
                     // Gestionnaire pour la suppression de photos (pour les nouvelles photos ajoutées)
                     modal.addEventListener('delete-photo', (e) => {
                         const index = e.detail;
@@ -4392,14 +4423,14 @@
                             }
 
                         files.forEach(file => {
-                            if (!file.type.startsWith('image/')) {
+                                if (!file.type.startsWith('image/')) {
                                 alert(`Le fichier ${file.name} doit être une image`);
-                                return;
-                            }
+                                    return;
+                                }
 
                             try {
                                 // Créer un aperçu de l'image
-                            const reader = new FileReader();
+                                const reader = new FileReader();
                                 reader.onload = async (ev) => {
                                     // Créer une image pour le redimensionnement
                                     const img = new Image();
@@ -4414,14 +4445,14 @@
                                         const MAX_HEIGHT = 800;
                                         
                                         if (width > height) {
-                                            if (width > MAX_WIDTH) {
-                                                height *= MAX_WIDTH / width;
-                                                width = MAX_WIDTH;
-                                            }
+                                        if (width > MAX_WIDTH) {
+                                            height *= MAX_WIDTH / width;
+                                            width = MAX_WIDTH;
+                                        }
                                         } else {
-                                            if (height > MAX_HEIGHT) {
-                                                width *= MAX_HEIGHT / height;
-                                                height = MAX_HEIGHT;
+                                        if (height > MAX_HEIGHT) {
+                                            width *= MAX_HEIGHT / height;
+                                            height = MAX_HEIGHT;
                                             }
                                         }
                                         
@@ -4447,8 +4478,8 @@
                                         this.updatePhotosDisplay(modal, currentPhotos);
                                     };
                                     img.src = ev.target.result;
-                            };
-                            reader.readAsDataURL(file);
+                                };
+                                reader.readAsDataURL(file);
                             } catch (error) {
                                 console.error('Erreur lors du traitement de l\'image:', error);
                                 alert(`Erreur lors du traitement de l'image ${file.name}. Veuillez réessayer avec une autre image.`);
@@ -4484,7 +4515,7 @@
                                 birthdateApproxDiv.style.display = 'none';
                                 // Vider le champ approximatif
                                 modal.querySelector('#edit-animal-birthdate-approx').value = '';
-                            } else {
+                        } else {
                                 birthdateExactDiv.style.display = 'none';
                                 birthdateApproxDiv.style.display = 'block';
                                 // Vider le champ exact
@@ -4580,15 +4611,15 @@
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
 
-                        try {
-                            await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
+                            try {
+                                await firebase.firestore().collection('animals').doc(animal.id).update(updatedAnimal);
                             
-                            alert('Modifications enregistrées !');
-                            modal.remove();
-                            this.loadAnimals();
-                        } catch (err) {
-                                            console.error('Erreur lors de la sauvegarde:', err);
-                            alert('Erreur lors de la sauvegarde : ' + err.message);
+                                alert('Modifications enregistrées !');
+                                modal.remove();
+                                this.loadAnimals();
+                            } catch (err) {
+                                console.error('Erreur lors de la sauvegarde:', err);
+                                alert('Erreur lors de la sauvegarde : ' + err.message);
                         }
                     };
 
@@ -5583,13 +5614,13 @@
                         try {
                             console.log('Début du traitement du document:', file.name);
 
-                            if (!file.type.startsWith('image/')) {
+                        if (!file.type.startsWith('image/')) {
                                 alert(`Le fichier ${file.name} doit être une image`);
                                 continue;
-                            }
+                        }
 
-                            const reader = new FileReader();
-                            reader.onload = (e) => {
+                        const reader = new FileReader();
+                        reader.onload = (e) => {
                                 const img = new Image();
                                 img.onload = async () => {
                                     console.log('Image chargée, début du redimensionnement');
@@ -5641,8 +5672,8 @@
                                     this.$forceUpdate();
                                 };
                                 img.src = e.target.result;
-                            };
-                            reader.readAsDataURL(file);
+                        };
+                        reader.readAsDataURL(file);
                         } catch (error) {
                             console.error('Erreur détaillée lors du traitement du document:', error);
                             alert(`Erreur lors du traitement du document ${file.name}. Veuillez réessayer.`);
@@ -5843,7 +5874,82 @@
                         alert('Erreur lors de la modification: ' + error.message);
                     }
                 },
+                async addClient() {
+                    try {
+                        // Validation des champs requis
+                        if (!this.newClient.firstName || !this.newClient.lastName || !this.newClient.email || !this.newClient.phone || !this.newClient.address || !this.newClient.password) {
+                            alert('Tous les champs obligatoires doivent être remplis');
+                            return;
+                        }
 
+                        // Validation du mot de passe
+                        if (this.newClient.password.length < 6) {
+                            alert('Le mot de passe doit contenir au moins 6 caractères');
+                            return;
+                        }
+
+                        // Sauvegarder l'état actuel de l'admin
+                        const currentUser = firebase.auth().currentUser;
+                        const adminEmail = currentUser ? currentUser.email : null;
+
+                        // Créer le compte Firebase Auth
+                        const userCredential = await firebase.auth().createUserWithEmailAndPassword(this.newClient.email, this.newClient.password);
+                        
+                        // Créer le document utilisateur dans Firestore
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            email: this.newClient.email,
+                            firstName: this.newClient.firstName,
+                            lastName: this.newClient.lastName,
+                            phone: this.newClient.phone,
+                            address: this.newClient.address,
+                            travelTime: this.newClient.travelTime || '',
+                            role: 'user',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        // Déconnecter immédiatement le compte client créé
+                        await firebase.auth().signOut();
+
+                        // Reconnecter l'admin avec ses propres identifiants
+                        if (adminEmail) {
+                            // Demander à l'admin de se reconnecter
+                            this.showAddClientModal = false;
+                            this.showAuth = true;
+                            this.error = 'Compte client créé avec succès ! Veuillez vous reconnecter en tant qu\'administrateur.';
+                            
+                            // Sauvegarder les informations avant de réinitialiser
+                            const clientEmail = this.newClient.email;
+                            const clientPassword = this.newClient.password;
+
+                            // Réinitialiser le formulaire
+                            this.newClient = {
+                                firstName: '',
+                                lastName: '',
+                                email: '',
+                                phone: '',
+                                address: '',
+                                travelTime: '',
+                                password: ''
+                            };
+
+                            // Afficher les informations de connexion
+                            alert(`Client créé avec succès !\n\nEmail: ${clientEmail}\nMot de passe: ${clientPassword}\n\nCes identifiants peuvent être transmis au client.\n\nVous devez maintenant vous reconnecter en tant qu'administrateur.`);
+                        }
+                    } catch (error) {
+                        console.error('Error creating client:', error);
+                        
+                        // Gérer les erreurs spécifiques
+                        if (error.code === 'auth/email-already-in-use') {
+                            alert('Un compte avec cet email existe déjà');
+                        } else if (error.code === 'auth/invalid-email') {
+                            alert('Format d\'email invalide');
+                        } else if (error.code === 'auth/weak-password') {
+                            alert('Le mot de passe est trop faible');
+                        } else {
+                            alert('Erreur lors de la création du client: ' + this.translateFirebaseError(error));
+                        }
+                    }
+                },
 
                 async deleteClient(client) {
                     if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ? Cette action supprimera également tous ses animaux, rendez-vous ET son compte de connexion.`)) return;

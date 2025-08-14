@@ -37,3 +37,72 @@ exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
     throw new functions.https.HttpsError('internal', 'Erreur lors de la suppression du compte d\'authentification');
   }
 });
+
+// Fonction pour créer un utilisateur avec le SDK Admin Firebase
+exports.createUserAccount = functions.https.onCall(async (data, context) => {
+  // Vérifier que l'utilisateur est authentifié et est admin
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', 'Utilisateur non authentifié');
+  }
+  
+  // Vérifier que l'utilisateur est admin
+  const userDoc = await admin.firestore().collection('users').doc(context.auth.uid).get();
+  if (!userDoc.exists || userDoc.data().role !== 'admin') {
+    throw new functions.https.HttpsError('permission-denied', 'Accès refusé - Administrateur requis');
+  }
+  
+  const { email, password, firstName, lastName, phone, address, travelTime } = data;
+  
+  // Validation des données
+  if (!email || !password || !firstName || !lastName || !phone || !address) {
+    throw new functions.https.HttpsError('invalid-argument', 'Tous les champs obligatoires doivent être remplis');
+  }
+  
+  if (password.length < 6) {
+    throw new functions.https.HttpsError('invalid-argument', 'Le mot de passe doit contenir au moins 6 caractères');
+  }
+  
+  try {
+    // Créer l'utilisateur avec le SDK Admin Firebase (pas de connexion automatique)
+    const userRecord = await admin.auth().createUser({
+      email: email,
+      password: password,
+      displayName: `${firstName} ${lastName}`,
+      emailVerified: false
+    });
+    
+    // Créer le document utilisateur dans Firestore
+    await admin.firestore().collection('users').doc(userRecord.uid).set({
+      email: email,
+      firstName: firstName,
+      lastName: lastName,
+      phone: phone,
+      address: address,
+      travelTime: travelTime || '',
+      role: 'user',
+      createdAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+    
+    console.log(`[createUserAccount] Utilisateur créé avec succès: ${userRecord.uid}`);
+    
+    return { 
+      success: true, 
+      message: 'Utilisateur créé avec succès',
+      userId: userRecord.uid,
+      email: email
+    };
+  } catch (error) {
+    console.error(`[createUserAccount] Erreur lors de la création de l'utilisateur:`, error);
+    
+    // Gérer les erreurs spécifiques
+    if (error.code === 'auth/email-already-exists') {
+      throw new functions.https.HttpsError('already-exists', 'Un compte avec cet email existe déjà');
+    } else if (error.code === 'auth/invalid-email') {
+      throw new functions.https.HttpsError('invalid-argument', 'Format d\'email invalide');
+    } else if (error.code === 'auth/weak-password') {
+      throw new functions.https.HttpsError('invalid-argument', 'Le mot de passe est trop faible');
+    } else {
+      throw new functions.https.HttpsError('internal', 'Erreur lors de la création de l\'utilisateur');
+    }
+  }
+});
