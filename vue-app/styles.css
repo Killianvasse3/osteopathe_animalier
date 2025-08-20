@@ -4764,7 +4764,8 @@ select#animalOwner option {
 /* Hero Section */
 .animal-hero {
     position: relative;
-    height: 80vh;
+    height: 100vh; /* Hauteur augmentée pour que l'image s'étende plus haut */
+    margin-top: 0; /* Suppression de la marge pour que l'image passe sous la navigation */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -4802,6 +4803,7 @@ select#animalOwner option {
     z-index: 2;
     max-width: 800px;
     padding: 0 2rem;
+    padding-top: 80px; /* Compensation pour centrer le contenu dans la partie visible */
 }
 
 .hero-content h1 {
@@ -5111,6 +5113,14 @@ select#animalOwner option {
 
 /* Responsive pour les pages d'animaux */
 @media (max-width: 768px) {
+    .animal-hero {
+        margin-top: 0; /* L'image passe sous la navigation sur mobile aussi */
+    }
+    
+    .hero-content {
+        padding-top: 70px; /* Compensation pour centrer le contenu sur mobile */
+    }
+    
     .hero-content h1 {
         font-size: 2.5rem;
     }
