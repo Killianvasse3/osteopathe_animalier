@@ -1058,6 +1058,57 @@ body {
     background-color: #e64545;
 }
 
+/* Table container for fixed actions column */
+.table-container {
+    position: relative;
+    overflow-x: auto;
+    width: 100%;
+}
+
+/* Fixed actions column on desktop */
+@media (min-width: 1024px) {
+    .table-container {
+        overflow-x: visible;
+    }
+    
+    .data-table {
+        position: relative;
+    }
+    
+    .actions-column {
+        position: sticky;
+        right: 0;
+        background: white;
+        z-index: 10;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.1);
+    }
+    
+    .data-table thead .actions-column {
+        background: #f8f9fa;
+        z-index: 11;
+    }
+    
+    .data-table tbody .actions-column {
+        background: white;
+    }
+    
+    .data-table tbody tr:hover .actions-column {
+        background: #f8f9fa;
+    }
+}
+
+/* Mobile responsive - keep normal behavior */
+@media (max-width: 1023px) {
+    .table-container {
+        overflow-x: auto;
+    }
+    
+    .actions-column {
+        position: static;
+        box-shadow: none;
+    }
+}
+
 /* Status badges */
 .status-badge {
     padding: 0.3rem 0.8rem;

@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=19.7">
+    <link rel="stylesheet" href="styles.css?v=19,8">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -1196,47 +1196,49 @@
                             </button>
                         </div>
 
-                        <table class="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Nom</th>
-                                    <th>Prénom</th>
-                                    <th>Email</th>
-                                    <th>Téléphone</th>
-                                    <th>Temps de trajet</th>
-                                    <th>Date d'inscription</th>
-                                    <th>Nombre d'animaux</th>
-                                    <th>Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr v-for="client in filteredClients" :key="client.id">
-                                    <td>{{ client.lastName || 'N/A' }}</td>
-                                    <td>{{ client.firstName || 'N/A' }}</td>
-                                    <td>{{ client.email }}</td>
-                                    <td>{{ client.phone || 'N/A' }}</td>
-                                    <td>{{ client.travelTime || 'Non renseigné' }}</td>
-                                    <td>{{ formatDate(client.createdAt) }}</td>
-                                    <td>{{ client.animalsCount }}</td>
-                                    <td>
-                                        <div class="action-buttons">
-                                            <button class="btn-view" @click="viewClientAnimals(client)">
-                                                Voir les dossiers
-                                            </button>
-                                            <button class="btn-edit" @click="editClient(client)">
-                                                Modifier
-                                            </button>
-                                            <button class="btn-delete" @click="deleteClient(client)">
-                                                Supprimer
-                                            </button>
-                                        </div>
-                                    </td>
-                                </tr>
-                                <tr v-if="filteredClients.length === 0">
-                                    <td colspan="8" class="text-center">Aucun client trouvé</td>
-                                </tr>
-                            </tbody>
-                        </table>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nom</th>
+                                        <th>Prénom</th>
+                                        <th>Email</th>
+                                        <th>Téléphone</th>
+                                        <th>Temps de trajet</th>
+                                        <th>Date d'inscription</th>
+                                        <th>Nombre d'animaux</th>
+                                        <th class="actions-column">Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="client in filteredClients" :key="client.id">
+                                        <td>{{ client.lastName || 'N/A' }}</td>
+                                        <td>{{ client.firstName || 'N/A' }}</td>
+                                        <td>{{ client.email }}</td>
+                                        <td>{{ client.phone || 'N/A' }}</td>
+                                        <td>{{ client.travelTime || 'Non renseigné' }}</td>
+                                        <td>{{ formatDate(client.createdAt) }}</td>
+                                        <td>{{ client.animalsCount }}</td>
+                                        <td class="actions-column">
+                                            <div class="action-buttons">
+                                                <button class="btn-view" @click="viewClientAnimals(client)">
+                                                    Voir les dossiers
+                                                </button>
+                                                <button class="btn-edit" @click="editClient(client)">
+                                                    Modifier
+                                                </button>
+                                                <button class="btn-delete" @click="deleteClient(client)">
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="filteredClients.length === 0">
+                                        <td colspan="8" class="text-center">Aucun client trouvé</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
                     </div>
 
                     <!-- Onglet Messages -->
