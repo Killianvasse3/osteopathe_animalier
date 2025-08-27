@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=19,8">
+    <link rel="stylesheet" href="styles.css?v=20.1">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -267,25 +267,30 @@
                     </div>
                 </section>
 
-                <section id="blog" class="blog-section">
-                    <div class="blog-container">
-                        <div class="blog-header">
-                            <h2 class="section-title">Actualités & Événements</h2>
+                <section id="blog" class="events-section">
+                    <div class="events-container">
+                        <div class="events-header">
+                            <h2 class="section-title">Calendrier des Événements</h2>
+                            <p class="section-subtitle">Découvrez les événements canins et autres auxquels Emmy participe</p>
                             <div v-if="isAdmin" class="admin-controls">
                                 <button class="btn" @click="resetBlogForm(); showAddPostModal = true">
-                                    Ajouter un article
+                                    Ajouter un événement
                                 </button>
                             </div>
                         </div>
-                        <div class="blog-grid">
-                            <article v-for="post in blogPosts" :key="post.id" class="blog-post" @click="showPostDetails(post)">
-                                <img :src="post.imageUrl" :alt="post.title" class="blog-post-image">
-                                <div class="blog-post-content">
-                                    <div class="blog-post-date">{{ formatDate(post.date) }}</div>
-                                    <h3 class="blog-post-title">{{ post.title }}</h3>
-                                    <p class="blog-post-excerpt">{{ post.excerpt }}</p>
-                                    <div class="blog-post-link">
-                                        Lire la suite
+                        <div class="events-grid">
+                            <article v-for="post in blogPosts" :key="post.id" class="event-card" @click="showPostDetails(post)">
+                                <div class="event-image-container">
+                                    <img :src="post.imageUrl" :alt="post.title" class="event-image">
+                                    <div class="event-overlay">
+                                        <div class="event-date">{{ formatDate(post.date) }}</div>
+                                    </div>
+                                </div>
+                                <div class="event-content">
+                                    <h3 class="event-title">{{ post.title }}</h3>
+                                    <p class="event-excerpt">{{ post.excerpt }}</p>
+                                    <div class="event-link">
+                                        Voir les détails
                                     </div>
                                 </div>
                             </article>
