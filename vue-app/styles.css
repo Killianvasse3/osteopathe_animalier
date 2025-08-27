@@ -4907,7 +4907,7 @@ select#animalOwner option {
     border-radius: 15px;
     text-align: center;
     transition: transform 0.3s ease, box-shadow 0.3s ease;
-    border-left: 4px solid var(--accent-color);
+    border-left: 4px solid #28a745;
 }
 
 .advantage-item:hover {
