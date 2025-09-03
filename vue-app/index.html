@@ -1048,6 +1048,7 @@
                                         <select 
                                             id="adminAppointmentAnimal" 
                                             v-model="adminAppointmentForm.selectedAnimalId"
+                                            @change="onAdminAnimalSelected"
                                             required>
                                             <option value="">Sélectionnez un animal</option>
                                             <option v-for="animal in clientAnimals" 
@@ -6768,9 +6769,40 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                         time: '',
                         notes: ''
                     };
+                    // Réinitialiser aussi la liste des animaux du client
+                    this.clientAnimals = [];
                 },
                 loadClientAnimals() {
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);
+                    
+                    // Remplir automatiquement le numéro de téléphone si un client est sélectionné
+                    if (this.adminAppointmentForm.userId) {
+                        const selectedClient = this.allClients.find(client => client.id === this.adminAppointmentForm.userId);
+                        if (selectedClient && selectedClient.phone) {
+                            this.adminAppointmentForm.phone = selectedClient.phone;
+                            console.log('Numéro de téléphone rempli automatiquement:', selectedClient.phone);
+                        } else {
+                            // Réinitialiser le téléphone si le client n'en a pas
+                            this.adminAppointmentForm.phone = '';
+                            console.log('Client sélectionné sans numéro de téléphone');
+                        }
+                        
+                        // Réinitialiser l'animal sélectionné car il change de client
+                        this.adminAppointmentForm.selectedAnimalId = '';
+                    } else {
+                        // Réinitialiser le téléphone et l'animal si aucun client n'est sélectionné
+                        this.adminAppointmentForm.phone = '';
+                        this.adminAppointmentForm.selectedAnimalId = '';
+                    }
+                },
+                onAdminAnimalSelected() {
+                    // Cette fonction peut être utilisée pour des actions supplémentaires lors de la sélection d'un animal
+                    if (this.adminAppointmentForm.selectedAnimalId) {
+                        const selectedAnimal = this.clientAnimals.find(animal => animal.id === this.adminAppointmentForm.selectedAnimalId);
+                        if (selectedAnimal) {
+                            console.log('Animal sélectionné:', selectedAnimal.name, '(', selectedAnimal.species, ')');
+                        }
+                    }
                 },
                 switchToSlotsTab() {
                     this.adminActiveTab = 'slots';
