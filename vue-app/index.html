@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20.2">
+    <link rel="stylesheet" href="styles.css?v=20.4">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -662,6 +662,13 @@
 
                     <!-- Onglet Dossiers Animaux -->
                     <div v-if="adminActiveTab === 'animals'" class="admin-content">
+                        <!-- Indicateur de chargement -->
+                        <div v-if="isLoadingAdminData" class="loading-indicator" style="text-align: center; padding: 2rem; color: var(--primary-color);">
+                            <div style="font-size: 1.2rem; margin-bottom: 1rem;">Chargement des dossiers animaux...</div>
+                            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        </div>
+                        
+                        <div v-else>
                         <div class="admin-header-actions">
                         <div class="search-bar">
                             <input 
@@ -870,10 +877,18 @@
                                 </form>
                             </div>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Onglet Rendez-vous -->
                     <div v-if="adminActiveTab === 'appointments'" class="admin-content">
+                        <!-- Indicateur de chargement -->
+                        <div v-if="isLoadingAdminData" class="loading-indicator" style="text-align: center; padding: 2rem; color: var(--primary-color);">
+                            <div style="font-size: 1.2rem; margin-bottom: 1rem;">Chargement des données...</div>
+                            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        </div>
+                        
+                        <div v-else>
                         <div class="admin-header-actions">
                         <div class="search-bar">
                             <input 
@@ -1116,10 +1131,18 @@
                                 </form>
                             </div>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Onglet Créneaux -->
                     <div v-if="adminActiveTab === 'slots'" class="admin-content">
+                        <!-- Indicateur de chargement -->
+                        <div v-if="isLoadingAdminData" class="loading-indicator" style="text-align: center; padding: 2rem; color: var(--primary-color);">
+                            <div style="font-size: 1.2rem; margin-bottom: 1rem;">Chargement des créneaux...</div>
+                            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        </div>
+                        
+                        <div v-else>
                             <div class="slots-header">
                                 <h2>Gestion des créneaux horaires</h2>
                                 <button class="btn primary" @click="showAddSlotModal = true">
@@ -1184,10 +1207,18 @@
                                 </div>
                             </div>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Onglet Clients -->
                     <div v-if="adminActiveTab === 'clients'" class="admin-content">
+                        <!-- Indicateur de chargement -->
+                        <div v-if="isLoadingAdminData" class="loading-indicator" style="text-align: center; padding: 2rem; color: var(--primary-color);">
+                            <div style="font-size: 1.2rem; margin-bottom: 1rem;">Chargement des clients...</div>
+                            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        </div>
+                        
+                        <div v-else>
                         <div class="admin-header-actions">
                         <div class="search-bar">
                             <input 
@@ -1243,10 +1274,18 @@
                                 </tbody>
                             </table>
                         </div>
+                        </div>
                     </div>
 
                     <!-- Onglet Messages -->
                     <div v-if="adminActiveTab === 'messages'" class="admin-content">
+                        <!-- Indicateur de chargement -->
+                        <div v-if="isLoadingAdminData" class="loading-indicator" style="text-align: center; padding: 2rem; color: var(--primary-color);">
+                            <div style="font-size: 1.2rem; margin-bottom: 1rem;">Chargement des messages...</div>
+                            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        </div>
+                        
+                        <div v-else>
                         <div class="search-bar">
                             <input 
                                 type="text" 
@@ -1292,6 +1331,7 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
                     </div>
                 </section>
             </template>
@@ -2529,6 +2569,7 @@
                     currentYear: new Date().getFullYear(),
                     selectedDate: null,
                     showAddSlotModal: false,
+                    isLoadingAdminData: false,
                     newSlot: {
                         time: '',
                         date: '',
@@ -4883,6 +4924,12 @@
                 },
                 async loadAllData() {
                     if (!this.isAdmin) return;
+                    this.isLoadingAdminData = true;
+                    
+                    // Délai minimum pour l'indicateur de chargement
+                    const startTime = Date.now();
+                    const minLoadingTime = 500; // 500ms minimum
+                    
                     try {
                         // Charger tous les utilisateurs d'abord
                         const usersSnapshot = await db.collection('users').get();
@@ -4915,12 +4962,25 @@
                                 console.error('Erreur dans l\'écoute des animaux:', error);
                             });
 
-                        // Charger tous les rendez-vous
-                        const appointmentsSnapshot = await db.collection('appointments').get();
-                        this.allAppointments = appointmentsSnapshot.docs.map(doc => ({
-                            id: doc.id,
-                            ...doc.data()
-                        }));
+                        // Mettre en place l'écoute en temps réel pour les rendez-vous
+                        if (this.unsubscribeAppointments) {
+                            this.unsubscribeAppointments();
+                        }
+
+                        console.log('Mise en place de l\'écouteur onSnapshot pour les rendez-vous...');
+                        this.unsubscribeAppointments = db.collection('appointments')
+                            .orderBy('date', 'desc')
+                            .onSnapshot(snapshot => {
+                                console.log('Écouteur onSnapshot déclenché - Nombre de rendez-vous:', snapshot.docs.length);
+                                this.allAppointments = snapshot.docs.map(doc => ({
+                                    id: doc.id,
+                                    ...doc.data()
+                                }));
+                                console.log('Liste des rendez-vous mise à jour en temps réel');
+                            }, error => {
+                                console.error('Erreur dans l\'écoute des rendez-vous:', error);
+                            });
+                        console.log('Écouteur onSnapshot pour les rendez-vous configuré');
 
                         // Charger tous les clients (users)
                         this.allClients = usersSnapshot.docs
@@ -4962,8 +5022,16 @@
                             });
 
                         await this.loadMessages();
+                        
+                        // S'assurer que l'indicateur de chargement s'affiche au moins pendant le temps minimum
+                        const elapsedTime = Date.now() - startTime;
+                        if (elapsedTime < minLoadingTime) {
+                            await new Promise(resolve => setTimeout(resolve, minLoadingTime - elapsedTime));
+                        }
                     } catch (error) {
                         console.error('Error loading admin data:', error);
+                    } finally {
+                        this.isLoadingAdminData = false;
                     }
                 },
                 getUserFullName(userId) {
@@ -6554,9 +6622,19 @@
                             return;
                         }
 
+                        // Récupérer les informations de l'animal pour l'affichage
+                        const animal = this.allAnimals.find(a => a.id === this.adminAppointmentForm.selectedAnimalId);
+                        const animalName = animal ? animal.name : 'Animal inconnu';
+
+                        // Sauvegarder les valeurs du formulaire avant la réinitialisation
+                        const savedUserId = this.adminAppointmentForm.userId;
+                        const savedDate = this.adminAppointmentForm.date;
+                        const savedTime = this.adminAppointmentForm.time;
+
                         const appointmentData = {
                             userId: this.adminAppointmentForm.userId,
                             selectedAnimalId: this.adminAppointmentForm.selectedAnimalId,
+                            animalName: animalName,
                             phone: this.adminAppointmentForm.phone,
                             date: this.adminAppointmentForm.date,
                             time: this.adminAppointmentForm.time,
@@ -6566,6 +6644,38 @@
                         };
 
                         const appointmentRef = await db.collection('appointments').add(appointmentData);
+                        console.log('Rendez-vous ajouté avec succès, ID:', appointmentRef.id);
+
+                        // Mettre à jour le créneau dans timeSlots pour le marquer comme indisponible
+                        const startOfDay = new Date(this.adminAppointmentForm.date);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(this.adminAppointmentForm.date);
+                        endOfDay.setHours(23, 59, 59, 999);
+
+                        // Trouver le créneau correspondant dans timeSlots
+                        const timeSlotSnapshot = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .where('time', '==', this.adminAppointmentForm.time)
+                            .get();
+
+                        if (!timeSlotSnapshot.empty) {
+                            const timeSlotId = timeSlotSnapshot.docs[0].id;
+                            
+                            // Ajouter l'ID du créneau aux données du rendez-vous
+                            appointmentData.timeSlotId = timeSlotId;
+                            
+                            // Marquer le créneau comme indisponible
+                            await db.collection('timeSlots')
+                                .doc(timeSlotId)
+                                .update({
+                                    unavailable: true,
+                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                            console.log('Créneau marqué comme indisponible dans timeSlots');
+                        } else {
+                            console.log('Créneau timeSlots non trouvé pour la mise à jour');
+                        }
 
                         // Mettre à jour l'historique de l'animal
                         const animalRef = db.collection('animals').doc(this.adminAppointmentForm.selectedAnimalId);
@@ -6575,9 +6685,11 @@
                                 date: this.adminAppointmentForm.date,
                                 time: this.adminAppointmentForm.time,
                                 notes: this.adminAppointmentForm.notes,
-                                status: 'pending'
+                                status: 'pending',
+                                timeSlotId: appointmentData.timeSlotId || null
                             })
                         });
+                        console.log('Historique de l\'animal mis à jour');
 
                         this.showAdminNewAppointmentModal = false;
                         this.adminAppointmentForm = {
@@ -6588,7 +6700,59 @@
                             time: '',
                             notes: ''
                         };
-                        alert('Rendez-vous ajouté avec succès');
+                        
+                        // Message de succès plus informatif avec les valeurs sauvegardées
+                        const successMessage = `Rendez-vous ajouté avec succès !
+                        
+Détails :
+- Animal : ${animalName}
+- Date : ${this.formatDate(savedDate)}
+- Heure : ${savedTime}
+- Client : ${this.getUserFullName(savedUserId)}
+
+Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
+                        
+                        alert(successMessage);
+                        
+                        // Forcer le rechargement des données pour s'assurer que le nouveau rendez-vous s'affiche
+                        if (this.adminActiveTab === 'appointments') {
+                            console.log('Rechargement des données après ajout de rendez-vous');
+                            
+                            // Vérifier si l'écouteur onSnapshot est actif
+                            if (this.unsubscribeAppointments) {
+                                console.log('Écouteur onSnapshot actif, attente de la mise à jour automatique...');
+                                // Attendre un peu pour laisser l'écouteur se déclencher
+                                await new Promise(resolve => setTimeout(resolve, 1000));
+                                
+                                // Vérifier si le rendez-vous est maintenant dans la liste
+                                const newAppointment = this.allAppointments.find(apt => apt.id === appointmentRef.id);
+                                if (newAppointment) {
+                                    console.log('Rendez-vous trouvé dans la liste via onSnapshot');
+                                } else {
+                                    console.log('Rendez-vous non trouvé, rechargement manuel...');
+                                    // Ajouter manuellement le rendez-vous à la liste
+                                    this.allAppointments.unshift({
+                                        id: appointmentRef.id,
+                                        ...appointmentData
+                                    });
+                                    console.log('Rendez-vous ajouté manuellement à la liste');
+                                }
+                            } else {
+                                console.log('Écouteur onSnapshot non actif, ajout manuel...');
+                                // Ajouter manuellement le rendez-vous à la liste
+                                this.allAppointments.unshift({
+                                    id: appointmentRef.id,
+                                    ...appointmentData
+                                });
+                                console.log('Rendez-vous ajouté manuellement à la liste');
+                            }
+                        }
+                        
+                        // Recharger les créneaux disponibles pour mettre à jour l'affichage
+                        if (this.adminActiveTab === 'slots') {
+                            console.log('Rechargement des créneaux après ajout de rendez-vous');
+                            await this.loadSlots();
+                        }
                     } catch (error) {
                         console.error('Error submitting admin appointment:', error);
                         alert('Erreur lors de l\'ajout du rendez-vous');
@@ -6622,6 +6786,25 @@
                     this.appointmentsSearch = '';
                     this.clientsSearch = '';
                     this.messagesSearch = '';
+                    
+                    // Recharger les données appropriées selon l'onglet
+                    if (tab === 'slots') {
+                        setTimeout(() => {
+                            this.loadSlots();
+                        }, 100);
+                    } else if (tab === 'appointments') {
+                        // Les rendez-vous sont déjà en temps réel via onSnapshot
+                        console.log('Onglet rendez-vous activé - données en temps réel');
+                    } else if (tab === 'animals') {
+                        // Les animaux sont déjà en temps réel via onSnapshot
+                        console.log('Onglet animaux activé - données en temps réel');
+                    } else if (tab === 'clients') {
+                        // Les clients sont déjà en temps réel via onSnapshot
+                        console.log('Onglet clients activé - données en temps réel');
+                    } else if (tab === 'messages') {
+                        // Les messages sont déjà en temps réel via onSnapshot
+                        console.log('Onglet messages activé - données en temps réel');
+                    }
                 },
                 // Fonction pour le défilement fluide vers les sections
                 smoothScrollTo(targetId) {

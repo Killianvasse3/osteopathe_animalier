@@ -55,6 +55,9 @@ service cloud.firestore {
       // Seuls les admins peuvent modifier les rendez-vous
       allow update: if isAdmin();
       
+      // Les admins peuvent créer des rendez-vous pour les clients
+      allow create: if isAdmin();
+
       // Seuls les admins peuvent supprimer les rendez-vous
       allow delete: if isAdmin();
     }
