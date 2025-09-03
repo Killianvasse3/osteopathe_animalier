@@ -351,24 +351,24 @@
                 <section class="appointment-page">
                     <div class="appointment-header">
                         <h1>Prendre un rendez-vous</h1>
-                        <p>Choisissez une date et une heure qui vous conviennent pour votre consultation</p>
+                        <p>Voici les quelques étapes simples pour prendre un rendez-vous avec Emmy</p>
                     </div>
 
                     <div class="appointment-steps">
                         <div class="step">
                             <div class="step-number">1</div>
-                            <h3>Choisissez votre animal</h3>
-                            <p>Sélectionnez un animal existant dans votre dossier ou créez un nouveau profil en renseignant ses informations</p>
+                            <h3>Choisissez un type de consultation</h3>
+                            <p>Sélectionnez un type de consultation parmi les options disponibles, seul les consultations de suivi permettent de prendre un rendez-vous en ligne.</p>
                         </div>
                         <div class="step">
                             <div class="step-number">2</div>
-                            <h3>Sélectionnez la date et l'heure</h3>
-                            <p>Choisissez une date parmi celles disponibles, puis sélectionnez le créneau horaire qui vous convient</p>
+                            <h3>Sélectionnez votre animal, la date et l'heure</h3>
+                            <p>Choisissez un animal parmi ceux qui sont déjà enregistrés dans votre dossier, puis une date parmi celles disponibles, puis sélectionnez le créneau horaire qui vous convient</p>
                         </div>
                         <div class="step">
                             <div class="step-number">3</div>
                             <h3>Confirmez votre rendez-vous</h3>
-                            <p>Votre rendez-vous est immédiatement enregistré et ajouté à l'historique de votre animal</p>
+                            <p>Votre rendez-vous est immédiatement enregistré et sera validé par par sms ou email.</p>
                         </div>
                     </div>
 
@@ -405,7 +405,7 @@
                                         <a href="https://www.facebook.com/people/Th%C3%A9rapeute-Manuelle-Animalier-Emmy-Vasse/61555277590644/" target="_blank">Facebook</a>
                                     </li>
                                 </ul>
-                                <p>Ou utilisez le <a href="#" @click.prevent="scrollToContact">formulaire de contact</a> ci-dessous.</p>
+                                <p>Ou utilisez le <a href="#" @click.prevent="scrollToContact">formulaire de contact</a>.</p>
                             </div>
 
                             <!-- Formulaire pour consultation de suivi -->
@@ -1241,7 +1241,6 @@
                                         <th>Email</th>
                                         <th>Téléphone</th>
                                         <th>Temps de trajet</th>
-                                        <th>Date d'inscription</th>
                                         <th>Nombre d'animaux</th>
                                         <th class="actions-column">Actions</th>
                                     </tr>
@@ -1253,7 +1252,6 @@
                                         <td>{{ client.email }}</td>
                                         <td>{{ client.phone || 'N/A' }}</td>
                                         <td>{{ client.travelTime || 'Non renseigné' }}</td>
-                                        <td>{{ formatDate(client.createdAt) }}</td>
                                         <td>{{ client.animalsCount }}</td>
                                         <td class="actions-column">
                                             <div class="action-buttons">
@@ -1270,7 +1268,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="filteredClients.length === 0">
-                                        <td colspan="8" class="text-center">Aucun client trouvé</td>
+                                        <td colspan="7" class="text-center">Aucun client trouvé</td>
                                     </tr>
                                 </tbody>
                             </table>
