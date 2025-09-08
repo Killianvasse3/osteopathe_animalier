@@ -5479,3 +5479,47 @@ select#animalOwner option {
         padding: 1rem;
     }
 }
+
+/* Styles pour les boutons de switch du modal de rendez-vous admin */
+.appointment-mode-switch {
+    margin-bottom: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.mode-switch-btn {
+    padding: 0.75rem 1.5rem;
+    border-radius: 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    border: 2px solid var(--primary-color);
+    background: transparent;
+    color: var(--primary-color);
+}
+
+.mode-switch-btn.primary {
+    background: var(--primary-color);
+    color: white;
+    box-shadow: 0 2px 8px rgba(75, 108, 193, 0.3);
+}
+
+.mode-switch-btn.secondary {
+    background: transparent;
+    color: var(--primary-color);
+}
+
+.mode-switch-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(75, 108, 193, 0.2);
+}
+
+.mode-switch-btn.primary:hover {
+    background: #3a5a9e;
+    box-shadow: 0 4px 12px rgba(75, 108, 193, 0.4);
+}
+
+.mode-switch-btn.secondary:hover {
+    background: var(--primary-color);
+    color: white;
+}

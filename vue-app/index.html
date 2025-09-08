@@ -875,7 +875,7 @@
                                     </div>
                                 </form>
                             </div>
-                        </div>
+                            </div>
                         </div>
                     </div>
 
@@ -895,7 +895,7 @@
                                     v-model="appointmentsSearch" 
                                 placeholder="Rechercher un rendez-vous...">
                             </div>
-                            <button class="btn primary" @click="showAdminNewAppointmentModal = true">
+                            <button class="btn primary" @click="openAdminAppointmentModal">
                                 Nouveau rendez-vous
                             </button>
 
@@ -937,8 +937,18 @@
                                     <tr v-for="appointment in sortedAppointments" :key="appointment.id">
                                     <td>{{ formatDate(appointment.date) }}</td>
                                     <td>{{ appointment.time }}</td>
-                                    <td>{{ appointment.animalName }}</td>
-                                    <td>{{ getUserFullName(appointment.userId) }}</td>
+                                    <td>
+                                        {{ appointment.animalName }}
+                                        <span v-if="appointment.isTemporary" class="temp-badge" style="background: #ff9800; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; margin-left: 5px;">Temporaire</span>
+                                    </td>
+                                    <td>
+                                        <span v-if="appointment.isTemporary">
+                                            {{ appointment.tempClientInfo?.firstName }} {{ appointment.tempClientInfo?.lastName }}
+                                        </span>
+                                        <span v-else>
+                                            {{ getUserFullName(appointment.userId) }}
+                                        </span>
+                                    </td>
                                     <td>{{ appointment.phone }}</td>
                                         <td>{{ userEmails[appointment.userId]?.address || 'Non renseignée' }}</td>
                                         <td>{{ appointment.travelTime || 'Non renseigné' }}</td>
@@ -1001,8 +1011,18 @@
                                          class="appointment-card">
                                         <div class="appointment-time">{{ appointment.time }}</div>
                                         <div class="appointment-details">
-                                            <div class="appointment-animal">{{ appointment.animalName }}</div>
-                                            <div class="appointment-client">{{ getUserFullName(appointment.userId) }}</div>
+                                            <div class="appointment-animal">
+                                                {{ appointment.animalName }}
+                                                <span v-if="appointment.isTemporary" class="temp-badge" style="background: #ff9800; color: white; padding: 2px 6px; border-radius: 3px; font-size: 0.7rem; margin-left: 5px;">Temporaire</span>
+                                            </div>
+                                            <div class="appointment-client">
+                                                <span v-if="appointment.isTemporary">
+                                                    {{ appointment.tempClientInfo?.firstName }} {{ appointment.tempClientInfo?.lastName }}
+                                                </span>
+                                                <span v-else>
+                                                    {{ getUserFullName(appointment.userId) }}
+                                                </span>
+                                            </div>
                                             <div class="appointment-contact">
                                                 <div>📞 {{ appointment.phone }}</div>
                                                 <div>🚗 {{ appointment.travelTime || 'Non renseigné' }}</div>
@@ -1025,7 +1045,25 @@
                         <div v-if="showAdminNewAppointmentModal" class="modal">
                             <div class="modal-content appointment-form-modal">
                                 <h2>Nouveau rendez-vous</h2>
-                                <form @submit.prevent="submitAdminAppointment">
+                                
+                                <!-- Switch entre client existant et nouveau client -->
+                                <div class="appointment-mode-switch" style="margin-bottom: 2rem; display: flex; gap: 1rem; justify-content: center;">
+                                    <button 
+                                        type="button" 
+                                        :class="['btn', 'mode-switch-btn', adminAppointmentMode === 'existing' ? 'primary' : 'secondary']"
+                                        @click="adminAppointmentMode = 'existing'">
+                                        Client existant
+                                    </button>
+                                    <button 
+                                        type="button" 
+                                        :class="['btn', 'mode-switch-btn', adminAppointmentMode === 'new' ? 'primary' : 'secondary']"
+                                        @click="adminAppointmentMode = 'new'">
+                                        Nouveau client
+                                    </button>
+                                </div>
+
+                                <!-- Formulaire pour client existant -->
+                                <form v-if="adminAppointmentMode === 'existing'" @submit.prevent="submitAdminAppointment">
                                     <div class="form-group">
                                         <label for="adminAppointmentClient">Client</label>
                                         <select 
@@ -1129,6 +1167,136 @@
                                         </button>
                                     </div>
                                 </form>
+
+                                <!-- Formulaire pour nouveau client -->
+                                <form v-if="adminAppointmentMode === 'new'" @submit.prevent="submitNewClientAppointment">
+                                    <div class="form-group">
+                                        <label for="newClientFirstName">Prénom du propriétaire</label>
+                                        <input 
+                                            type="text" 
+                                            id="newClientFirstName" 
+                                            v-model="newClientAppointmentForm.firstName"
+                                            required>
+                            </div>
+
+                                    <div class="form-group">
+                                        <label for="newClientLastName">Nom du propriétaire</label>
+                                        <input 
+                                            type="text" 
+                                            id="newClientLastName" 
+                                            v-model="newClientAppointmentForm.lastName"
+                                            required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="newClientEmail">Adresse email</label>
+                                        <input 
+                                            type="email" 
+                                            id="newClientEmail" 
+                                            v-model="newClientAppointmentForm.email"
+                                            required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="newClientPhone">Numéro de téléphone</label>
+                                        <input 
+                                            type="tel" 
+                                            id="newClientPhone" 
+                                            v-model="newClientAppointmentForm.phone"
+                                            pattern="[0-9]{10}"
+                                            placeholder="0612345678"
+                                            required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="newClientAddress">Adresse</label>
+                                        <textarea 
+                                            id="newClientAddress" 
+                                            v-model="newClientAppointmentForm.address"
+                                            rows="2"
+                                            required>
+                                        </textarea>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="newClientAnimalName">Nom de l'animal</label>
+                                        <input 
+                                            type="text" 
+                                            id="newClientAnimalName" 
+                                            v-model="newClientAppointmentForm.animalName"
+                                            required>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="newClientAnimalType">Type d'animal</label>
+                                        <select 
+                                            id="newClientAnimalType" 
+                                            v-model="newClientAppointmentForm.animalType"
+                                            required>
+                                            <option value="">Sélectionnez un type</option>
+                                            <option value="Chien">Chien</option>
+                                            <option value="Chat">Chat</option>
+                                            <option value="Cheval">Cheval</option>
+                                            <option value="Vache">Vache</option>
+                                            <option value="NAC">NAC (Nouveaux Animaux de Compagnie)</option>
+                                            <option value="Autre">Autre</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Date du rendez-vous</label>
+                                        <select 
+                                            id="newClientAppointmentDate" 
+                                            v-model="newClientAppointmentForm.date" 
+                                            @change="loadNewClientAvailableDates"
+                                            required>
+                                            <option value="">Sélectionnez une date</option>
+                                            <option v-for="date in newClientAvailableDates" 
+                                                    :key="date" 
+                                                    :value="date">
+                                                {{ formatDateFr(date) }}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label>Heure du rendez-vous</label>
+                                        <div v-if="newClientDisplayedTimeSlots.length === 0" class="no-slots-message">
+                                            Aucun créneau disponible pour cette date.
+                                        </div>
+                                        <div v-else class="time-slots">
+                                            <button v-for="slot in newClientDisplayedTimeSlots" 
+                                                 :key="slot"
+                                                 type="button"
+                                                 class="time-slot"
+                                                 :class="{ 'selected': newClientAppointmentForm.time === slot }"
+                                                 @click="newClientAppointmentForm.time = slot">
+                                                {{ slot }}
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label for="newClientAppointmentNotes">Notes</label>
+                                        <textarea 
+                                            id="newClientAppointmentNotes" 
+                                            v-model="newClientAppointmentForm.notes" 
+                                            rows="3">
+                                        </textarea>
+                                    </div>
+
+                                    <div class="modal-actions">
+                                        <button type="button" 
+                                                class="btn secondary" 
+                                                @click="cancelAdminAppointment">
+                                            Annuler
+                                        </button>
+                                        <button type="submit" 
+                                                class="btn primary">
+                                            Valider le rendez-vous
+                                        </button>
+                                    </div>
+                                </form>
                             </div>
                         </div>
                         </div>
@@ -1204,9 +1372,9 @@
                                                 Supprimer
                                             </button>
                                     </div>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
                         </div>
                     </div>
 
@@ -1958,7 +2126,7 @@
                                 </div>
                                 <div class="advantage-item">
                                     <div class="advantage-icon">🚑</div>
-                                    <h4>Suites d'un traumatisme</h4>    
+                                    <h4>Suites d'un traumatisme</h4>
                                 </div>
                                 <div class="advantage-item">
                                     <div class="advantage-icon">🥛</div>
@@ -2000,7 +2168,7 @@
                             <h2>TARIFS SÉANCES DE THÉRAPIE MANUELLE</h2>
                             <div class="pricing-grid">
                                 <div class="pricing-card featured">
-                                    <h3>Tarif : 60€ séance classique<br>30€ séance diagnostique</h3>
+                                    <h3>Tarif : 60€ séance classique<br>/ 30€ séance diagnostique</h3>
                                     <div class="price"></div>
                                     <p class="location"></p>
                                     <a href="#" @click.prevent="navigateTo('appointment')" class="btn-primary">PRENDRE RENDEZ-VOUS</a>
@@ -2027,7 +2195,7 @@
                                     <h3>Avant la séance</h3>
                                     <ul>
                                         <li>Isolez l'animal dans un espace calme</li>
-                                        <li>Bloquer l'animal au cornadis ou dans un espace restraint (avec un licol si possible)</li>
+                                        <li>Bloquer l'animal au cornadis ou dans un espace restreint (avec un licol si possible)</li>
                                         <li>Préparez un espace de travail sécurisé</li>
                                     </ul>
                                 </div>
@@ -2533,6 +2701,7 @@
                     weekDays: ['Dim', 'Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam'],
                     slots: [],
                     availableDates: [],
+                    newClientAvailableDates: [],
                     isLoadingDates: false,
                     unsubscribeSlots: null,
                     currentCarouselIndex: 0,
@@ -2636,10 +2805,23 @@
                     sortField: 'date',
                     sortOrder: 'asc',
                     showAdminNewAppointmentModal: false,
+                    adminAppointmentMode: 'existing', // 'existing' ou 'new'
                     adminAppointmentForm: {
                         userId: '',
                         selectedAnimalId: '',
                         phone: '',
+                        date: '',
+                        time: '',
+                        notes: ''
+                    },
+                    newClientAppointmentForm: {
+                        firstName: '',
+                        lastName: '',
+                        email: '',
+                        phone: '',
+                        address: '',
+                        animalName: '',
+                        animalType: '',
                         date: '',
                         time: '',
                         notes: ''
@@ -2732,8 +2914,40 @@
                     const selectedDate = this.adminAppointmentForm.date || this.appointmentForm.date;
                     if (!selectedDate) return [];
                     
-                    // Retourner les créneaux disponibles pour la date sélectionnée
-                    return this.availableSlots || [];
+                    // Filtrer les créneaux disponibles pour la date sélectionnée
+                    const selectedDateObj = new Date(selectedDate);
+                    const startOfDay = new Date(selectedDateObj);
+                    startOfDay.setHours(0, 0, 0, 0);
+                    const endOfDay = new Date(selectedDateObj);
+                    endOfDay.setHours(23, 59, 59, 999);
+                    
+                    return this.slots.filter(slot => {
+                        // Gérer les deux types de date (Firestore Timestamp ou Date)
+                        const slotDate = slot.date && typeof slot.date.toDate === 'function' 
+                            ? slot.date.toDate() 
+                            : new Date(slot.date);
+                        return slotDate >= startOfDay && slotDate <= endOfDay && !slot.unavailable;
+                    }).map(slot => slot.time).sort();
+                },
+                newClientDisplayedTimeSlots() {
+                    // Utiliser la date du formulaire nouveau client
+                    const selectedDate = this.newClientAppointmentForm.date;
+                    if (!selectedDate) return [];
+                    
+                    // Filtrer les créneaux disponibles pour la date sélectionnée
+                    const selectedDateObj = new Date(selectedDate);
+                    const startOfDay = new Date(selectedDateObj);
+                    startOfDay.setHours(0, 0, 0, 0);
+                    const endOfDay = new Date(selectedDateObj);
+                    endOfDay.setHours(23, 59, 59, 999);
+                    
+                    return this.slots.filter(slot => {
+                        // Gérer les deux types de date (Firestore Timestamp ou Date)
+                        const slotDate = slot.date && typeof slot.date.toDate === 'function' 
+                            ? slot.date.toDate() 
+                            : new Date(slot.date);
+                        return slotDate >= startOfDay && slotDate <= endOfDay && !slot.unavailable;
+                    }).map(slot => slot.time).sort();
                 },
                 filteredMessages() {
                     if (!this.messagesSearch) return this.messages;
@@ -4925,9 +5139,9 @@
                             .onSnapshot(snapshot => {
                                 console.log('Écouteur onSnapshot déclenché - Nombre de rendez-vous:', snapshot.docs.length);
                                 this.allAppointments = snapshot.docs.map(doc => ({
-                                    id: doc.id,
-                                    ...doc.data()
-                                }));
+                            id: doc.id,
+                            ...doc.data()
+                        }));
                                 console.log('Liste des rendez-vous mise à jour en temps réel');
                             }, error => {
                                 console.error('Erreur dans l\'écoute des rendez-vous:', error);
@@ -6709,6 +6923,7 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                 },
                 cancelAdminAppointment() {
                     this.showAdminNewAppointmentModal = false;
+                    this.adminAppointmentMode = 'existing'; // Remettre le mode par défaut
                     this.adminAppointmentForm = {
                         userId: '',
                         selectedAnimalId: '',
@@ -6717,8 +6932,249 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                         time: '',
                         notes: ''
                     };
+                    this.newClientAppointmentForm = {
+                        firstName: '',
+                        lastName: '',
+                        email: '',
+                        phone: '',
+                        address: '',
+                        animalName: '',
+                        animalType: '',
+                        date: '',
+                        time: '',
+                        notes: ''
+                    };
                     // Réinitialiser aussi la liste des animaux du client
                     this.clientAnimals = [];
+                },
+                async submitNewClientAppointment() {
+                    try {
+                        // Validation des champs obligatoires
+                        if (!this.newClientAppointmentForm.firstName || !this.newClientAppointmentForm.lastName || 
+                            !this.newClientAppointmentForm.email || !this.newClientAppointmentForm.phone || 
+                            !this.newClientAppointmentForm.address || !this.newClientAppointmentForm.animalName || 
+                            !this.newClientAppointmentForm.animalType || !this.newClientAppointmentForm.date || 
+                            !this.newClientAppointmentForm.time) {
+                            alert('Veuillez remplir tous les champs obligatoires');
+                            return;
+                        }
+
+                        // Vérifier si l'email existe déjà
+                        const existingUserSnapshot = await db.collection('users')
+                            .where('email', '==', this.newClientAppointmentForm.email)
+                            .get();
+
+                        if (!existingUserSnapshot.empty) {
+                            alert('Un client avec cette adresse email existe déjà. Veuillez utiliser le mode "Client existant".');
+                            return;
+                        }
+
+                        // Sauvegarder les valeurs du formulaire
+                        const formData = { ...this.newClientAppointmentForm };
+
+                        // Créer le rendez-vous d'abord (sans client/animal)
+                        const appointmentData = {
+                            // Informations temporaires pour le rendez-vous
+                            tempClientInfo: {
+                                firstName: formData.firstName,
+                                lastName: formData.lastName,
+                                email: formData.email,
+                                phone: formData.phone,
+                                address: formData.address
+                            },
+                            tempAnimalInfo: {
+                                name: formData.animalName,
+                                species: formData.animalType
+                            },
+                            animalName: formData.animalName,
+                            phone: formData.phone,
+                            date: formData.date,
+                            time: formData.time,
+                            notes: formData.notes,
+                            status: 'pending',
+                            isTemporary: true, // Marquer comme temporaire
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        const appointmentRef = await db.collection('appointments').add(appointmentData);
+                        console.log('Rendez-vous temporaire créé avec succès, ID:', appointmentRef.id);
+
+                        // Mettre à jour le créneau dans timeSlots pour le marquer comme indisponible
+                        const startOfDay = new Date(formData.date);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(formData.date);
+                        endOfDay.setHours(23, 59, 59, 999);
+
+                        // Trouver le créneau correspondant dans timeSlots
+                        const timeSlotSnapshot = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .where('time', '==', formData.time)
+                            .get();
+
+                        if (!timeSlotSnapshot.empty) {
+                            const timeSlotId = timeSlotSnapshot.docs[0].id;
+                            
+                            // Ajouter l'ID du créneau aux données du rendez-vous
+                            await db.collection('appointments').doc(appointmentRef.id).update({
+                                timeSlotId: timeSlotId
+                            });
+
+                            // Marquer le créneau comme indisponible
+                            await db.collection('timeSlots').doc(timeSlotId).update({
+                                unavailable: true
+                            });
+                            console.log('Créneau marqué comme indisponible');
+                        }
+
+                        // Message de confirmation du rendez-vous
+                        alert(`Rendez-vous confirmé avec succès !
+
+Détails :
+- Client : ${formData.firstName} ${formData.lastName}
+- Animal : ${formData.animalName} (${formData.animalType})
+- Date : ${this.formatDate(formData.date)}
+- Heure : ${formData.time}
+
+Le rendez-vous apparaîtra dans le tableau d'administration.`);
+
+                        // Proposer la création du client maintenant
+                        const createClient = confirm(`Voulez-vous maintenant créer un compte client pour ${formData.firstName} ${formData.lastName} ?
+
+Cela permettra de :
+- Sauvegarder les informations du client
+- Créer le profil de l'animal
+- Faciliter les futurs rendez-vous
+
+Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous temporaire.`);
+
+                        if (createClient) {
+                            // Créer le nouveau client
+                            const userData = {
+                                firstName: formData.firstName,
+                                lastName: formData.lastName,
+                                email: formData.email,
+                                phone: formData.phone,
+                                address: formData.address,
+                                role: 'client',
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            };
+
+                            const userRef = await db.collection('users').add(userData);
+                            console.log('Nouveau client créé avec succès, ID:', userRef.id);
+
+                            // Créer l'animal du nouveau client
+                            const animalData = {
+                                userId: userRef.id,
+                                name: formData.animalName,
+                                species: formData.animalType,
+                                breed: '',
+                                age: '',
+                                weight: '',
+                                medicalHistory: '',
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            };
+
+                            const animalRef = await db.collection('animals').add(animalData);
+                            console.log('Nouvel animal créé avec succès, ID:', animalRef.id);
+
+                            // Mettre à jour le rendez-vous avec les vrais IDs
+                            await db.collection('appointments').doc(appointmentRef.id).update({
+                                userId: userRef.id,
+                                selectedAnimalId: animalRef.id,
+                                isTemporary: false,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+
+                            // Ajouter le rendez-vous à l'historique de l'animal
+                            await db.collection('animals').doc(animalRef.id).update({
+                                appointments: firebase.firestore.FieldValue.arrayUnion({
+                                    id: appointmentRef.id,
+                                    date: formData.date,
+                                    time: formData.time,
+                                    status: 'pending',
+                                    createdAt: new Date()
+                                })
+                            });
+                            console.log('Historique de l\'animal mis à jour');
+
+                            alert(`Client créé avec succès !
+
+Le compte client et le profil de l'animal ont été créés. Le rendez-vous est maintenant lié au client.`);
+                        } else {
+                            alert('Le rendez-vous reste temporaire. Vous pourrez créer le client plus tard depuis le tableau d\'administration.');
+                        }
+
+                        // Fermer le modal et réinitialiser le formulaire
+                        this.showAdminNewAppointmentModal = false;
+                        this.newClientAppointmentForm = {
+                            firstName: '',
+                            lastName: '',
+                            email: '',
+                            phone: '',
+                            address: '',
+                            animalName: '',
+                            animalType: '',
+                            date: '',
+                            time: '',
+                            notes: ''
+                        };
+
+                        // Recharger les données pour afficher le nouveau rendez-vous
+                        if (this.adminActiveTab === 'appointments' || this.adminActiveTab === 'clients') {
+                            console.log('Rechargement des données après création de rendez-vous');
+                            await this.loadAllData();
+                        }
+
+                        // Recharger les créneaux disponibles pour mettre à jour l'affichage
+                        if (this.adminActiveTab === 'slots') {
+                            console.log('Rechargement des créneaux après ajout de rendez-vous');
+                            await this.loadSlots();
+                        }
+
+                    } catch (error) {
+                        console.error('Error creating appointment:', error);
+                        alert('Erreur lors de la création du rendez-vous');
+                    }
+                },
+                async openAdminAppointmentModal() {
+                    this.showAdminNewAppointmentModal = true;
+                    this.adminAppointmentMode = 'existing'; // Mode par défaut
+                    
+                    // Charger les dates disponibles pour les deux formulaires
+                    await this.loadAvailableDates();
+                    await this.loadNewClientAvailableDates();
+                },
+                async loadNewClientAvailableDates() {
+                    try {
+                        this.isLoadingDates = true;
+                        
+                        // Charger les créneaux disponibles
+                        const slotsSnapshot = await db.collection('timeSlots')
+                            .where('unavailable', '==', false)
+                            .orderBy('date')
+                            .orderBy('time')
+                            .get();
+
+                        if (!slotsSnapshot.empty) {
+                            const availableDatesSet = new Set();
+                            slotsSnapshot.forEach(doc => {
+                                const slot = doc.data();
+                                const date = slot.date.toDate();
+                                const dateString = date.toISOString().split('T')[0];
+                                availableDatesSet.add(dateString);
+                            });
+                            this.newClientAvailableDates = Array.from(availableDatesSet).sort();
+                            console.log('New client available dates:', this.newClientAvailableDates);
+                        } else {
+                            this.newClientAvailableDates = [];
+                        }
+                    } catch (error) {
+                        console.error('Error loading new client available dates:', error);
+                        this.newClientAvailableDates = [];
+                    } finally {
+                        this.isLoadingDates = false;
+                    }
                 },
                 loadClientAnimals() {
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);
