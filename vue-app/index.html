@@ -1302,6 +1302,39 @@
                         </div>
                     </div>
 
+                    <!-- Modal pour demander le mot de passe -->
+                    <div v-if="showPasswordModal" class="modal">
+                        <div class="modal-content">
+                            <h2>Créer le compte client</h2>
+                            <p>Veuillez définir un mot de passe temporaire pour le client :</p>
+                            
+                            <div class="form-group">
+                                <label for="tempPassword">Mot de passe temporaire</label>
+                                <input 
+                                    type="password" 
+                                    id="tempPassword" 
+                                    v-model="tempPassword"
+                                    placeholder="Mot de passe pour le client"
+                                    required>
+                                <small style="color: var(--text-color); font-size: 0.8rem;">Le client pourra se connecter avec ce mot de passe et le changer plus tard.</small>
+                            </div>
+
+                            <div class="modal-actions">
+                                <button type="button" 
+                                        class="btn secondary" 
+                                        @click="cancelPasswordModal">
+                                    Annuler
+                                </button>
+                                <button type="button" 
+                                        class="btn primary"
+                                        @click="confirmClientCreation"
+                                        :disabled="!tempPassword">
+                                    Créer le client
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
                     <!-- Onglet Créneaux -->
                     <div v-if="adminActiveTab === 'slots'" class="admin-content">
                         <!-- Indicateur de chargement -->
@@ -2826,6 +2859,9 @@
                         time: '',
                         notes: ''
                     },
+                showPasswordModal: false,
+                tempPassword: '',
+                tempAdminPassword: '',
                     // Données pour la page de profil
                     profileForm: {
                         firstName: '',
@@ -3336,7 +3372,10 @@
                 },
                 async logout() {
                     try {
-                        // Nettoyer l'abonnement aux mises à jour en temps réel
+                        // Nettoyer tous les listeners Firebase
+                        this.cleanupAllListeners();
+                        
+                        // Nettoyer les autres listeners spécifiques
                         if (this.unsubscribeAnimals) {
                             this.unsubscribeAnimals();
                             this.unsubscribeAnimals = null;
@@ -5277,8 +5316,9 @@
                             .get();
 
                         // Supprimer le rendez-vous de l'historique de l'animal s'il existe
-                        if (appointment.animalId) {
-                            const animalRef = db.collection('animals').doc(appointment.animalId);
+                        if (appointment.selectedAnimalId) {
+                            console.log('DEBUG - Removing appointment from animal history:', appointment.selectedAnimalId);
+                            const animalRef = db.collection('animals').doc(appointment.selectedAnimalId);
                             const animalDoc = await animalRef.get();
                             
                             if (animalDoc.exists) {
@@ -5288,7 +5328,12 @@
                                 await animalRef.update({
                                     appointments: updatedAppointments
                                 });
+                                console.log('DEBUG - Animal history updated, removed appointment:', appointment.id);
                             }
+                        } else if (appointment.isTemporary) {
+                            console.log('DEBUG - Temporary appointment, no animal history to update:', appointment.id);
+                        } else {
+                            console.log('DEBUG - No selectedAnimalId found for appointment:', appointment.id);
                         }
 
                         // Supprimer le rendez-vous
@@ -7049,58 +7094,9 @@ Cela permettra de :
 Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous temporaire.`);
 
                         if (createClient) {
-                            // Créer le nouveau client
-                            const userData = {
-                                firstName: formData.firstName,
-                                lastName: formData.lastName,
-                                email: formData.email,
-                                phone: formData.phone,
-                                address: formData.address,
-                                role: 'client',
-                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                            };
-
-                            const userRef = await db.collection('users').add(userData);
-                            console.log('Nouveau client créé avec succès, ID:', userRef.id);
-
-                            // Créer l'animal du nouveau client
-                            const animalData = {
-                                userId: userRef.id,
-                                name: formData.animalName,
-                                species: formData.animalType,
-                                breed: '',
-                                age: '',
-                                weight: '',
-                                medicalHistory: '',
-                                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-                            };
-
-                            const animalRef = await db.collection('animals').add(animalData);
-                            console.log('Nouvel animal créé avec succès, ID:', animalRef.id);
-
-                            // Mettre à jour le rendez-vous avec les vrais IDs
-                            await db.collection('appointments').doc(appointmentRef.id).update({
-                                userId: userRef.id,
-                                selectedAnimalId: animalRef.id,
-                                isTemporary: false,
-                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                            });
-
-                            // Ajouter le rendez-vous à l'historique de l'animal
-                            await db.collection('animals').doc(animalRef.id).update({
-                                appointments: firebase.firestore.FieldValue.arrayUnion({
-                                    id: appointmentRef.id,
-                                    date: formData.date,
-                                    time: formData.time,
-                                    status: 'pending',
-                                    createdAt: new Date()
-                                })
-                            });
-                            console.log('Historique de l\'animal mis à jour');
-
-                            alert(`Client créé avec succès !
-
-Le compte client et le profil de l'animal ont été créés. Le rendez-vous est maintenant lié au client.`);
+                            // Afficher le modal pour demander le mot de passe
+                            this.showPasswordModal = true;
+                            return; // Arrêter l'exécution ici, la création se fera dans confirmClientCreation
                         } else {
                             alert('Le rendez-vous reste temporaire. Vous pourrez créer le client plus tard depuis le tableau d\'administration.');
                         }
@@ -7136,6 +7132,197 @@ Le compte client et le profil de l'animal ont été créés. Le rendez-vous est 
                         console.error('Error creating appointment:', error);
                         alert('Erreur lors de la création du rendez-vous');
                     }
+                },
+                async confirmClientCreation() {
+                    try {
+                        if (!this.tempPassword) {
+                            alert('Veuillez saisir un mot de passe');
+                            return;
+                        }
+
+                        // Récupérer les données du formulaire (sauvegardées lors de la validation du RDV)
+                        const formData = { ...this.newClientAppointmentForm };
+                        formData.password = this.tempPassword;
+
+                        // Sauvegarder l'email et mot de passe de l'admin actuel AVANT de créer le compte client
+                        const currentUser = firebase.auth().currentUser;
+                        const adminEmail = currentUser ? currentUser.email : null;
+                        console.log('Admin email sauvegardé:', adminEmail);
+                        
+                        // Note: Plus besoin de capturer le mot de passe admin car nous ne faisons plus de reconnexion automatique
+                        console.log('Création du client en cours...');
+
+                        // Créer le compte Firebase Auth
+                        const userCredential = await firebase.auth().createUserWithEmailAndPassword(formData.email, formData.password);
+                        console.log('Compte Firebase Auth créé avec succès, UID:', userCredential.user.uid);
+
+                        // Créer le document utilisateur dans Firestore
+                        await db.collection('users').doc(userCredential.user.uid).set({
+                            firstName: formData.firstName,
+                            lastName: formData.lastName,
+                            email: formData.email,
+                            phone: formData.phone,
+                            address: formData.address,
+                            role: 'client',
+                            isAdminCreated: true, // Marquer comme créé par l'admin
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        console.log('Document utilisateur créé dans Firestore');
+
+                        // Créer l'animal du nouveau client
+                        const animalData = {
+                            userId: userCredential.user.uid,
+                            name: formData.animalName,
+                            species: formData.animalType,
+                            breed: '',
+                            age: '',
+                            weight: '',
+                            medicalHistory: '',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        const animalRef = await db.collection('animals').add(animalData);
+                        console.log('Nouvel animal créé avec succès, ID:', animalRef.id);
+
+                        // Note: Le dossier Firebase Storage sera créé automatiquement lors du premier upload de fichier
+                        // Pas besoin de le créer manuellement pour éviter les problèmes CORS
+                        console.log('Animal créé, dossier Storage sera créé lors du premier upload de fichier');
+
+                        // Trouver le rendez-vous temporaire et le mettre à jour (AVANT la déconnexion)
+                        console.log('Recherche du rendez-vous temporaire pour:', formData.email);
+                        const appointmentsSnapshot = await db.collection('appointments')
+                            .where('isTemporary', '==', true)
+                            .where('tempClientInfo.email', '==', formData.email)
+                            .get();
+
+                        console.log('Rendez-vous temporaires trouvés:', appointmentsSnapshot.size);
+                        
+                        if (!appointmentsSnapshot.empty) {
+                            const appointmentRef = appointmentsSnapshot.docs[0];
+                            console.log('Mise à jour du rendez-vous:', appointmentRef.id);
+                            
+                            // Mettre à jour le rendez-vous avec les vrais IDs
+                            await appointmentRef.ref.update({
+                                userId: userCredential.user.uid,
+                                selectedAnimalId: animalRef.id,
+                                isTemporary: false,
+                                tempClientInfo: firebase.firestore.FieldValue.delete(),
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            console.log('Rendez-vous mis à jour avec succès');
+
+                            // Ajouter le rendez-vous à l'historique de l'animal
+                            await db.collection('animals').doc(animalRef.id).update({
+                                appointments: firebase.firestore.FieldValue.arrayUnion({
+                                    id: appointmentRef.id,
+                                    date: formData.date,
+                                    time: formData.time,
+                                    status: 'pending',
+                                    createdAt: new Date()
+                                })
+                            });
+                            console.log('Historique de l\'animal mis à jour');
+                        } else {
+                            console.error('Aucun rendez-vous temporaire trouvé pour:', formData.email);
+                        }
+
+                        // Déconnecter le compte client créé
+                        await firebase.auth().signOut();
+                        console.log('Client déconnecté');
+
+                        // Fermer le modal de mot de passe
+                        this.showPasswordModal = false;
+                        this.tempPassword = '';
+
+                        // Fermer le modal de rendez-vous et afficher le message de succès
+                        this.showAdminNewAppointmentModal = false;
+                        
+                        // Nettoyer le mot de passe admin temporaire
+                        this.tempAdminPassword = '';
+                        
+                        // Afficher le message de succès et demander la reconnexion
+                        this.showAuth = true;
+                        this.error = 'Compte client créé avec succès ! Veuillez vous reconnecter en tant qu\'administrateur pour continuer.';
+                        
+                        console.log('Processus de création de client terminé avec succès');
+                        
+                        // Afficher les informations de connexion pour le client
+                        setTimeout(() => {
+                            alert(`Compte client créé avec succès !
+
+Informations de connexion pour le client :
+- Email : ${formData.email}
+- Mot de passe : ${formData.password}
+
+Le compte client et le profil de l'animal ont été créés. Le rendez-vous est maintenant lié au client.
+
+Le client peut maintenant se connecter et changer son mot de passe.
+
+Veuillez vous reconnecter en tant qu'administrateur.`);
+                        }, 1000);
+
+                        // Réinitialiser le formulaire
+                        this.newClientAppointmentForm = {
+                            firstName: '',
+                            lastName: '',
+                            email: '',
+                            phone: '',
+                            address: '',
+                            animalName: '',
+                            animalType: '',
+                            date: '',
+                            time: '',
+                            notes: ''
+                        };
+
+                        // Recharger les données pour afficher le nouveau client et le rendez-vous
+                        if (this.adminActiveTab === 'appointments' || this.adminActiveTab === 'clients') {
+                            console.log('Rechargement des données après création de client');
+                            await this.loadAllData();
+                        }
+
+                    } catch (error) {
+                        console.error('Error creating client:', error);
+                        
+                        // Gérer les erreurs spécifiques
+                        if (error.code === 'auth/email-already-in-use') {
+                            alert('Cette adresse email est déjà utilisée par un autre compte. Veuillez utiliser une autre adresse email.');
+                        } else if (error.code === 'auth/weak-password') {
+                            alert('Le mot de passe est trop faible. Veuillez choisir un mot de passe plus fort.');
+                        } else if (error.code === 'auth/invalid-email') {
+                            alert('L\'adresse email n\'est pas valide.');
+                        } else {
+                            alert('Erreur lors de la création du client: ' + error.message);
+                        }
+                    }
+                },
+                cancelPasswordModal() {
+                    this.showPasswordModal = false;
+                    this.tempPassword = '';
+                },
+                cleanupAllListeners() {
+                    // Arrêter tous les listeners Firebase
+                    if (this.unsubscribeAppointments) {
+                        this.unsubscribeAppointments();
+                        this.unsubscribeAppointments = null;
+                        console.log('Listener appointments arrêté');
+                    }
+                    if (this.unsubscribeAdminAnimals) {
+                        this.unsubscribeAdminAnimals();
+                        this.unsubscribeAdminAnimals = null;
+                        console.log('Listener admin animals arrêté');
+                    }
+                    if (this.unsubscribeSlots) {
+                        this.unsubscribeSlots();
+                        this.unsubscribeSlots = null;
+                        console.log('Listener slots arrêté');
+                    }
+                    if (this.unsubscribeBlogPosts) {
+                        this.unsubscribeBlogPosts();
+                        this.unsubscribeBlogPosts = null;
+                        console.log('Listener blog posts arrêté');
+                    }
+                    console.log('Tous les listeners Firebase ont été arrêtés');
                 },
                 async openAdminAppointmentModal() {
                     this.showAdminNewAppointmentModal = true;

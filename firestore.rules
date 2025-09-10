@@ -57,7 +57,7 @@ service cloud.firestore {
       
       // Les admins peuvent créer des rendez-vous pour les clients
       allow create: if isAdmin();
-
+      
       // Seuls les admins peuvent supprimer les rendez-vous
       allow delete: if isAdmin();
     }
@@ -77,9 +77,9 @@ service cloud.firestore {
 
     // Règles pour la collection contact_messages
     match /contact_messages/{messageId} {
-      // Tout le monde peut créer un message
+      // Tout le monde peut créer un message (même les utilisateurs non connectés)
       allow create: if true;
-      // Les utilisateurs peuvent lire leurs propres messages, les admins peuvent tout lire
+      // Les utilisateurs connectés peuvent lire leurs propres messages, les admins peuvent tout lire
       allow read: if isAuthenticated() && (
         resource.data.userId == request.auth.uid || isAdmin()
       );
@@ -113,6 +113,14 @@ service cloud.firestore {
         request.auth.uid == resource.data.userId ||
         isAdmin()
       );
+    }
+
+    // Collection des notifications admin
+    match /admin_notifications/{notificationId} {
+      // Tout le monde peut créer des notifications (même les utilisateurs non connectés)
+      allow create: if true;
+      // Seuls les utilisateurs connectés peuvent lire, modifier ou supprimer les notifications
+      allow read, update, delete: if isAuthenticated();
     }
   }
 } 
