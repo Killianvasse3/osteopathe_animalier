@@ -174,10 +174,13 @@
                                 <img src="images/Carroussel6.jpg" alt="Emmy en pratique" class="carousel-image">
                                 <img src="images/Carroussel7.jpg" alt="Emmy en pratique" class="carousel-image">
                                 <img src="images/Carroussel8.jpg" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel9.jpg" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel10.jpg" alt="Emmy en pratique" class="carousel-image">
+                                <img src="images/Carroussel11.jpg" alt="Emmy en pratique" class="carousel-image">
                             </div>
                             <div class="carousel-controls">
                                 <div class="carousel-indicators">
-                                    <span v-for="(image, index) in 8" :key="index" 
+                                    <span v-for="(image, index) in 11" :key="index" 
                                           class="indicator" 
                                           :class="{ active: currentCarouselIndex === index }"
                                           @click="goToCarouselImage(index); stopCarouselAutoPlay()">
@@ -1751,7 +1754,7 @@
                     <!-- Hero Section -->
                     <div class="animal-hero">
                         <div class="hero-background">
-                            <img src="images/Carroussel.jpg" alt="Thérapie pour chats" class="hero-image">
+                            <img src="images/Carroussel10.jpg" alt="Thérapie pour chats" class="hero-image">
                             <div class="hero-overlay"></div>
                         </div>
                         <div class="hero-content">
@@ -2014,7 +2017,7 @@
                     <!-- Hero Section -->
                     <div class="animal-hero">
                         <div class="hero-background">
-                            <img src="images/Carroussel1.jpg" alt="Thérapie pour NAC" class="hero-image">
+                            <img src="images/Carroussel9.jpg" alt="Thérapie pour NAC" class="hero-image">
                             <div class="hero-overlay"></div>
                         </div>
                         <div class="hero-content">
@@ -7163,8 +7166,7 @@ Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous 
                             email: formData.email,
                             phone: formData.phone,
                             address: formData.address,
-                            role: 'client',
-                            isAdminCreated: true, // Marquer comme créé par l'admin
+                            role: 'user',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
                         console.log('Document utilisateur créé dans Firestore');
@@ -7178,6 +7180,7 @@ Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous 
                             age: '',
                             weight: '',
                             medicalHistory: '',
+                            appointments: [],
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
 
@@ -7226,40 +7229,23 @@ Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous 
                             console.error('Aucun rendez-vous temporaire trouvé pour:', formData.email);
                         }
 
-                        // Déconnecter le compte client créé
+                        // Déconnecter immédiatement le compte client créé
                         await firebase.auth().signOut();
-                        console.log('Client déconnecté');
 
                         // Fermer le modal de mot de passe
                         this.showPasswordModal = false;
                         this.tempPassword = '';
 
-                        // Fermer le modal de rendez-vous et afficher le message de succès
+                        // Fermer le modal de rendez-vous
                         this.showAdminNewAppointmentModal = false;
                         
-                        // Nettoyer le mot de passe admin temporaire
-                        this.tempAdminPassword = '';
-                        
-                        // Afficher le message de succès et demander la reconnexion
+                        // Afficher le formulaire de connexion et demander la reconnexion admin
                         this.showAuth = true;
-                        this.error = 'Compte client créé avec succès ! Veuillez vous reconnecter en tant qu\'administrateur pour continuer.';
+                        this.error = 'Compte client créé avec succès ! Veuillez vous reconnecter en tant qu\'administrateur.';
                         
-                        console.log('Processus de création de client terminé avec succès');
-                        
-                        // Afficher les informations de connexion pour le client
-                        setTimeout(() => {
-                            alert(`Compte client créé avec succès !
-
-Informations de connexion pour le client :
-- Email : ${formData.email}
-- Mot de passe : ${formData.password}
-
-Le compte client et le profil de l'animal ont été créés. Le rendez-vous est maintenant lié au client.
-
-Le client peut maintenant se connecter et changer son mot de passe.
-
-Veuillez vous reconnecter en tant qu'administrateur.`);
-                        }, 1000);
+                        // Sauvegarder les informations avant de réinitialiser
+                        const clientEmail = formData.email;
+                        const clientPassword = formData.password;
 
                         // Réinitialiser le formulaire
                         this.newClientAppointmentForm = {
@@ -7275,24 +7261,28 @@ Veuillez vous reconnecter en tant qu'administrateur.`);
                             notes: ''
                         };
 
-                        // Recharger les données pour afficher le nouveau client et le rendez-vous
-                        if (this.adminActiveTab === 'appointments' || this.adminActiveTab === 'clients') {
-                            console.log('Rechargement des données après création de client');
-                            await this.loadAllData();
-                        }
+                        // Afficher les informations de connexion
+                        alert(`Client créé avec succès !
+
+Email: ${clientEmail}
+Mot de passe: ${clientPassword}
+
+Ces identifiants peuvent être transmis au client.
+
+Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
 
                     } catch (error) {
                         console.error('Error creating client:', error);
                         
                         // Gérer les erreurs spécifiques
                         if (error.code === 'auth/email-already-in-use') {
-                            alert('Cette adresse email est déjà utilisée par un autre compte. Veuillez utiliser une autre adresse email.');
-                        } else if (error.code === 'auth/weak-password') {
-                            alert('Le mot de passe est trop faible. Veuillez choisir un mot de passe plus fort.');
+                            alert('Un compte avec cet email existe déjà');
                         } else if (error.code === 'auth/invalid-email') {
-                            alert('L\'adresse email n\'est pas valide.');
+                            alert('Format d\'email invalide');
+                        } else if (error.code === 'auth/weak-password') {
+                            alert('Le mot de passe est trop faible');
                         } else {
-                            alert('Erreur lors de la création du client: ' + error.message);
+                            alert('Erreur lors de la création du client: ' + this.translateFirebaseError(error));
                         }
                     }
                 },

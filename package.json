@@ -1,6 +1,25 @@
 {
+  "name": "osteopathe-animalier-backup",
+  "version": "1.0.0",
+  "description": "Scripts de sauvegarde pour l'application ostéopathe animalier",
+  "scripts": {
+    "backup": "node backup-firestore.js",
+    "backup:start-emulator": "firebase emulators:start --only firestore --import=./backups/latest --export-on-exit=./backups/latest",
+    "backup:export": "firebase emulators:export ./backups/export-$(date +%Y%m%d-%H%M%S)",
+    "backup:import": "firebase emulators:start --only firestore --import=./backups/latest"
+  },
   "dependencies": {
-    "firebase-admin": "^13.4.0",
-    "firebase-functions": "^6.3.2"
-  }
+    "firebase-admin": "^12.7.0"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  },
+  "keywords": [
+    "firebase",
+    "firestore",
+    "backup",
+    "export"
+  ],
+  "author": "",
+  "license": "ISC"
 }

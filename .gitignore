@@ -67,3 +67,16 @@ node_modules/
 
 # dataconnect generated files
 .dataconnect
+
+# Clés de service Firebase (SÉCURITÉ)
+config/
+serviceAccountKey.json
+*.json
+!package*.json
+!firebase.json
+!firestore.rules
+!firestore.indexes.json
+
+# Sauvegardes (peuvent contenir des données sensibles)
+backups/
+*.backup
