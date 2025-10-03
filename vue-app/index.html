@@ -5446,17 +5446,36 @@
                             
                             if (animalDoc.exists) {
                                 const animalData = animalDoc.data();
-                                const updatedAppointments = animalData.appointments.filter(apt => apt.id !== appointment.id);
+                                const appointments = animalData.appointments || [];
+                                const updatedAppointments = appointments.filter(apt => apt.id !== appointment.id);
                                 
                                 await animalRef.update({
                                     appointments: updatedAppointments
                                 });
-                                console.log('DEBUG - Animal history updated, removed appointment:', appointment.id);
+                                console.log('DEBUG - Animal history updated, removed appointment:', appointment.id, 'from', appointments.length, 'to', updatedAppointments.length);
+                            } else {
+                                console.log('DEBUG - Animal document not found:', appointment.selectedAnimalId);
+                            }
+                        } else if (appointment.animalId) {
+                            // Fallback pour les anciens rendez-vous qui utilisent animalId au lieu de selectedAnimalId
+                            console.log('DEBUG - Using fallback animalId:', appointment.animalId);
+                            const animalRef = db.collection('animals').doc(appointment.animalId);
+                            const animalDoc = await animalRef.get();
+                            
+                            if (animalDoc.exists) {
+                                const animalData = animalDoc.data();
+                                const appointments = animalData.appointments || [];
+                                const updatedAppointments = appointments.filter(apt => apt.id !== appointment.id);
+                                
+                                await animalRef.update({
+                                    appointments: updatedAppointments
+                                });
+                                console.log('DEBUG - Animal history updated (fallback), removed appointment:', appointment.id);
                             }
                         } else if (appointment.isTemporary) {
                             console.log('DEBUG - Temporary appointment, no animal history to update:', appointment.id);
                         } else {
-                            console.log('DEBUG - No selectedAnimalId found for appointment:', appointment.id);
+                            console.log('DEBUG - No animal ID found for appointment:', appointment.id, 'appointment data:', appointment);
                         }
 
                         // Supprimer le rendez-vous
@@ -5476,6 +5495,9 @@
                         // Mettre à jour la liste locale
                         this.allAppointments = this.allAppointments.filter(a => a.id !== appointment.id);
                         alert('Rendez-vous supprimé avec succès');
+
+                        // Recharger les données pour mettre à jour l'interface
+                        await this.loadAllData();
 
                         // Recharger les créneaux si on est sur la page admin des créneaux
                         if (this.adminActiveTab === 'slots') {
