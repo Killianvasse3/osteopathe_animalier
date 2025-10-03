@@ -5523,3 +5523,20 @@ select#animalOwner option {
     background: var(--primary-color);
     color: white;
 }
+
+/* Styles pour le lien client cliquable */
+.client-link {
+    color: var(--primary-color);
+    cursor: pointer;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.2s ease;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+
+.client-link:hover {
+    background-color: rgba(25, 118, 210, 0.1);
+    text-decoration: underline;
+    transform: translateY(-1px);
+}

@@ -697,7 +697,13 @@
                                 <tr v-for="animal in filteredAnimals" :key="animal.id">
                                     <td>{{ animal.name }}</td>
                                     <td>{{ animal.species }}</td>
-                                    <td>{{ getUserFullName(animal.userId) }}</td>
+                                    <td>
+                                        <span class="client-link" 
+                                              @click="goToClientFromAnimal(animal.userId)"
+                                              :title="'Cliquer pour voir le profil de ' + getUserFullName(animal.userId)">
+                                            {{ getUserFullName(animal.userId) }}
+                                        </span>
+                                    </td>
                                     <td>{{ formatDate(animal.birthdate, animal.birthdateType, animal.birthdateApprox) }}</td>
                                     <td>
                                         <div class="action-buttons">
@@ -1081,7 +1087,7 @@
                                             <div class="select-dropdown" v-show="showAdminClientDropdown && filteredAdminClients.length > 0">
                                                 <div 
                                                     v-for="client in filteredAdminClients" 
-                                                    :key="client.id"
+                                                    :key="client.id" 
                                                     class="select-option"
                                                     @click="selectAdminClient(client)"
                                                     :class="{ selected: adminAppointmentForm.userId === client.id }">
@@ -1189,7 +1195,7 @@
                                 <form v-if="adminAppointmentMode === 'new'" @submit.prevent="submitNewClientAppointment">
                                     <div class="form-note" style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-size: 14px; color: #1976d2;">
                                         <strong>Note :</strong> Seuls la date et l'heure sont obligatoires. Les autres champs sont optionnels et recevront des valeurs par défaut si non remplis.
-                                    </div>
+                            </div>
                                     <div class="form-group">
                                         <label for="newClientFirstName">Prénom du propriétaire</label>
                                         <input 
@@ -2967,24 +2973,30 @@
                     return days;
                 },
                 displayedTimeSlots() {
-                    // Utiliser la date du formulaire actif (admin ou client)
-                    const selectedDate = this.adminAppointmentForm.date || this.appointmentForm.date;
-                    if (!selectedDate) return [];
+                    // Pour le formulaire admin, utiliser la logique existante avec this.slots
+                    if (this.adminAppointmentForm.date) {
+                        const selectedDate = this.adminAppointmentForm.date;
+                        const selectedDateObj = new Date(selectedDate);
+                        const startOfDay = new Date(selectedDateObj);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(selectedDateObj);
+                        endOfDay.setHours(23, 59, 59, 999);
+                        
+                        return this.slots.filter(slot => {
+                            // Gérer les deux types de date (Firestore Timestamp ou Date)
+                            const slotDate = slot.date && typeof slot.date.toDate === 'function' 
+                                ? slot.date.toDate() 
+                                : new Date(slot.date);
+                            return slotDate >= startOfDay && slotDate <= endOfDay && !slot.unavailable;
+                        }).map(slot => slot.time).sort();
+                    }
                     
-                    // Filtrer les créneaux disponibles pour la date sélectionnée
-                    const selectedDateObj = new Date(selectedDate);
-                    const startOfDay = new Date(selectedDateObj);
-                    startOfDay.setHours(0, 0, 0, 0);
-                    const endOfDay = new Date(selectedDateObj);
-                    endOfDay.setHours(23, 59, 59, 999);
+                    // Pour le formulaire client, utiliser this.availableSlots
+                    if (this.appointmentForm.date) {
+                        return this.availableSlots.sort();
+                    }
                     
-                    return this.slots.filter(slot => {
-                        // Gérer les deux types de date (Firestore Timestamp ou Date)
-                        const slotDate = slot.date && typeof slot.date.toDate === 'function' 
-                            ? slot.date.toDate() 
-                            : new Date(slot.date);
-                        return slotDate >= startOfDay && slotDate <= endOfDay && !slot.unavailable;
-                    }).map(slot => slot.time).sort();
+                    return [];
                 },
                 newClientDisplayedTimeSlots() {
                     // Utiliser la date du formulaire nouveau client
@@ -3017,13 +3029,49 @@
                 },
                 filteredClients() {
                     if (!this.clientsSearch) return this.allClients;
-                    const search = this.clientsSearch.toLowerCase();
-                    return this.allClients.filter(client => 
-                        (client.lastName || '').toLowerCase().includes(search) ||
-                        (client.firstName || '').toLowerCase().includes(search) ||
-                        client.email.toLowerCase().includes(search) ||
-                        (client.phone || '').toLowerCase().includes(search)
-                    );
+                    const search = this.clientsSearch.toLowerCase().trim();
+                    
+                    return this.allClients.filter(client => {
+                        const firstName = (client.firstName || '').toLowerCase();
+                        const lastName = (client.lastName || '').toLowerCase();
+                        const email = client.email.toLowerCase();
+                        const phone = (client.phone || '').toLowerCase();
+                        const fullName = `${firstName} ${lastName}`.trim();
+                        
+                        // Recherche simple dans chaque champ
+                        if (firstName.includes(search) || 
+                            lastName.includes(search) || 
+                            email.includes(search) || 
+                            phone.includes(search)) {
+                            return true;
+                        }
+                        
+                        // Recherche dans le nom complet (prénom + nom)
+                        if (fullName.includes(search)) {
+                            return true;
+                        }
+                        
+                        // Recherche inversée (nom + prénom)
+                        const fullNameReversed = `${lastName} ${firstName}`.trim();
+                        if (fullNameReversed.includes(search)) {
+                            return true;
+                        }
+                        
+                        // Recherche par mots séparés (ex: "Jean Dupont" trouve "Jean" et "Dupont")
+                        const searchWords = search.split(' ').filter(word => word.length > 0);
+                        if (searchWords.length > 1) {
+                            const allWordsMatch = searchWords.every(word => 
+                                firstName.includes(word) || 
+                                lastName.includes(word) || 
+                                email.includes(word)
+                            );
+                            if (allWordsMatch) {
+                                return true;
+                            }
+                        }
+                        
+                        return false;
+                    });
                 },
                 filteredOwnerClients() {
                     if (!this.ownerSearch) return this.allClients;
@@ -3307,6 +3355,31 @@
                         if (!this.adminAppointmentForm.userId) return '';
                         const client = this.allClients.find(c => c.id === this.adminAppointmentForm.userId);
                         return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
+                    },
+                    goToClientFromAnimal(userId) {
+                        // Trouver le client correspondant
+                        const client = this.allClients.find(c => c.id === userId);
+                        if (!client) {
+                            console.error('Client non trouvé pour l\'ID:', userId);
+                            return;
+                        }
+                        
+                        // Basculer vers l'onglet clients
+                        this.adminActiveTab = 'clients';
+                        
+                        // Effectuer la recherche automatique du client
+                        // Utiliser le nom complet maintenant que la recherche est plus intelligente
+                        this.clientsSearch = `${client.firstName} ${client.lastName}`.trim();
+                        
+                        // Optionnel : faire défiler vers le haut du tableau
+                        this.$nextTick(() => {
+                            const clientsTable = document.querySelector('.admin-content');
+                            if (clientsTable) {
+                                clientsTable.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                            }
+                        });
+                        
+                        console.log('Redirection vers le client:', client.firstName, client.lastName, 'Recherche:', this.clientsSearch);
                     },
                     async sendPasswordResetEmail() {
                         try {
