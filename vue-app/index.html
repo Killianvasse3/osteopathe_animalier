@@ -1069,18 +1069,32 @@
                                 <form v-if="adminAppointmentMode === 'existing'" @submit.prevent="submitAdminAppointment">
                                     <div class="form-group">
                                         <label for="adminAppointmentClient">Client</label>
-                                        <select 
-                                            id="adminAppointmentClient" 
-                                            v-model="adminAppointmentForm.userId"
-                                            required
-                                            @change="loadClientAnimals">
-                                            <option value="">Sélectionnez un client</option>
-                                            <option v-for="client in allClients" 
-                                                    :key="client.id" 
-                                                    :value="client.id">
-                                                {{ client.firstName }} {{ client.lastName }} ({{ client.email }})
-                                            </option>
-                                        </select>
+                                        <div class="searchable-select">
+                                            <input 
+                                                type="text" 
+                                                id="adminAppointmentClientSearch" 
+                                                v-model="adminClientSearch"
+                                                placeholder="Rechercher un client..."
+                                                @focus="showAdminClientDropdown = true"
+                                                @blur="setTimeout(() => showAdminClientDropdown = false, 200)"
+                                                autocomplete="off">
+                                            <div class="select-dropdown" v-show="showAdminClientDropdown && filteredAdminClients.length > 0">
+                                                <div 
+                                                    v-for="client in filteredAdminClients" 
+                                                    :key="client.id"
+                                                    class="select-option"
+                                                    @click="selectAdminClient(client)"
+                                                    :class="{ selected: adminAppointmentForm.userId === client.id }">
+                                                    <strong>{{ client.firstName }} {{ client.lastName }}</strong>
+                                                    <span class="client-email">{{ client.email }}</span>
+                                                    <span class="client-phone">{{ client.phone || 'N/A' }}</span>
+                                                </div>
+                                            </div>
+                                            <div v-if="adminAppointmentForm.userId" class="selected-owner">
+                                                <span>{{ getSelectedAdminClientName() }}</span>
+                                                <button type="button" @click="clearAdminClientSelection" class="clear-btn">×</button>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <div v-if="adminAppointmentForm.userId" class="form-group">
@@ -1173,13 +1187,16 @@
 
                                 <!-- Formulaire pour nouveau client -->
                                 <form v-if="adminAppointmentMode === 'new'" @submit.prevent="submitNewClientAppointment">
+                                    <div class="form-note" style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 20px; font-size: 14px; color: #1976d2;">
+                                        <strong>Note :</strong> Seuls la date et l'heure sont obligatoires. Les autres champs sont optionnels et recevront des valeurs par défaut si non remplis.
+                                    </div>
                                     <div class="form-group">
                                         <label for="newClientFirstName">Prénom du propriétaire</label>
                                         <input 
                                             type="text" 
                                             id="newClientFirstName" 
                                             v-model="newClientAppointmentForm.firstName"
-                                            required>
+                                            placeholder="Prénom du propriétaire">
                             </div>
 
                                     <div class="form-group">
@@ -1188,7 +1205,7 @@
                                             type="text" 
                                             id="newClientLastName" 
                                             v-model="newClientAppointmentForm.lastName"
-                                            required>
+                                            placeholder="Nom du propriétaire">
                                     </div>
 
                                     <div class="form-group">
@@ -1197,7 +1214,7 @@
                                             type="email" 
                                             id="newClientEmail" 
                                             v-model="newClientAppointmentForm.email"
-                                            required>
+                                            placeholder="email@exemple.com">
                                     </div>
 
                                     <div class="form-group">
@@ -1207,8 +1224,7 @@
                                             id="newClientPhone" 
                                             v-model="newClientAppointmentForm.phone"
                                             pattern="[0-9]{10}"
-                                            placeholder="0612345678"
-                                            required>
+                                            placeholder="0612345678">
                                     </div>
 
                                     <div class="form-group">
@@ -1217,7 +1233,7 @@
                                             id="newClientAddress" 
                                             v-model="newClientAppointmentForm.address"
                                             rows="2"
-                                            required>
+                                            placeholder="Adresse du propriétaire">
                                         </textarea>
                                     </div>
 
@@ -1227,15 +1243,14 @@
                                             type="text" 
                                             id="newClientAnimalName" 
                                             v-model="newClientAppointmentForm.animalName"
-                                            required>
+                                            placeholder="Nom de l'animal">
                                     </div>
 
                                     <div class="form-group">
                                         <label for="newClientAnimalType">Type d'animal</label>
                                         <select 
                                             id="newClientAnimalType" 
-                                            v-model="newClientAppointmentForm.animalType"
-                                            required>
+                                            v-model="newClientAppointmentForm.animalType">
                                             <option value="">Sélectionnez un type</option>
                                             <option value="Chien">Chien</option>
                                             <option value="Chat">Chat</option>
@@ -2770,6 +2785,9 @@
                     ownerSearch: '',
                     editOwnerSearch: '',
                     showOwnerDropdown: false,
+                    // Propriétés pour la recherche de client dans la prise de RDV admin
+                    adminClientSearch: '',
+                    showAdminClientDropdown: false,
                     // Données pour le tutoriel
                     showTutorial: false,
                     currentTutorialStepIndex: 0,
@@ -3017,6 +3035,16 @@
                         (client.phone || '').toLowerCase().includes(search)
                     );
                 },
+                filteredAdminClients() {
+                    if (!this.adminClientSearch) return this.allClients;
+                    const search = this.adminClientSearch.toLowerCase();
+                    return this.allClients.filter(client => 
+                        (client.lastName || '').toLowerCase().includes(search) ||
+                        (client.firstName || '').toLowerCase().includes(search) ||
+                        client.email.toLowerCase().includes(search) ||
+                        (client.phone || '').toLowerCase().includes(search)
+                    );
+                },
                 getClientAnimalsCount() {
                     return (clientId) => {
                         return this.allAnimals.filter(animal => animal.userId === clientId).length;
@@ -3251,6 +3279,20 @@
                         this.newAnimal.userId = '';
                         this.ownerSearch = '';
                     },
+                    selectAdminClient(client) {
+                        this.adminAppointmentForm.userId = client.id;
+                        this.adminClientSearch = `${client.firstName} ${client.lastName}`;
+                        this.showAdminClientDropdown = false;
+                        // Charger les animaux du client sélectionné
+                        this.loadClientAnimals();
+                    },
+                    clearAdminClientSelection() {
+                        this.adminAppointmentForm.userId = '';
+                        this.adminClientSearch = '';
+                        this.clientAnimals = [];
+                        this.adminAppointmentForm.selectedAnimalId = '';
+                        this.adminAppointmentForm.phone = '';
+                    },
                     getSelectedOwnerName() {
                         if (!this.newAnimal.userId) return '';
                         const client = this.allClients.find(c => c.id === this.newAnimal.userId);
@@ -3259,6 +3301,11 @@
                     getSelectedOwnerNameForEdit(animal) {
                         if (!animal.userId) return '';
                         const client = this.allClients.find(c => c.id === animal.userId);
+                        return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
+                    },
+                    getSelectedAdminClientName() {
+                        if (!this.adminAppointmentForm.userId) return '';
+                        const client = this.allClients.find(c => c.id === this.adminAppointmentForm.userId);
                         return client ? `${client.firstName} ${client.lastName} (${client.email})` : '';
                     },
                     async sendPasswordResetEmail() {
@@ -6992,33 +7039,44 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                         time: '',
                         notes: ''
                     };
-                    // Réinitialiser aussi la liste des animaux du client
+                    // Réinitialiser aussi la liste des animaux du client et les propriétés de recherche
                     this.clientAnimals = [];
+                    this.adminClientSearch = '';
+                    this.showAdminClientDropdown = false;
                 },
                 async submitNewClientAppointment() {
                     try {
-                        // Validation des champs obligatoires
-                        if (!this.newClientAppointmentForm.firstName || !this.newClientAppointmentForm.lastName || 
-                            !this.newClientAppointmentForm.email || !this.newClientAppointmentForm.phone || 
-                            !this.newClientAppointmentForm.address || !this.newClientAppointmentForm.animalName || 
-                            !this.newClientAppointmentForm.animalType || !this.newClientAppointmentForm.date || 
-                            !this.newClientAppointmentForm.time) {
-                            alert('Veuillez remplir tous les champs obligatoires');
+                        // Validation des champs obligatoires (seulement date et heure)
+                        if (!this.newClientAppointmentForm.date || !this.newClientAppointmentForm.time) {
+                            alert('Veuillez sélectionner une date et une heure pour le rendez-vous');
                             return;
                         }
 
-                        // Vérifier si l'email existe déjà
-                        const existingUserSnapshot = await db.collection('users')
-                            .where('email', '==', this.newClientAppointmentForm.email)
-                            .get();
+                        // Appliquer des valeurs par défaut pour les champs vides
+                        const formData = {
+                            firstName: this.newClientAppointmentForm.firstName || 'Non renseigné',
+                            lastName: this.newClientAppointmentForm.lastName || 'Non renseigné',
+                            email: this.newClientAppointmentForm.email || 'non-renseigne@exemple.com',
+                            phone: this.newClientAppointmentForm.phone || 'Non renseigné',
+                            address: this.newClientAppointmentForm.address || 'Non renseigné',
+                            animalName: this.newClientAppointmentForm.animalName || 'Non renseigné',
+                            animalType: this.newClientAppointmentForm.animalType || 'Non renseigné',
+                            date: this.newClientAppointmentForm.date,
+                            time: this.newClientAppointmentForm.time,
+                            notes: this.newClientAppointmentForm.notes || ''
+                        };
 
-                        if (!existingUserSnapshot.empty) {
-                            alert('Un client avec cette adresse email existe déjà. Veuillez utiliser le mode "Client existant".');
-                            return;
+                        // Vérifier si l'email existe déjà (seulement si un email a été fourni)
+                        if (this.newClientAppointmentForm.email && this.newClientAppointmentForm.email !== '') {
+                            const existingUserSnapshot = await db.collection('users')
+                                .where('email', '==', this.newClientAppointmentForm.email)
+                                .get();
+
+                            if (!existingUserSnapshot.empty) {
+                                alert('Un client avec cette adresse email existe déjà. Veuillez utiliser le mode "Client existant".');
+                                return;
+                            }
                         }
-
-                        // Sauvegarder les valeurs du formulaire
-                        const formData = { ...this.newClientAppointmentForm };
 
                         // Créer le rendez-vous d'abord (sans client/animal)
                         const appointmentData = {
@@ -7143,9 +7201,20 @@ Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous 
                             return;
                         }
 
-                        // Récupérer les données du formulaire (sauvegardées lors de la validation du RDV)
-                        const formData = { ...this.newClientAppointmentForm };
-                        formData.password = this.tempPassword;
+                        // Récupérer les données du formulaire avec valeurs par défaut
+                        const formData = {
+                            firstName: this.newClientAppointmentForm.firstName || 'Non renseigné',
+                            lastName: this.newClientAppointmentForm.lastName || 'Non renseigné',
+                            email: this.newClientAppointmentForm.email || 'non-renseigne@exemple.com',
+                            phone: this.newClientAppointmentForm.phone || 'Non renseigné',
+                            address: this.newClientAppointmentForm.address || 'Non renseigné',
+                            animalName: this.newClientAppointmentForm.animalName || 'Non renseigné',
+                            animalType: this.newClientAppointmentForm.animalType || 'Non renseigné',
+                            date: this.newClientAppointmentForm.date,
+                            time: this.newClientAppointmentForm.time,
+                            notes: this.newClientAppointmentForm.notes || '',
+                            password: this.tempPassword
+                        };
 
                         // Sauvegarder l'email et mot de passe de l'admin actuel AVANT de créer le compte client
                         const currentUser = firebase.auth().currentUser;
@@ -7317,6 +7386,10 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                 async openAdminAppointmentModal() {
                     this.showAdminNewAppointmentModal = true;
                     this.adminAppointmentMode = 'existing'; // Mode par défaut
+                    
+                    // Réinitialiser les propriétés de recherche
+                    this.adminClientSearch = '';
+                    this.showAdminClientDropdown = false;
                     
                     // Charger les dates disponibles pour les deux formulaires
                     await this.loadAvailableDates();
