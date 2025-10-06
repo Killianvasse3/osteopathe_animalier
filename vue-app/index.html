@@ -861,25 +861,32 @@
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label for="newAnimalDocuments">Documents</label>
+                                        <label for="newAnimalDocuments">Documents (Fiches de soin)</label>
                                         <input type="file" id="newAnimalDocuments" @change="handleDocumentUpload" accept="image/*" multiple>
                                         <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : JPG, PNG (max 10MB)</small>
+                                        
+                                        <!-- Champ de saisie de date pour les documents -->
+                                        <div v-if="newAnimal.documents && newAnimal.documents.length > 0" class="form-group" style="margin-top: 1rem;">
+                                            <label>Date des fiches de soin :</label>
+                                            <input type="date" v-model="newAnimal.documentsDate" @change="updateDocumentsDate()" class="form-control" style="margin-top: 0.5rem;">
+                                            <small style="color: var(--text-color); font-size: 0.8rem;">Date à laquelle les soins ont été effectués</small>
+                                        </div>
                                         
                                         <!-- Preview des documents -->
                                         <div v-if="newAnimal.documents && newAnimal.documents.length > 0" class="documents-preview" style="margin-top: 1rem;">
                                             <h4 style="margin-bottom: 0.5rem; color: var(--primary-color);">Documents sélectionnés :</h4>
                                             <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
                                                 <div v-for="(doc, index) in newAnimal.documents" :key="doc.id" class="document-card" style="background: white; padding: 0.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative;">
-                                                    <img :src="doc.data" :alt="doc.name" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
-                                                    <p style="font-size: 0.8rem; color: var(--text-color); margin: 0; word-break: break-word;">{{ doc.name }}</p>
-                                                    <p style="font-size: 0.7rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">{{ formatDate(doc.date) }}</p>
+                                                    <img :src="doc.data" :alt="'Fiche de soin ' + (index + 1)" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                                                    <p style="font-size: 0.8rem; color: var(--text-color); margin: 0;">Fiche de soin {{ index + 1 }}</p>
+                                                    <p style="font-size: 0.7rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">{{ newAnimal.documentsDate ? formatDate(newAnimal.documentsDate) : 'Date non renseignée' }}</p>
                                                     <button type="button" @click="removeDocument(index)" class="btn-remove-photo" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
                                     <div class="modal-actions">
-                                        <button type="button" class="btn secondary" @click="showAddAnimalModal = false">Annuler</button>
+                                        <button type="button" class="btn secondary" @click="showAddAnimalModal = false; resetAnimalForm()">Annuler</button>
                                         <button type="submit" class="btn primary">Enregistrer</button>
                                     </div>
                                 </form>
@@ -2727,6 +2734,7 @@
                         photoPreview: '',
                         photoBase64: null,
                         documents: [],
+                        documentsDate: '', // Date des fiches de soin
                         appointments: [],
                         travelTime: '' // Ajout du champ temps de trajet
                     },
@@ -4174,27 +4182,7 @@
                         
                         // Réinitialiser le formulaire
                             this.showAddAnimalModal = false;
-                        this.newAnimal = {
-                            name: '',
-                            species: '',
-                            race: '',
-                            birthdate: '',
-                            birthdateType: 'exact',
-                            birthdateApprox: '',
-                            sterilization: false,
-                            sterilizationDetails: '',
-                            diet: '',
-                            activity: '',
-                            activityDetails: '',
-                            medicalHistory: '',
-                            treatment: '',
-                            behavior: '',
-                                notes: '',
-                            photosPreview: [],
-                            photosBase64: [],
-                            documents: [],
-                            userId: '' // Ajout du champ userId
-                            };
+                        this.resetAnimalForm();
 
                         alert('Animal ajouté avec succès !');
                     } catch (error) {
@@ -4315,10 +4303,10 @@
                                 <h3>Documents</h3>
                                 <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
                                     ${animal.documents && animal.documents.length > 0 
-                                        ? animal.documents.map(doc => `
+                                        ? animal.documents.map((doc, index) => `
                                             <div class="document-card" style="background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); cursor: pointer;" onclick="this.dispatchEvent(new CustomEvent('view-document', {detail: '${doc.id}', bubbles: true}))">
-                                                <img src="${doc.data}" alt="${doc.name}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
-                                                <p style="font-size: 0.9rem; color: var(--text-color); margin: 0;">${doc.name}</p>
+                                                <img src="${doc.data}" alt="Fiche de soin ${index + 1}" style="width: 100%; height: 150px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                                                <p style="font-size: 0.9rem; color: var(--text-color); margin: 0;">Fiche de soin ${index + 1}</p>
                                                 <p style="font-size: 0.8rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">${this.formatDate(doc.date)}</p>
                                             </div>
                                         `).join('')
@@ -4629,17 +4617,15 @@
                             </div>
 
                             <div class="form-group">
-                                <label>Documents :</label>
-                                <div class="documents-grid">
+                                <label>Documents (Fiches de soin) :</label>
+                                <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
                                     ${animal.documents && animal.documents.length > 0 
-                                        ? animal.documents.map(doc => `
-                                            <div class="document-card">
-                                                <img src="${doc.data}" alt="${doc.name}">
-                                                <p>${doc.name}</p>
-                                                <p>${this.formatDate(doc.date)}</p>
-                                                <button type="button" class="btn-delete" onclick="this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
-                                                    Supprimer
-                                                </button>
+                                        ? animal.documents.map((doc, index) => `
+                                            <div class="document-card" style="background: white; padding: 0.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative;">
+                                                <img src="${doc.data}" alt="Fiche de soin ${index + 1}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                                                <p style="font-size: 0.8rem; color: var(--text-color); margin: 0;">Fiche de soin ${index + 1}</p>
+                                                <p style="font-size: 0.7rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">${this.formatDate(doc.date)}</p>
+                                                <button type="button" class="btn-remove-photo" data-doc-id="${doc.id}" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
                                             </div>
                                         `).join('')
                                         : '<p>Aucun document</p>'
@@ -4647,6 +4633,20 @@
                                 </div>
                                 <input type="file" id="edit-animal-documents" accept="image/*" multiple style="margin-top: 1rem;">
                                 <small style="color: var(--text-color); font-size: 0.8rem;">Formats acceptés : JPG, PNG</small>
+                                
+                                <!-- Champ de saisie de date pour les nouveaux documents -->
+                                <div id="edit-documents-date-container" style="margin-top: 1rem; display: none;">
+                                    <label>Date des nouvelles fiches de soin :</label>
+                                    <input type="date" id="edit-animal-documents-date" class="form-control" style="margin-top: 0.5rem;">
+                                    <small style="color: var(--text-color); font-size: 0.8rem;">Date à laquelle les soins ont été effectués</small>
+                                </div>
+                                
+                                <!-- Preview des nouveaux documents -->
+                                <div id="edit-documents-preview" style="margin-top: 1rem; display: none;">
+                                    <h4 style="margin-bottom: 0.5rem; color: var(--primary-color);">Nouveaux documents sélectionnés :</h4>
+                                    <div id="edit-documents-grid" class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem;">
+                                    </div>
+                                </div>
                             </div>
 
                             <div class="modal-actions">
@@ -4945,29 +4945,25 @@
                                         const resizedBase64 = canvas.toDataURL('image/jpeg', 0.8);
                                         
                                         // Créer un nouvel objet document
+                                        const documentsDateInput = modal.querySelector('#edit-animal-documents-date');
                                         const newDocument = {
                                             id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                                            name: file.name,
-                                            date: new Date().toISOString(),
+                                            name: `Fiche de soin ${tempDocuments.length + 1}`,
+                                            date: documentsDateInput ? (documentsDateInput.value || new Date().toISOString()) : new Date().toISOString(),
                                             data: resizedBase64
                                         };
 
                                         // Ajouter le document à la liste temporaire
                                         tempDocuments.push(newDocument);
 
-                                        // Mettre à jour l'affichage avec tous les documents (originaux + temporaires)
-                                        const allDocuments = [...currentDocuments, ...tempDocuments];
-                                        const documentsGrid = modal.querySelector('.documents-grid');
-                                        documentsGrid.innerHTML = allDocuments.map(doc => `
-                                            <div class="document-card">
-                                                <img src="${doc.data}" alt="${doc.name}">
-                                                <p>${doc.name}</p>
-                                                <p>${this.formatDate(doc.date)}</p>
-                                                <button type="button" class="btn-delete" onclick="this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
-                                                    Supprimer
-                                                </button>
-                                            </div>
-                                        `).join('');
+                                        // Afficher le champ de date et le preview si ce n'est pas déjà fait
+                                        const documentsDateContainer = modal.querySelector('#edit-documents-date-container');
+                                        const documentsPreview = modal.querySelector('#edit-documents-preview');
+                                        if (documentsDateContainer) documentsDateContainer.style.display = 'block';
+                                        if (documentsPreview) documentsPreview.style.display = 'block';
+
+                                        // Mettre à jour l'affichage du preview des nouveaux documents
+                                        this.updateEditDocumentsPreview(modal, tempDocuments);
                                     };
                                     img.src = e.target.result;
                                 };
@@ -4982,38 +4978,55 @@
                         e.target.value = '';
                     });
 
-                    // Gestion de la suppression des documents
-                    modal.addEventListener('delete-document', async (e) => {
-                        const documentId = e.detail;
-                        try {
-                            // Supprimer le document de la liste appropriée
-                            const isTempDocument = tempDocuments.some(doc => doc.id === documentId);
-                            if (isTempDocument) {
-                                tempDocuments = tempDocuments.filter(doc => doc.id !== documentId);
-                            } else {
-                                currentDocuments = currentDocuments.filter(doc => doc.id !== documentId);
-                            }
+                    // Gestion du changement de date pour les nouveaux documents
+                    const documentsDateInput = modal.querySelector('#edit-animal-documents-date');
+                    if (documentsDateInput) {
+                        documentsDateInput.addEventListener('change', () => {
+                            // Mettre à jour la date de tous les documents temporaires
+                            tempDocuments.forEach(doc => {
+                                doc.date = documentsDateInput.value || new Date().toISOString();
+                            });
+                            this.updateEditDocumentsPreview(modal, tempDocuments);
+                        });
+                    }
 
-                            // Mettre à jour l'affichage avec tous les documents
-                            const allDocuments = [...currentDocuments, ...tempDocuments];
-                            const documentsGrid = modal.querySelector('.documents-grid');
-                            if (allDocuments.length > 0) {
-                                documentsGrid.innerHTML = allDocuments.map(doc => `
-                                    <div class="document-card">
-                                        <img src="${doc.data}" alt="${doc.name}">
-                                        <p>${doc.name}</p>
-                                        <p>${this.formatDate(doc.date)}</p>
-                                        <button type="button" class="btn-delete" onclick="this.closest('.document-card').dispatchEvent(new CustomEvent('delete-document', {detail: '${doc.id}', bubbles: true}))">
-                                            Supprimer
-                                        </button>
-                                    </div>
-                                `).join('');
-                            } else {
-                                documentsGrid.innerHTML = '<p>Aucun document</p>';
+                    // Gestion de la suppression des documents (existants et temporaires)
+                    modal.addEventListener('click', (e) => {
+                        if (e.target.classList.contains('btn-remove-photo')) {
+                            // Suppression des documents temporaires
+                            if (e.target.hasAttribute('data-temp-doc-index')) {
+                                const index = parseInt(e.target.getAttribute('data-temp-doc-index'));
+                                tempDocuments.splice(index, 1);
+                                this.updateEditDocumentsPreview(modal, tempDocuments);
+                                
+                                // Masquer le preview et le champ de date si plus de documents temporaires
+                                if (tempDocuments.length === 0) {
+                                    const documentsDateContainer = modal.querySelector('#edit-documents-date-container');
+                                    const documentsPreview = modal.querySelector('#edit-documents-preview');
+                                    if (documentsDateContainer) documentsDateContainer.style.display = 'none';
+                                    if (documentsPreview) documentsPreview.style.display = 'none';
+                                }
                             }
-                        } catch (error) {
-                            console.error('Erreur lors de la suppression du document:', error);
-                            alert('Erreur lors de la suppression du document. Veuillez réessayer.');
+                            // Suppression des documents existants
+                            else if (e.target.hasAttribute('data-doc-id')) {
+                                const docId = e.target.getAttribute('data-doc-id');
+                                currentDocuments = currentDocuments.filter(doc => doc.id !== docId);
+                                
+                                // Mettre à jour l'affichage des documents existants
+                                const documentsGrid = modal.querySelector('.documents-grid');
+                                if (currentDocuments.length > 0) {
+                                    documentsGrid.innerHTML = currentDocuments.map((doc, index) => `
+                                        <div class="document-card" style="background: white; padding: 0.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative;">
+                                            <img src="${doc.data}" alt="Fiche de soin ${index + 1}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                                            <p style="font-size: 0.8rem; color: var(--text-color); margin: 0;">Fiche de soin ${index + 1}</p>
+                                            <p style="font-size: 0.7rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">${this.formatDate(doc.date)}</p>
+                                            <button type="button" class="btn-remove-photo" data-doc-id="${doc.id}" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
+                                        </div>
+                                    `).join('');
+                                } else {
+                                    documentsGrid.innerHTML = '<p>Aucun document</p>';
+                                }
+                            }
                         }
                     });
 
@@ -5975,8 +5988,8 @@
                                     
                                     const newDocument = {
                                         id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
-                                        name: file.name,
-                                        date: new Date().toISOString(),
+                                        name: `Fiche de soin ${(this.newAnimal.documents ? this.newAnimal.documents.length + 1 : 1)}`,
+                                        date: this.newAnimal.documentsDate || new Date().toISOString(),
                                         data: resizedBase64
                                     };
                                     
@@ -6008,7 +6021,35 @@
                 removeDocument(index) {
                     if (this.newAnimal.documents && this.newAnimal.documents.length > index) {
                         this.newAnimal.documents.splice(index, 1);
+                        
+                        // Si plus de documents, masquer le champ de date
+                        if (this.newAnimal.documents.length === 0) {
+                            this.newAnimal.documentsDate = '';
+                        }
+                        
                         this.$forceUpdate();
+                    }
+                },
+                updateDocumentsDate() {
+                    // Mettre à jour la date de tous les documents existants
+                    if (this.newAnimal.documents && this.newAnimal.documents.length > 0 && this.newAnimal.documentsDate) {
+                        this.newAnimal.documents.forEach(doc => {
+                            doc.date = this.newAnimal.documentsDate;
+                        });
+                        this.$forceUpdate();
+                    }
+                },
+                updateEditDocumentsPreview(modal, tempDocuments) {
+                    const documentsGrid = modal.querySelector('#edit-documents-grid');
+                    if (documentsGrid && tempDocuments.length > 0) {
+                        documentsGrid.innerHTML = tempDocuments.map((doc, index) => `
+                            <div class="document-card" style="background: white; padding: 0.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative;">
+                                <img src="${doc.data}" alt="Fiche de soin ${index + 1}" style="width: 100%; height: 100px; object-fit: cover; border-radius: 4px; margin-bottom: 0.5rem;">
+                                <p style="font-size: 0.8rem; color: var(--text-color); margin: 0;">Fiche de soin ${index + 1}</p>
+                                <p style="font-size: 0.7rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">${this.formatDate(doc.date)}</p>
+                                <button type="button" class="btn-remove-photo" data-temp-doc-index="${index}" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
+                            </div>
+                        `).join('');
                     }
                 },
                 // Ajout d'une méthode pour gérer les annotations sur le plan du corps
@@ -6816,11 +6857,11 @@
                         <div class="modal-content documents-modal">
                             <h2>Documents de ${animal.name}</h2>
                             <div class="documents-grid">
-                                ${animal.documents.map(doc => `
+                                ${animal.documents.map((doc, index) => `
                                     <div class="document-card" onclick="this.dispatchEvent(new CustomEvent('view-document', {detail: '${doc.id}', bubbles: true}))">
-                                        <img src="${doc.data}" alt="${doc.name}">
+                                        <img src="${doc.data}" alt="Fiche de soin ${index + 1}">
                                         <div class="document-info">
-                                            <p class="document-name">${doc.name}</p>
+                                            <p class="document-name">Fiche de soin ${index + 1}</p>
                                             <p class="document-date">${this.formatDate(doc.date)}</p>
                                         </div>
                                     </div>
@@ -7110,6 +7151,33 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                         console.error('Error submitting admin appointment:', error);
                         alert('Erreur lors de l\'ajout du rendez-vous');
                     }
+                },
+                resetAnimalForm() {
+                    this.newAnimal = {
+                        name: '',
+                        species: '',
+                        race: '',
+                        birthdate: '',
+                        birthdateType: 'exact',
+                        birthdateApprox: '',
+                        sterilization: false,
+                        sterilizationDetails: '',
+                        diet: '',
+                        activity: '',
+                        activityDetails: '',
+                        medicalHistory: '',
+                        treatment: '',
+                        behavior: '',
+                        notes: '',
+                        photoUrl: '',
+                        photoPreview: '',
+                        photoBase64: null,
+                        documents: [],
+                        documentsDate: '', // Réinitialiser la date des documents
+                        appointments: [],
+                        travelTime: '',
+                        userId: ''
+                    };
                 },
                 cancelAdminAppointment() {
                     this.showAdminNewAppointmentModal = false;
