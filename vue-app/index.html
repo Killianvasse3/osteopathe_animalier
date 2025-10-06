@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20.9">
+    <link rel="stylesheet" href="styles.css?v=21.1">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -56,6 +56,7 @@
                     <div class="nav-section">
                     <a href="#" @click.prevent="navigateToSection('about'); closeMenu()">À propos</a>
                     <a href="#" @click.prevent="navigateToSection('services'); closeMenu()">Outils thérapeutiques</a>
+                    <a href="#" @click.prevent="navigateToSection('reviews'); closeMenu()">Avis clients</a>
                     <a href="#" @click.prevent="navigateToSection('blog'); closeMenu()">Évenement</a>
                     <a href="#" @click.prevent="navigateToSection('contact'); closeMenu()">Contact</a>
                     </div>
@@ -266,6 +267,59 @@
                         <div class="service-card">
                             <h3>Nutrition</h3>
                             <p>Analyse et personnalisation des rations proposées à l'animal en fonction de ses besoins et spécificités.</p>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Section Avis Google -->
+                <section id="reviews" class="section reviews-section">
+                    <div class="container">
+                        <h2 class="section-title">Ce que disent nos clients</h2>
+                        <div class="reviews-header">
+                            <div class="google-rating">
+                                <div class="rating-stars">
+                                    <span v-for="i in 5" :key="i" class="star" :class="{ 'filled': i <= Math.floor(averageRating) }">★</span>
+                                </div>
+                                <div class="rating-info">
+                                    <span class="rating-score">{{ averageRating }}</span>
+                                    <span class="rating-count">sur {{ totalReviewsCount }} avis Google</span>
+                                </div>
+                            </div>
+                            <div class="google-badge">
+                                <img src="https://upload.wikimedia.org/wikipedia/commons/2/2f/Google_2015_logo.svg" alt="Google" class="google-logo">
+                                <span>Google</span>
+                            </div>
+                        </div>
+                        
+                        <div class="reviews-grid">
+                            <div v-for="review in googleReviews.slice(0, 3)" :key="review.id" class="review-card">
+                                <div class="review-header">
+                                    <div class="reviewer-info">
+                                        <div class="reviewer-avatar">
+                                            {{ review.author.charAt(0) }}
+                                        </div>
+                                        <div class="reviewer-details">
+                                            <h4 class="reviewer-name">{{ review.author }}</h4>
+                                            <div class="review-rating">
+                                                <span v-for="i in 5" :key="i" class="star" :class="{ 'filled': i <= review.rating }">★</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="review-meta">
+                                        <span class="review-date">{{ formatReviewDate(review.date) }}</span>
+                                        <span v-if="review.verified" class="verified-badge">✓ Vérifié</span>
+                                    </div>
+                                </div>
+                                <p class="review-text">{{ review.text }}</p>
+                            </div>
+                        </div>
+                        
+                        <div class="reviews-actions">
+                            <a href="https://www.google.com/search?q=Emmy+Vasse+Thérapeute+Manuelle+Animalier" 
+                               target="_blank" 
+                               class="btn btn-outline">
+                                Voir tous les avis sur Google
+                            </a>
                         </div>
                     </div>
                 </section>
@@ -2883,6 +2937,57 @@
                     selectedReminder: null, // Relance sélectionnée
                     showAddReminderModal: false, // Modal d'ajout de relance
                     showPastAppointments: false, // Afficher les rendez-vous passés
+                    // Avis Google
+                    googleReviews: [
+                        {
+                            id: 1,
+                            author: "Jen Calamiti",
+                            rating: 5,
+                            text: "Je suis très reconnaissante envers Emmy pour sa gentillesse et sa disponibilité. Elle a su voir immédiatement ce qui n'allait pas et a résolu le problème tout en douceur en mettant mes deux louloutes en confiance. Elle fait également preuve d'une grande expertise.",
+                            date: "2024-12-15",
+                            verified: true
+                        },
+                        {
+                            id: 2,
+                            author: "MISERY Laurence",
+                            rating: 5,
+                            text: "J'ai rencontré Emmy il y a quelques jours. Ma chienne Joy avait très mal au dos. Emmy a gagné sa confiance et su la soulager immédiatement. Emmy est très douce et à l'écoute de l'animal. C'est réellement très agréable de laisser Joy à ses mains expertes et de la voir autant apprécier. Un grand merci encore à Emmy.",
+                            date: "2024-05-15",
+                            verified: true
+                        },
+                        {
+                            id: 3,
+                            author: "florence berthiller",
+                            rating: 5,
+                            text: "Consultée pour mon berger Australien qui s'est bloqué le dos. Très bonne prise en charge, et à l'écoute. Emmy a pris tout le temps nécessaire pour notre toutou, et pour répondre à nos questions. Je recommande vivement !",
+                            date: "2024-02-15",
+                            verified: true
+                        },
+                        {
+                            id: 4,
+                            author: "Adelyn Cote",
+                            rating: 5,
+                            text: "Je la recommande à fond ! Elle suit mes chiens, chats et même d'autres animaux depuis un bon moment déjà et fait du très bon travail. Une thérapeute exceptionnelle !",
+                            date: "2023-07-15",
+                            verified: true
+                        },
+                        {
+                            id: 5,
+                            author: "Alicia Bajdek",
+                            rating: 5,
+                            text: "Emmy est une thérapeute à l'écoute, patiente, souriante et de très bons conseils. Je la recommande vivement !",
+                            date: "2023-06-15",
+                            verified: true
+                        },
+                        {
+                            id: 6,
+                            author: "Liliane Bevoz",
+                            rating: 5,
+                            text: "Très professionnelle et très agréable. Je recommande fortement ses services de thérapie manuelle.",
+                            date: "2023-03-15",
+                            verified: true
+                        }
+                    ],
                     newReminder: {
                         animalId: '',
                         animalName: '',
@@ -3188,6 +3293,15 @@
                         appointmentDate.setHours(0, 0, 0, 0);
                         return appointmentDate < today;
                     }).length;
+                },
+                // Computed properties pour les avis Google
+                averageRating() {
+                    if (this.googleReviews.length === 0) return 0;
+                    const total = this.googleReviews.reduce((sum, review) => sum + review.rating, 0);
+                    return (total / this.googleReviews.length).toFixed(1);
+                },
+                totalReviewsCount() {
+                    return this.googleReviews.length;
                 },
                 filteredMessages() {
                     if (!this.messagesSearch) return this.messages;
@@ -8102,6 +8216,44 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                     const date = new Date(appointmentDate);
                     date.setHours(0, 0, 0, 0);
                     return date < today;
+                },
+                // Méthode pour formater les dates des avis
+                formatReviewDate(dateString) {
+                    const date = new Date(dateString);
+                    return date.toLocaleDateString('fr-FR', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    });
+                },
+                // Méthode pour charger les avis depuis l'API Google (future intégration)
+                async loadGoogleReviews() {
+                    try {
+                        // TODO: Intégrer avec l'API Google Places ou Google My Business
+                        // Pour l'instant, les avis sont statiques dans les données
+                        console.log('Chargement des avis Google...');
+                        
+                        // Exemple de structure pour l'API Google Places :
+                        /*
+                        const response = await fetch(`https://maps.googleapis.com/maps/api/place/details/json?place_id=YOUR_PLACE_ID&fields=reviews&key=YOUR_API_KEY`);
+                        const data = await response.json();
+                        
+                        if (data.result && data.result.reviews) {
+                            this.googleReviews = data.result.reviews.map(review => ({
+                                id: review.time,
+                                author: review.author_name,
+                                rating: review.rating,
+                                text: review.text,
+                                date: new Date(review.time * 1000).toISOString().split('T')[0],
+                                verified: true
+                            }));
+                        }
+                        */
+                        
+                        console.log('Avis Google chargés:', this.googleReviews.length);
+                    } catch (error) {
+                        console.error('Erreur lors du chargement des avis Google:', error);
+                    }
                 },
                 loadClientAnimals() {
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);
