@@ -1143,7 +1143,7 @@
                                         <div v-if="isLoadingDates" class="loading-message">
                                             Chargement des dates disponibles...
                                         </div>
-                                        <div v-else-if="availableDates.length === 0" class="no-slots-message">
+                                        <div v-else-if="adminDisplayedDates.length === 0" class="no-slots-message">
                                             Aucune date disponible pour les 30 prochains jours.
                                         </div>
                                         <select v-else
@@ -1151,7 +1151,7 @@
                                             v-model="adminAppointmentForm.date" 
                                             required>
                                             <option value="">Sélectionnez une date</option>
-                                            <option v-for="date in availableDates" 
+                                            <option v-for="date in adminDisplayedDates" 
                                                     :key="date" 
                                                     :value="date">
                                                 {{ formatDateFr(date) }}
@@ -1279,10 +1279,10 @@
                                         <select 
                                             id="newClientAppointmentDate" 
                                             v-model="newClientAppointmentForm.date" 
-                                            @change="loadNewClientAvailableDates"
+                                            @change="loadAdminNewClientAvailableDates"
                                             required>
                                             <option value="">Sélectionnez une date</option>
-                                            <option v-for="date in newClientAvailableDates" 
+                                            <option v-for="date in adminNewClientDisplayedDates" 
                                                     :key="date" 
                                                     :value="date">
                                                 {{ formatDateFr(date) }}
@@ -2767,6 +2767,8 @@
                     slots: [],
                     availableDates: [],
                     newClientAvailableDates: [],
+                    adminAvailableDates: [], // Dates disponibles pour l'admin (incluant aujourd'hui)
+                    adminNewClientAvailableDates: [], // Dates disponibles pour nouveaux clients admin
                     isLoadingDates: false,
                     unsubscribeSlots: null,
                     currentCarouselIndex: 0,
@@ -2774,6 +2776,7 @@
                     unsubscribeAppointments: null,
                     unsubscribeAdminSlots: null,
                     unsubscribeAvailableDates: null,
+                    unsubscribeAdminAvailableDates: null,
                     editingClient: null,
                     showEditClientModal: false,
                     showAddClientModal: false,
@@ -3025,6 +3028,13 @@
                             : new Date(slot.date);
                         return slotDate >= startOfDay && slotDate <= endOfDay && !slot.unavailable;
                     }).map(slot => slot.time).sort();
+                },
+                // Computed properties pour les dates admin (incluant aujourd'hui)
+                adminDisplayedDates() {
+                    return this.adminAvailableDates;
+                },
+                adminNewClientDisplayedDates() {
+                    return this.adminNewClientAvailableDates;
                 },
                 filteredMessages() {
                     if (!this.messagesSearch) return this.messages;
@@ -7544,6 +7554,11 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                         this.unsubscribeBlogPosts = null;
                         console.log('Listener blog posts arrêté');
                     }
+                    if (this.unsubscribeAdminAvailableDates) {
+                        this.unsubscribeAdminAvailableDates();
+                        this.unsubscribeAdminAvailableDates = null;
+                        console.log('Listener admin available dates arrêté');
+                    }
                     console.log('Tous les listeners Firebase ont été arrêtés');
                 },
                 async openAdminAppointmentModal() {
@@ -7554,9 +7569,9 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                     this.adminClientSearch = '';
                     this.showAdminClientDropdown = false;
                     
-                    // Charger les dates disponibles pour les deux formulaires
-                    await this.loadAvailableDates();
-                    await this.loadNewClientAvailableDates();
+                    // Charger les dates disponibles pour les deux formulaires (incluant aujourd'hui pour l'admin)
+                    await this.loadAdminAvailableDates();
+                    await this.loadAdminNewClientAvailableDates();
                 },
                 async loadNewClientAvailableDates() {
                     try {
@@ -7585,6 +7600,97 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                     } catch (error) {
                         console.error('Error loading new client available dates:', error);
                         this.newClientAvailableDates = [];
+                    } finally {
+                        this.isLoadingDates = false;
+                    }
+                },
+                async loadAdminAvailableDates() {
+                    try {
+                        console.log('Loading admin available dates (including today)...');
+                        this.isLoadingDates = true;
+                        
+                        // Calculer la date de début (aujourd'hui pour l'admin)
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        const thirtyDaysFromNow = new Date();
+                        thirtyDaysFromNow.setDate(today.getDate() + 30);
+                        thirtyDaysFromNow.setHours(23, 59, 59, 999);
+
+                        console.log('Admin date range:', today.toISOString(), 'to', thirtyDaysFromNow.toISOString());
+
+                        // Nettoyer l'ancien écouteur
+                        if (this.unsubscribeAdminAvailableDates) {
+                            this.unsubscribeAdminAvailableDates();
+                        }
+
+                        this.unsubscribeAdminAvailableDates = db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(today))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(thirtyDaysFromNow))
+                            .where('unavailable', '==', false)
+                            .onSnapshot(snapshot => {
+                                console.log('Admin available dates snapshot:', snapshot.docs.length, 'slots found');
+                                
+                                // Extraire les dates uniques des créneaux disponibles
+                                const availableDatesSet = new Set();
+                                snapshot.forEach(doc => {
+                                    const slotDate = doc.data().date.toDate();
+                                    const dateString = slotDate.toISOString().split('T')[0];
+                                    availableDatesSet.add(dateString);
+                                });
+
+                                this.adminAvailableDates = Array.from(availableDatesSet).sort();
+                                console.log('Admin available dates:', this.adminAvailableDates);
+                                this.isLoadingDates = false;
+                            }, error => {
+                                console.error('Error loading admin available dates:', error);
+                                this.isLoadingDates = false;
+                                this.adminAvailableDates = [];
+                            });
+
+                    } catch (error) {
+                        console.error('Error setting up admin available dates listener:', error);
+                        this.isLoadingDates = false;
+                        this.adminAvailableDates = [];
+                    }
+                },
+                async loadAdminNewClientAvailableDates() {
+                    try {
+                        this.isLoadingDates = true;
+                        
+                        // Calculer la date de début (aujourd'hui pour l'admin)
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        const thirtyDaysFromNow = new Date();
+                        thirtyDaysFromNow.setDate(today.getDate() + 30);
+                        thirtyDaysFromNow.setHours(23, 59, 59, 999);
+                        
+                        // Charger les créneaux disponibles (incluant aujourd'hui)
+                        const slotsSnapshot = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(today))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(thirtyDaysFromNow))
+                            .where('unavailable', '==', false)
+                            .orderBy('date')
+                            .orderBy('time')
+                            .get();
+
+                        if (!slotsSnapshot.empty) {
+                            const availableDatesSet = new Set();
+                            slotsSnapshot.forEach(doc => {
+                                const slot = doc.data();
+                                const date = slot.date.toDate();
+                                const dateString = date.toISOString().split('T')[0];
+                                availableDatesSet.add(dateString);
+                            });
+                            this.adminNewClientAvailableDates = Array.from(availableDatesSet).sort();
+                            console.log('Admin new client available dates:', this.adminNewClientAvailableDates);
+                        } else {
+                            this.adminNewClientAvailableDates = [];
+                        }
+                    } catch (error) {
+                        console.error('Error loading admin new client available dates:', error);
+                        this.adminNewClientAvailableDates = [];
                     } finally {
                         this.isLoadingDates = false;
                     }
