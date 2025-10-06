@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20.7">
+    <link rel="stylesheet" href="styles.css?v=20.8">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -659,6 +659,12 @@
                             Messages
                             <span v-if="unreadMessagesCount > 0" class="notification-badge">{{ unreadMessagesCount }}</span>
                         </button>
+                        <button 
+                            :class="['admin-tab', { active: adminActiveTab === 'reminders' }]"
+                                @click="switchAdminTab('reminders')">
+                            Relances
+                            <span v-if="unreadRemindersCount > 0" class="notification-badge">{{ unreadRemindersCount }}</span>
+                        </button>
 
                     </div>
 
@@ -848,6 +854,15 @@
                                     <div class="form-group">
                                         <label for="newAnimalNotes">Notes supplémentaires</label>
                                         <textarea id="newAnimalNotes" v-model="newAnimal.notes" rows="3"></textarea>
+                                    </div>
+                                    
+                                    <div class="form-group">
+                                        <label for="newAnimalReminderDelay">Délai de relance (en jours)</label>
+                                        <input type="number" id="newAnimalReminderDelay" v-model="newAnimal.reminderDelay" 
+                                               min="1" max="365" placeholder="30" style="width: 100px;">
+                                        <small style="color: var(--text-color); font-size: 0.8rem;">
+                                            Nombre de jours après le dernier rendez-vous avant de faire une relance (optionnel)
+                                        </small>
                                     </div>
                                     <div class="form-group">
                                         <label for="newAnimalPhotos">Photos de l'animal</label>
@@ -1561,6 +1576,70 @@
                                 </tr>
                             </tbody>
                         </table>
+                        </div>
+                    </div>
+
+                    <!-- Onglet Relances -->
+                    <div v-if="adminActiveTab === 'reminders'" class="admin-content">
+                        <!-- Indicateur de chargement -->
+                        <div v-if="isLoadingAdminData" class="loading-indicator" style="text-align: center; padding: 2rem; color: var(--primary-color);">
+                            <div style="font-size: 1.2rem; margin-bottom: 1rem;">Chargement des relances...</div>
+                            <div style="width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid var(--primary-color); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto;"></div>
+                        </div>
+                        
+                        <div v-else>
+                            <div class="admin-header-actions">
+                                <button class="btn primary" @click="checkForReminders()">
+                                    Vérifier les relances
+                                </button>
+                            </div>
+
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date</th>
+                                        <th>Animal</th>
+                                        <th>Client</th>
+                                        <th>Message</th>
+                                        <th>Priorité</th>
+                                        <th>Statut</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr v-for="reminder in reminders" :key="reminder.id" :class="{ 'urgent': reminder.priority === 'urgent' }">
+                                        <td>{{ formatDate(reminder.createdAt) }}</td>
+                                        <td>{{ reminder.animalName }}</td>
+                                        <td>{{ reminder.clientName }}</td>
+                                        <td>{{ reminder.message }}</td>
+                                        <td>
+                                            <span :class="['priority-badge', reminder.priority]">
+                                                {{ reminder.priority === 'urgent' ? 'Urgent' : 'Normal' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <span :class="['status-badge', reminder.status]">
+                                                {{ reminder.status === 'pending' ? 'En attente' : 'Traité' }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <div class="action-buttons">
+                                                <button v-if="reminder.status === 'pending'" 
+                                                        class="btn-success" 
+                                                        @click="markReminderAsTreated(reminder.id)">
+                                                    Marquer comme traité
+                                                </button>
+                                                <button class="btn-delete" @click="deleteReminder(reminder.id)">
+                                                    Supprimer
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr v-if="reminders.length === 0">
+                                        <td colspan="7" class="text-center">Aucune relance trouvée</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </section>
@@ -2736,7 +2815,8 @@
                         documents: [],
                         documentsDate: '', // Date des fiches de soin
                         appointments: [],
-                        travelTime: '' // Ajout du champ temps de trajet
+                        travelTime: '', // Ajout du champ temps de trajet
+                        reminderDelay: null // Délai de relance en jours
                     },
                     unsubscribeAnimals: null,
                     isAdmin: false,
@@ -2770,6 +2850,23 @@
                     adminAvailableDates: [], // Dates disponibles pour l'admin (incluant aujourd'hui)
                     adminNewClientAvailableDates: [], // Dates disponibles pour nouveaux clients admin
                     isLoadingDates: false,
+                    // Système de rappel de relance
+                    reminders: [], // Liste des relances à faire
+                    reminderDelays: {}, // Délais de relance par animal (en jours)
+                    unreadRemindersCount: 0, // Nombre de relances non traitées
+                    showRemindersModal: false, // Modal des relances
+                    selectedReminder: null, // Relance sélectionnée
+                    showAddReminderModal: false, // Modal d'ajout de relance
+                    newReminder: {
+                        animalId: '',
+                        animalName: '',
+                        clientName: '',
+                        clientId: '',
+                        message: '',
+                        priority: 'normal', // normal, urgent
+                        dueDate: '',
+                        status: 'pending' // pending, treated
+                    },
                     unsubscribeSlots: null,
                     currentCarouselIndex: 0,
                     carouselInterval: null,
@@ -2777,6 +2874,7 @@
                     unsubscribeAdminSlots: null,
                     unsubscribeAvailableDates: null,
                     unsubscribeAdminAvailableDates: null,
+                    unsubscribeReminders: null, // Écouteur pour les relances
                     editingClient: null,
                     showEditClientModal: false,
                     showAddClientModal: false,
@@ -4022,6 +4120,11 @@
                         
                         // Recharger les créneaux disponibles
                         await this.loadUnavailableSlots();
+                        
+                        // Vérifier s'il y a des relances à créer (pour les admins)
+                        if (this.isAdmin) {
+                            await this.checkForReminders();
+                        }
                     } catch (error) {
                         console.error('Error submitting appointment:', error);
                         this.appointmentError = 'Une erreur est survenue lors de la prise de rendez-vous. Veuillez réessayer.';
@@ -4174,6 +4277,7 @@
                             treatment: this.newAnimal.treatment || '',
                             behavior: this.newAnimal.behavior || '',
                         notes: this.newAnimal.notes || '',
+                            reminderDelay: this.newAnimal.reminderDelay ? parseInt(this.newAnimal.reminderDelay) : null,
                             // Utiliser l'ID du client sélectionné si on est admin, sinon l'ID de l'utilisateur connecté
                             userId: this.isAdmin ? this.newAnimal.userId : firebase.auth().currentUser.uid,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
@@ -4627,6 +4731,16 @@
                             </div>
 
                             <div class="form-group">
+                                <label>Délai de relance (en jours) :</label>
+                                <input type="number" id="edit-animal-reminder-delay" 
+                                       value="${animal.reminderDelay || ''}" 
+                                       min="1" max="365" placeholder="30" style="width: 100px;">
+                                <small style="color: var(--text-color); font-size: 0.8rem;">
+                                    Nombre de jours après le dernier rendez-vous avant de faire une relance (optionnel)
+                                </small>
+                            </div>
+
+                            <div class="form-group">
                                 <label>Documents (Fiches de soin) :</label>
                                 <div class="documents-grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 1rem; margin-bottom: 1rem;">
                                     ${animal.documents && animal.documents.length > 0 
@@ -4883,6 +4997,7 @@
                             treatment: modal.querySelector('#edit-animal-treatment').value,
                             behavior: modal.querySelector('#edit-animal-behavior').value,
                             notes: modal.querySelector('#edit-animal-notes').value,
+                            reminderDelay: modal.querySelector('#edit-animal-reminder-delay').value ? parseInt(modal.querySelector('#edit-animal-reminder-delay').value) : null,
                             photos: currentPhotos,
                             documents: [...currentDocuments, ...tempDocuments], // Sauvegarder les documents originaux + temporaires
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -5373,6 +5488,10 @@
                             });
 
                         await this.loadMessages();
+                        
+                        // Charger les relances et vérifier s'il y en a de nouvelles
+                        await this.loadReminders();
+                        await this.checkForReminders();
                         
                         // S'assurer que l'indicateur de chargement s'affiche au moins pendant le temps minimum
                         const elapsedTime = Date.now() - startTime;
@@ -7157,6 +7276,9 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                             console.log('Rechargement des créneaux après ajout de rendez-vous');
                             await this.loadSlots();
                         }
+                        
+                        // Vérifier s'il y a des relances à créer
+                        await this.checkForReminders();
                     } catch (error) {
                         console.error('Error submitting admin appointment:', error);
                         alert('Erreur lors de l\'ajout du rendez-vous');
@@ -7186,6 +7308,7 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                         documentsDate: '', // Réinitialiser la date des documents
                         appointments: [],
                         travelTime: '',
+                        reminderDelay: null, // Réinitialiser le délai de relance
                         userId: ''
                     };
                 },
@@ -7361,6 +7484,9 @@ Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous 
                             console.log('Rechargement des créneaux après ajout de rendez-vous');
                             await this.loadSlots();
                         }
+                        
+                        // Vérifier s'il y a des relances à créer
+                        await this.checkForReminders();
 
                     } catch (error) {
                         console.error('Error creating appointment:', error);
@@ -7559,6 +7685,11 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                         this.unsubscribeAdminAvailableDates = null;
                         console.log('Listener admin available dates arrêté');
                     }
+                    if (this.unsubscribeReminders) {
+                        this.unsubscribeReminders();
+                        this.unsubscribeReminders = null;
+                        console.log('Listener reminders arrêté');
+                    }
                     console.log('Tous les listeners Firebase ont été arrêtés');
                 },
                 async openAdminAppointmentModal() {
@@ -7694,6 +7825,220 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                     } finally {
                         this.isLoadingDates = false;
                     }
+                },
+                // Méthodes pour le système de rappel de relance
+                async loadReminders() {
+                    try {
+                        if (!this.isAdmin) return;
+                        
+                        // Nettoyer l'ancien écouteur
+                        if (this.unsubscribeReminders) {
+                            this.unsubscribeReminders();
+                        }
+
+                        this.unsubscribeReminders = db.collection('reminders')
+                            .orderBy('createdAt', 'desc')
+                            .onSnapshot(snapshot => {
+                                this.reminders = snapshot.docs.map(doc => ({
+                                    id: doc.id,
+                                    ...doc.data()
+                                }));
+                                
+                                // Compter les relances non traitées
+                                this.unreadRemindersCount = this.reminders.filter(r => r.status === 'pending').length;
+                                
+                                console.log('Reminders loaded:', this.reminders.length);
+                                console.log('Unread reminders:', this.unreadRemindersCount);
+                            }, error => {
+                                console.error('Error loading reminders:', error);
+                                this.reminders = [];
+                                this.unreadRemindersCount = 0;
+                            });
+                    } catch (error) {
+                        console.error('Error setting up reminders listener:', error);
+                        this.reminders = [];
+                        this.unreadRemindersCount = 0;
+                    }
+                },
+                async createReminder(animalId, animalName, clientId, clientName, message, priority = 'normal') {
+                    try {
+                        const reminderData = {
+                            animalId: animalId,
+                            animalName: animalName,
+                            clientId: clientId,
+                            clientName: clientName,
+                            message: message,
+                            priority: priority,
+                            status: 'pending',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            dueDate: new Date().toISOString().split('T')[0] // Aujourd'hui par défaut
+                        };
+
+                        await db.collection('reminders').add(reminderData);
+                        console.log('Reminder created successfully');
+                        
+                        // Afficher une notification
+                        this.showNotification('Nouvelle relance créée', 'success');
+                    } catch (error) {
+                        console.error('Error creating reminder:', error);
+                        alert('Erreur lors de la création de la relance: ' + error.message);
+                    }
+                },
+                async markReminderAsTreated(reminderId) {
+                    try {
+                        await db.collection('reminders').doc(reminderId).update({
+                            status: 'treated',
+                            treatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            treatedBy: firebase.auth().currentUser.uid
+                        });
+                        
+                        console.log('Reminder marked as treated');
+                        this.showNotification('Relance marquée comme traitée', 'success');
+                    } catch (error) {
+                        console.error('Error marking reminder as treated:', error);
+                        alert('Erreur lors de la mise à jour de la relance: ' + error.message);
+                    }
+                },
+                async deleteReminder(reminderId) {
+                    try {
+                        if (!confirm('Êtes-vous sûr de vouloir supprimer cette relance ?')) return;
+                        
+                        await db.collection('reminders').doc(reminderId).delete();
+                        console.log('Reminder deleted');
+                        this.showNotification('Relance supprimée', 'success');
+                    } catch (error) {
+                        console.error('Error deleting reminder:', error);
+                        alert('Erreur lors de la suppression de la relance: ' + error.message);
+                    }
+                },
+                async checkForReminders() {
+                    try {
+                        if (!this.isAdmin) return;
+                        
+                        // Charger tous les animaux avec leurs rendez-vous
+                        const animalsSnapshot = await db.collection('animals').get();
+                        const animals = animalsSnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+
+                        for (const animal of animals) {
+                            // Vérifier si l'animal a un délai de relance défini
+                            if (!animal.reminderDelay) continue;
+
+                            // Trouver le dernier rendez-vous de l'animal
+                            const lastAppointment = await this.getLastAppointmentForAnimal(animal.id);
+                            if (!lastAppointment) continue;
+
+                            // Calculer la date de relance
+                            const lastAppointmentDate = new Date(lastAppointment.date);
+                            const reminderDate = new Date(lastAppointmentDate);
+                            reminderDate.setDate(reminderDate.getDate() + animal.reminderDelay);
+
+                            const today = new Date();
+                            today.setHours(0, 0, 0, 0);
+                            reminderDate.setHours(0, 0, 0, 0);
+
+                            // Vérifier si c'est le moment de faire une relance
+                            if (reminderDate <= today) {
+                                // Vérifier si une relance n'existe pas déjà pour cet animal
+                                const existingReminder = await this.checkExistingReminder(animal.id);
+                                if (!existingReminder) {
+                                    // Créer une relance
+                                    const client = await this.getClientById(animal.userId);
+                                    const clientName = client ? `${client.firstName} ${client.lastName}` : 'Client inconnu';
+                                    
+                                    await this.createReminder(
+                                        animal.id,
+                                        animal.name,
+                                        animal.userId,
+                                        clientName,
+                                        `Relance pour ${animal.name} - Dernier rendez-vous le ${this.formatDate(lastAppointment.date)}`,
+                                        'normal'
+                                    );
+                                }
+                            }
+                        }
+                    } catch (error) {
+                        console.error('Error checking for reminders:', error);
+                    }
+                },
+                async getLastAppointmentForAnimal(animalId) {
+                    try {
+                        const appointmentsSnapshot = await db.collection('appointments')
+                            .where('selectedAnimalId', '==', animalId)
+                            .orderBy('date', 'desc')
+                            .limit(1)
+                            .get();
+
+                        if (appointmentsSnapshot.empty) return null;
+
+                        const appointment = appointmentsSnapshot.docs[0].data();
+                        return {
+                            id: appointmentsSnapshot.docs[0].id,
+                            ...appointment
+                        };
+                    } catch (error) {
+                        console.error('Error getting last appointment:', error);
+                        return null;
+                    }
+                },
+                async checkExistingReminder(animalId) {
+                    try {
+                        const remindersSnapshot = await db.collection('reminders')
+                            .where('animalId', '==', animalId)
+                            .where('status', '==', 'pending')
+                            .get();
+
+                        return !remindersSnapshot.empty;
+                    } catch (error) {
+                        console.error('Error checking existing reminder:', error);
+                        return false;
+                    }
+                },
+                async getClientById(clientId) {
+                    try {
+                        const clientDoc = await db.collection('users').doc(clientId).get();
+                        if (clientDoc.exists) {
+                            return { id: clientDoc.id, ...clientDoc.data() };
+                        }
+                        return null;
+                    } catch (error) {
+                        console.error('Error getting client:', error);
+                        return null;
+                    }
+                },
+                showNotification(message, type = 'info') {
+                    // Créer une notification temporaire
+                    const notification = document.createElement('div');
+                    notification.className = `notification notification-${type}`;
+                    notification.style.cssText = `
+                        position: fixed;
+                        top: 20px;
+                        right: 20px;
+                        background: ${type === 'success' ? '#4CAF50' : type === 'error' ? '#f44336' : '#2196F3'};
+                        color: white;
+                        padding: 15px 20px;
+                        border-radius: 8px;
+                        box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+                        z-index: 10000;
+                        font-size: 14px;
+                        max-width: 300px;
+                        animation: slideIn 0.3s ease-out;
+                    `;
+                    notification.textContent = message;
+                    
+                    document.body.appendChild(notification);
+                    
+                    // Supprimer la notification après 3 secondes
+                    setTimeout(() => {
+                        notification.style.animation = 'slideOut 0.3s ease-in';
+                        setTimeout(() => {
+                            if (notification.parentNode) {
+                                notification.parentNode.removeChild(notification);
+                            }
+                        }, 300);
+                    }, 3000);
                 },
                 loadClientAnimals() {
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);

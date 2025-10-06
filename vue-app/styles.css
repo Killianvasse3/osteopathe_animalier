@@ -5560,3 +5560,116 @@ select#animalOwner option {
     max-width: 100% !important;
     display: block !important;
 }
+
+/* Styles pour le système de rappel de relance */
+.priority-badge {
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.priority-badge.normal {
+    background-color: #e3f2fd;
+    color: #1976d2;
+}
+
+.priority-badge.urgent {
+    background-color: #ffebee;
+    color: #d32f2f;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
+.status-badge.pending {
+    background-color: #fff3e0;
+    color: #f57c00;
+}
+
+.status-badge.treated {
+    background-color: #e8f5e8;
+    color: #2e7d32;
+}
+
+.btn-success {
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background-color 0.3s ease;
+}
+
+.btn-success:hover {
+    background-color: #45a049;
+}
+
+/* Styles pour les notifications */
+.notification {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+    z-index: 10000;
+    font-size: 14px;
+    max-width: 300px;
+    animation: slideIn 0.3s ease-out;
+}
+
+.notification-success {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.notification-error {
+    background-color: #f44336;
+    color: white;
+}
+
+.notification-info {
+    background-color: #2196F3;
+    color: white;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+}
+
+/* Styles pour les lignes urgentes dans le tableau */
+.data-table tr.urgent {
+    background-color: #fff3e0;
+    border-left: 4px solid #ff9800;
+}
+
+.data-table tr.urgent:hover {
+    background-color: #ffe0b2;
+}
