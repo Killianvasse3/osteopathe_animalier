@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=20.8">
+    <link rel="stylesheet" href="styles.css?v=20.9">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -926,6 +926,18 @@
                                     v-model="appointmentsSearch" 
                                 placeholder="Rechercher un rendez-vous...">
                             </div>
+                            
+                            <div class="toggle-container" style="display: flex; align-items: center; gap: 10px; margin-left: 20px;">
+                                <label class="toggle-label" style="display: flex; align-items: center; gap: 8px; cursor: pointer; font-size: 14px; color: var(--text-color);">
+                                    <input 
+                                        type="checkbox" 
+                                        v-model="showPastAppointments"
+                                        style="width: 18px; height: 18px; cursor: pointer;">
+                                    <span v-if="showPastAppointments">Masquer les rendez-vous passés</span>
+                                    <span v-else>Afficher les rendez-vous passés ({{ pastAppointmentsCount }})</span>
+                                </label>
+                            </div>
+                            
                             <button class="btn primary" @click="openAdminAppointmentModal">
                                 Nouveau rendez-vous
                             </button>
@@ -946,6 +958,18 @@
 
                         <!-- Vue Liste -->
                         <div v-if="appointmentsView === 'list'" class="appointments-list-view">
+                        
+                        <!-- Indicateur des rendez-vous masqués -->
+                        <div v-if="!showPastAppointments && pastAppointmentsCount > 0" 
+                             class="hidden-appointments-info" 
+                             style="background: #e3f2fd; border: 1px solid #2196f3; border-radius: 8px; padding: 12px; margin-bottom: 1rem; color: #1976d2; font-size: 14px;">
+                            <strong>{{ pastAppointmentsCount }}</strong> rendez-vous passé(s) masqué(s). 
+                            <button @click="showPastAppointments = true" 
+                                    style="background: none; border: none; color: #1976f3; text-decoration: underline; cursor: pointer; font-weight: bold;">
+                                Cliquer ici pour les afficher
+                            </button>
+                        </div>
+                        
                         <table class="data-table">
                             <thead>
                                 <tr>
@@ -965,7 +989,8 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                    <tr v-for="appointment in sortedAppointments" :key="appointment.id">
+                                    <tr v-for="appointment in sortedAppointments" :key="appointment.id" 
+                                        :class="{ 'past-appointment': isPastAppointment(appointment.date) }">
                                     <td>{{ formatDate(appointment.date) }}</td>
                                     <td>{{ appointment.time }}</td>
                                     <td>
@@ -2857,6 +2882,7 @@
                     showRemindersModal: false, // Modal des relances
                     selectedReminder: null, // Relance sélectionnée
                     showAddReminderModal: false, // Modal d'ajout de relance
+                    showPastAppointments: false, // Afficher les rendez-vous passés
                     newReminder: {
                         animalId: '',
                         animalName: '',
@@ -3034,12 +3060,30 @@
                     );
                 },
                 filteredAppointments() {
-                    if (!this.appointmentsSearch) return this.allAppointments;
-                    const search = this.appointmentsSearch.toLowerCase();
-                    return this.allAppointments.filter(apt => 
-                        (apt.animalName || '').toLowerCase().includes(search) ||
-                        (this.getUserFullName(apt.userId) || '').toLowerCase().includes(search)
-                    );
+                    let appointments = this.allAppointments;
+                    
+                    // Filtrer par recherche si une recherche est active
+                    if (this.appointmentsSearch) {
+                        const search = this.appointmentsSearch.toLowerCase();
+                        appointments = appointments.filter(apt => 
+                            (apt.animalName || '').toLowerCase().includes(search) ||
+                            (this.getUserFullName(apt.userId) || '').toLowerCase().includes(search)
+                        );
+                    }
+                    
+                    // Filtrer les rendez-vous passés si le toggle est désactivé
+                    if (!this.showPastAppointments) {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        
+                        appointments = appointments.filter(appointment => {
+                            const appointmentDate = new Date(appointment.date);
+                            appointmentDate.setHours(0, 0, 0, 0);
+                            return appointmentDate >= today;
+                        });
+                    }
+                    
+                    return appointments;
                 },
                 currentMonthName() {
                     return new Date(this.currentYear, this.currentMonth).toLocaleString('fr-FR', { month: 'long' });
@@ -3133,6 +3177,17 @@
                 },
                 adminNewClientDisplayedDates() {
                     return this.adminNewClientAvailableDates;
+                },
+                // Computed property pour compter les rendez-vous passés
+                pastAppointmentsCount() {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    
+                    return this.allAppointments.filter(appointment => {
+                        const appointmentDate = new Date(appointment.date);
+                        appointmentDate.setHours(0, 0, 0, 0);
+                        return appointmentDate < today;
+                    }).length;
                 },
                 filteredMessages() {
                     if (!this.messagesSearch) return this.messages;
@@ -8039,6 +8094,14 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                             }
                         }, 300);
                     }, 3000);
+                },
+                // Méthode pour vérifier si un rendez-vous est passé
+                isPastAppointment(appointmentDate) {
+                    const today = new Date();
+                    today.setHours(0, 0, 0, 0);
+                    const date = new Date(appointmentDate);
+                    date.setHours(0, 0, 0, 0);
+                    return date < today;
                 },
                 loadClientAnimals() {
                     this.clientAnimals = this.allAnimals.filter(animal => animal.userId === this.adminAppointmentForm.userId);
