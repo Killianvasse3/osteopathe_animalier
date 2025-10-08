@@ -274,7 +274,7 @@
                 <!-- Section Avis Google -->
                 <section id="reviews" class="section reviews-section">
                     <div class="container">
-                        <h2 class="section-title">Ce que disent nos clients</h2>
+                        <h2 class="section-title">Ce que disent mes clients</h2>
                         <div class="reviews-header">
                             <div class="google-rating">
                                 <div class="rating-stars">
@@ -1582,8 +1582,7 @@
                             <table class="data-table">
                                 <thead>
                                     <tr>
-                                        <th>Nom</th>
-                                        <th>Prénom</th>
+                                        <th>Prénom Nom</th>
                                         <th>Email</th>
                                         <th>Téléphone</th>
                                         <th>Temps de trajet</th>
@@ -1593,8 +1592,7 @@
                                 </thead>
                                 <tbody>
                                     <tr v-for="client in filteredClients" :key="client.id">
-                                        <td>{{ client.lastName || 'N/A' }}</td>
-                                        <td>{{ client.firstName || 'N/A' }}</td>
+                                        <td>{{ client.firstName || '' }} {{ client.lastName || '' }}</td>
                                         <td>{{ client.email }}</td>
                                         <td>{{ client.phone || 'N/A' }}</td>
                                         <td>{{ client.travelTime || 'Non renseigné' }}</td>
@@ -1614,7 +1612,7 @@
                                         </td>
                                     </tr>
                                     <tr v-if="filteredClients.length === 0">
-                                        <td colspan="7" class="text-center">Aucun client trouvé</td>
+                                        <td colspan="6" class="text-center">Aucun client trouvé</td>
                                     </tr>
                                 </tbody>
                             </table>
@@ -4922,19 +4920,19 @@
 
                             <div class="form-group">
                                 <label>Antécédents médicaux :</label>
-                                <textarea id="edit-animal-medical-history" rows="3" placeholder="Maladies, opérations, blessures passées, etc."></textarea>
+                                <textarea id="edit-animal-medical-history" rows="3" placeholder="Maladies, opérations, blessures passées, etc.">${animal.medicalHistory || ''}</textarea>
                             </div>
 
                             <div class="form-group">
                                 <label>Traitement en cours :</label>
-                                <textarea id="edit-animal-treatment" rows="2" placeholder="Médicaments, posologie, durée, etc."></textarea>
+                                <textarea id="edit-animal-treatment" rows="2" placeholder="Médicaments, posologie, durée, etc.">${animal.treatment || ''}</textarea>
                             </div>
 
 
 
                             <div class="form-group">
                                 <label>Particularités comportementales :</label>
-                                <textarea id="edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc."></textarea>
+                                <textarea id="edit-animal-behavior" rows="2" placeholder="Comportements particuliers, anxiété, agressivité, etc.">${animal.behavior || ''}</textarea>
                             </div>
 
                             <div class="form-group">
