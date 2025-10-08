@@ -5737,7 +5737,7 @@ select#animalOwner option {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 3rem;
+    margin-bottom: 2rem;
     flex-wrap: wrap;
     gap: 2rem;
 }
@@ -5802,25 +5802,107 @@ select#animalOwner option {
     color: #333;
 }
 
-.reviews-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-    gap: 2rem;
-    margin-bottom: 3rem;
+/* Carousel d'avis */
+.reviews-carousel-container {
+    position: relative;
+    margin-bottom: 2rem;
+    padding: 0 60px;
 }
 
-.review-card {
+.reviews-carousel {
+    overflow: hidden;
+    width: 100%;
+}
+
+.reviews-carousel-track {
+    display: flex;
+    transition: transform 0.5s ease-in-out;
+}
+
+.review-card-carousel {
+    min-width: calc(33.333% - 2rem);
+    max-width: calc(33.333% - 2rem);
+    margin: 0 1rem;
     background: white;
-    padding: 2rem;
+    padding: 1.5rem;
     border-radius: 15px;
     box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     transition: transform 0.3s ease, box-shadow 0.3s ease;
     border: 1px solid #f0f0f0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
 }
 
-.review-card:hover {
+.review-card-carousel:hover {
     transform: translateY(-5px);
     box-shadow: 0 8px 30px rgba(0,0,0,0.12);
+}
+
+.carousel-nav-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: white;
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    font-size: 2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+.carousel-nav-btn:hover:not(:disabled) {
+    background: var(--primary-color);
+    color: white;
+    transform: translateY(-50%) scale(1.1);
+}
+
+.carousel-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.carousel-nav-btn.prev {
+    left: 0;
+}
+
+.carousel-nav-btn.next {
+    right: 0;
+}
+
+.carousel-dots {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 2rem;
+}
+
+.carousel-dots .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: #ddd;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.carousel-dots .dot.active {
+    background: var(--primary-color);
+    width: 30px;
+    border-radius: 6px;
+}
+
+.carousel-dots .dot:hover {
+    background: var(--secondary-color);
 }
 
 .review-header {
@@ -5847,6 +5929,10 @@ select#animalOwner option {
     justify-content: center;
     font-weight: bold;
     font-size: 1.2rem;
+    flex-shrink: 0;
+    aspect-ratio: 1;
+    min-width: 50px;
+    min-height: 50px;
 }
 
 .reviewer-details {
@@ -5895,13 +5981,19 @@ select#animalOwner option {
     border-radius: 12px;
     font-size: 0.8rem;
     font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    line-height: 1;
 }
 
 .review-text {
     color: #555;
     line-height: 1.6;
-    font-size: 1rem;
+    font-size: 0.95rem;
     margin: 0;
+    flex-grow: 1;
+    overflow-wrap: break-word;
 }
 
 .reviews-actions {
@@ -5928,6 +6020,13 @@ select#animalOwner option {
 }
 
 /* Responsive pour la section avis */
+@media (max-width: 1200px) {
+    .review-card-carousel {
+        min-width: calc(50% - 2rem);
+        max-width: calc(50% - 2rem);
+    }
+}
+
 @media (max-width: 768px) {
     .reviews-header {
         flex-direction: column;
@@ -5944,13 +6043,20 @@ select#animalOwner option {
         font-size: 2rem;
     }
     
-    .reviews-grid {
-        grid-template-columns: 1fr;
-        gap: 1.5rem;
+    .reviews-carousel-container {
+        padding: 0 50px;
     }
     
-    .review-card {
+    .review-card-carousel {
+        min-width: calc(100% - 2rem);
+        max-width: calc(100% - 2rem);
         padding: 1.5rem;
+    }
+    
+    .carousel-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 1.5rem;
     }
     
     .review-header {

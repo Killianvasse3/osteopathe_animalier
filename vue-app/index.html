@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=21.1">
+    <link rel="stylesheet" href="styles.css?v=21.5">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -291,27 +291,48 @@
                             </div>
                         </div>
                         
-                        <div class="reviews-grid">
-                            <div v-for="review in googleReviews.slice(0, 3)" :key="review.id" class="review-card">
-                                <div class="review-header">
-                                    <div class="reviewer-info">
-                                        <div class="reviewer-avatar">
-                                            {{ review.author.charAt(0) }}
-                                        </div>
-                                        <div class="reviewer-details">
-                                            <h4 class="reviewer-name">{{ review.author }}</h4>
-                                            <div class="review-rating">
-                                                <span v-for="i in 5" :key="i" class="star" :class="{ 'filled': i <= review.rating }">★</span>
+                        <div class="reviews-carousel-container">
+                            <button class="carousel-nav-btn prev" @click="prevReview" :disabled="currentReviewIndex === 0">
+                                ‹
+                            </button>
+                            
+                            <div class="reviews-carousel">
+                                <div class="reviews-carousel-track" :style="{ transform: `translateX(-${currentReviewIndex * (100 / reviewsPerPageComputed)}%)` }">
+                                    <div v-for="review in googleReviews" :key="review.id" class="review-card-carousel">
+                                        <div class="review-header">
+                                            <div class="reviewer-info">
+                                                <div class="reviewer-avatar">
+                                                    {{ review.author.charAt(0) }}
+                                                </div>
+                                                <div class="reviewer-details">
+                                                    <h4 class="reviewer-name">{{ review.author }}</h4>
+                                                    <div class="review-rating">
+                                                        <span v-for="i in 5" :key="i" class="star" :class="{ 'filled': i <= review.rating }">★</span>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="review-meta">
+                                                <span class="review-date">{{ formatReviewDate(review.date) }}</span>
+                                                <span v-if="review.verified" class="verified-badge">✓ Vérifié</span>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="review-meta">
-                                        <span class="review-date">{{ formatReviewDate(review.date) }}</span>
-                                        <span v-if="review.verified" class="verified-badge">✓ Vérifié</span>
+                                        <p class="review-text">{{ review.text }}</p>
                                     </div>
                                 </div>
-                                <p class="review-text">{{ review.text }}</p>
                             </div>
+                            
+                            <button class="carousel-nav-btn next" @click="nextReview" :disabled="currentReviewIndex >= googleReviews.length - reviewsPerPageComputed">
+                                ›
+                            </button>
+                        </div>
+                        
+                        <div class="carousel-dots">
+                            <span v-for="(dot, index) in totalReviewPages" 
+                                  :key="index" 
+                                  class="dot" 
+                                  :class="{ active: currentReviewPage === index }"
+                                  @click="goToReviewPage(index)">
+                            </span>
                         </div>
                         
                         <div class="reviews-actions">
@@ -2938,6 +2959,9 @@
                     showAddReminderModal: false, // Modal d'ajout de relance
                     showPastAppointments: false, // Afficher les rendez-vous passés
                     // Avis Google
+                    currentReviewIndex: 0, // Index actuel du carousel d'avis
+                    reviewsPerPage: 3, // Nombre d'avis par page
+                    reviewsAutoplayInterval: null, // Intervalle pour l'autoplay
                     googleReviews: [
                         {
                             id: 1,
@@ -3302,6 +3326,25 @@
                 },
                 totalReviewsCount() {
                     return this.googleReviews.length;
+                },
+                // Nombre d'avis par page selon la taille d'écran
+                reviewsPerPageComputed() {
+                    if (typeof window !== 'undefined') {
+                        if (window.innerWidth <= 768) {
+                            return 1; // Mobile: 1 avis
+                        } else if (window.innerWidth <= 1200) {
+                            return 2; // Tablette: 2 avis
+                        }
+                    }
+                    return 3; // Desktop: 3 avis
+                },
+                // Nombre total de pages
+                totalReviewPages() {
+                    return Math.ceil(this.googleReviews.length / this.reviewsPerPageComputed);
+                },
+                // Page actuelle
+                currentReviewPage() {
+                    return Math.floor(this.currentReviewIndex / this.reviewsPerPageComputed);
                 },
                 filteredMessages() {
                     if (!this.messagesSearch) return this.messages;
@@ -8226,6 +8269,36 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                         day: 'numeric'
                     });
                 },
+                // Méthodes pour le carousel d'avis
+                nextReview() {
+                    const maxIndex = this.googleReviews.length - this.reviewsPerPageComputed;
+                    if (this.currentReviewIndex < maxIndex) {
+                        this.currentReviewIndex += this.reviewsPerPageComputed;
+                        // S'assurer de ne pas dépasser le maximum
+                        if (this.currentReviewIndex > maxIndex) {
+                            this.currentReviewIndex = maxIndex;
+                        }
+                    }
+                },
+                prevReview() {
+                    if (this.currentReviewIndex > 0) {
+                        this.currentReviewIndex -= this.reviewsPerPageComputed;
+                        // S'assurer de ne pas aller en dessous de 0
+                        if (this.currentReviewIndex < 0) {
+                            this.currentReviewIndex = 0;
+                        }
+                    }
+                },
+                goToReviewPage(pageIndex) {
+                    this.currentReviewIndex = pageIndex * this.reviewsPerPageComputed;
+                },
+                handleReviewsResize() {
+                    // Réinitialiser l'index si nécessaire lors du redimensionnement
+                    const maxIndex = this.googleReviews.length - this.reviewsPerPageComputed;
+                    if (this.currentReviewIndex > maxIndex) {
+                        this.currentReviewIndex = 0;
+                    }
+                },
                 // Méthode pour charger les avis depuis l'API Google (future intégration)
                 async loadGoogleReviews() {
                     try {
@@ -8491,6 +8564,9 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                 window.addEventListener('resize', checkZoomAndResponsive);
                 window.addEventListener('load', checkZoomAndResponsive);
                 checkZoomAndResponsive();
+                
+                // Gérer le redimensionnement pour le carousel d'avis
+                window.addEventListener('resize', this.handleReviewsResize);
 
                 this.loadBlogPosts();
                 
@@ -8509,6 +8585,8 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                 if (this.unsubscribeSlots) {
                     this.unsubscribeSlots();
                 }
+                // Retirer l'écouteur de resize
+                window.removeEventListener('resize', this.handleReviewsResize);
                 if (this.unsubscribeAppointments) {
                     this.unsubscribeAppointments();
                 }
