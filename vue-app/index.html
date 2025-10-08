@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=21.5">
+    <link rel="stylesheet" href="styles.css?v=21.6">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -2556,8 +2556,36 @@
         <!-- Modal d'édition pour les rendez-vous -->
         <div v-if="showEditAppointmentModal" class="edit-modal">
             <div class="edit-modal-content">
-                <h2>Modifier le rendez-vous</h2>
-                <form @submit.prevent="updateAppointment">
+                <h2>{{ editingAppointment.isTemporary ? 'Rendez-vous temporaire' : 'Modifier le rendez-vous' }}</h2>
+                
+                <!-- Switch pour RDV non temporaires -->
+                <div v-if="!editingAppointment.isTemporary" class="edit-mode-switch">
+                    <button 
+                        type="button"
+                        class="switch-btn" 
+                        :class="{ active: editMode === 'appointment' }"
+                        @click="editMode = 'appointment'">
+                        Informations du RDV
+                    </button>
+                    <button 
+                        type="button"
+                        class="switch-btn" 
+                        :class="{ active: editMode === 'client' }"
+                        @click="editMode = 'client'">
+                        Informations du client
+                    </button>
+                </div>
+
+                <!-- Bouton de création de compte pour RDV temporaires -->
+                <div v-if="editingAppointment.isTemporary" class="temporary-appointment-actions">
+                    <p style="background: #fff3cd; padding: 1rem; border-radius: 8px; color: #856404; margin-bottom: 1rem;">
+                        <strong>⚠️ Rendez-vous temporaire</strong><br>
+                        Ce rendez-vous n'est pas encore lié à un compte client. Vous pouvez créer le compte client à partir des informations ci-dessous.
+                    </p>
+                </div>
+
+                <!-- Formulaire RDV (visible si mode appointment ou si temporaire) -->
+                <form v-if="editMode === 'appointment' || editingAppointment.isTemporary" @submit.prevent="updateAppointment">
                     <div class="edit-form-group">
                         <label for="editAppointmentDate">Date</label>
                         <input type="date" id="editAppointmentDate" v-model="editingAppointment.date" required>
@@ -2578,6 +2606,42 @@
                             </button>
                         </div>
                     </div>
+                    
+                    <!-- Champs client (modifiables seulement pour RDV temporaires) -->
+                    <div v-if="editingAppointment.isTemporary">
+                        <div class="edit-form-group">
+                            <label for="editTempClientName">Prénom du propriétaire</label>
+                            <input type="text" id="editTempClientName" v-model="editingAppointment.tempClientInfo.firstName" required>
+                        </div>
+                        <div class="edit-form-group">
+                            <label for="editTempClientLastName">Nom du propriétaire</label>
+                            <input type="text" id="editTempClientLastName" v-model="editingAppointment.tempClientInfo.lastName" required>
+                        </div>
+                        <div class="edit-form-group">
+                            <label for="editTempAnimalName">Nom de l'animal</label>
+                            <input type="text" id="editTempAnimalName" v-model="editingAppointment.tempAnimalInfo.name" required>
+                        </div>
+                        <div class="edit-form-group">
+                            <label for="editTempAnimalType">Type d'animal</label>
+                            <select id="editTempAnimalType" v-model="editingAppointment.tempAnimalInfo.species" required>
+                                <option value="">Sélectionnez le type</option>
+                                <option value="Chien">Chien</option>
+                                <option value="Chat">Chat</option>
+                                <option value="Cheval">Cheval</option>
+                                <option value="NAC">NAC</option>
+                                <option value="Bovin">Bovin</option>
+                            </select>
+                        </div>
+                        <div class="edit-form-group">
+                            <label for="editTempClientEmail">Email</label>
+                            <input type="email" id="editTempClientEmail" v-model="editingAppointment.tempClientInfo.email">
+                        </div>
+                        <div class="edit-form-group">
+                            <label for="editTempClientAddress">Adresse</label>
+                            <input type="text" id="editTempClientAddress" v-model="editingAppointment.tempClientInfo.address">
+                        </div>
+                    </div>
+                    
                     <div class="edit-form-group">
                         <label for="editAppointmentPhone">Numéro de téléphone</label>
                         <input type="tel" id="editAppointmentPhone" v-model="editingAppointment.phone" 
@@ -2591,8 +2655,45 @@
                         <textarea id="editAppointmentNotes" v-model="editingAppointment.notes" rows="3"></textarea>
                     </div>
                     <div class="edit-modal-actions">
-                        <button type="button" class="btn secondary" @click="showEditAppointmentModal = false">Annuler</button>
-                        <button type="submit" class="btn primary">Enregistrer</button>
+                        <button type="button" class="btn secondary" @click="cancelEditAppointment">Annuler</button>
+                        <button type="submit" class="btn primary">Enregistrer les modifications</button>
+                        <button v-if="editingAppointment.isTemporary" type="button" class="btn success" @click="createClientFromTemporaryAppointment" style="background: #28a745;">
+                            ✓ Créer le compte client
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Formulaire Client (visible seulement si mode client pour RDV non temporaires) -->
+                <form v-if="editMode === 'client' && !editingAppointment.isTemporary" @submit.prevent="updateClientInfo">
+                    <div class="edit-form-group">
+                        <label for="editClientFirstName">Prénom</label>
+                        <input type="text" id="editClientFirstName" v-model="editingClientInfo.firstName" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientLastName">Nom</label>
+                        <input type="text" id="editClientLastName" v-model="editingClientInfo.lastName" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientEmail">Email</label>
+                        <input type="email" id="editClientEmail" v-model="editingClientInfo.email" required>
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientPhone">Téléphone</label>
+                        <input type="tel" id="editClientPhone" v-model="editingClientInfo.phone" 
+                               pattern="[0-9]{10}" 
+                               placeholder="0612345678">
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientAddress">Adresse</label>
+                        <input type="text" id="editClientAddress" v-model="editingClientInfo.address">
+                    </div>
+                    <div class="edit-form-group">
+                        <label for="editClientTravelTime">Temps de trajet</label>
+                        <input type="text" id="editClientTravelTime" v-model="editingClientInfo.travelTime" placeholder="Ex: 30 min">
+                    </div>
+                    <div class="edit-modal-actions">
+                        <button type="button" class="btn secondary" @click="cancelEditAppointment">Annuler</button>
+                        <button type="submit" class="btn primary">Enregistrer les modifications</button>
                     </div>
                 </form>
             </div>
@@ -2929,6 +3030,8 @@
                     userEmails: {},
                     showEditAppointmentModal: false,
                     editingAppointment: null,
+                    editMode: 'appointment', // 'appointment' ou 'client'
+                    editingClientInfo: {}, // Stocke les infos du client lors de l'édition
                     currentMonth: new Date().getMonth(),
                     currentYear: new Date().getFullYear(),
                     selectedDate: null,
@@ -3191,11 +3294,11 @@
                     
                     // Filtrer par recherche si une recherche est active
                     if (this.appointmentsSearch) {
-                        const search = this.appointmentsSearch.toLowerCase();
+                    const search = this.appointmentsSearch.toLowerCase();
                         appointments = appointments.filter(apt => 
-                            (apt.animalName || '').toLowerCase().includes(search) ||
-                            (this.getUserFullName(apt.userId) || '').toLowerCase().includes(search)
-                        );
+                        (apt.animalName || '').toLowerCase().includes(search) ||
+                        (this.getUserFullName(apt.userId) || '').toLowerCase().includes(search)
+                    );
                     }
                     
                     // Filtrer les rendez-vous passés si le toggle est désactivé
@@ -5348,7 +5451,7 @@
                                 currentDocuments = currentDocuments.filter(doc => doc.id !== docId);
                                 
                                 // Mettre à jour l'affichage des documents existants
-                                const documentsGrid = modal.querySelector('.documents-grid');
+                            const documentsGrid = modal.querySelector('.documents-grid');
                                 if (currentDocuments.length > 0) {
                                     documentsGrid.innerHTML = currentDocuments.map((doc, index) => `
                                         <div class="document-card" style="background: white; padding: 0.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative;">
@@ -5356,11 +5459,11 @@
                                             <p style="font-size: 0.8rem; color: var(--text-color); margin: 0;">Fiche de soin ${index + 1}</p>
                                             <p style="font-size: 0.7rem; color: var(--secondary-color); margin: 0.2rem 0 0 0;">${this.formatDate(doc.date)}</p>
                                             <button type="button" class="btn-remove-photo" data-doc-id="${doc.id}" style="position: absolute; top: 5px; right: 5px; background: rgba(255,0,0,0.8); color: white; border: none; border-radius: 50%; width: 20px; height: 20px; font-size: 12px; cursor: pointer;">×</button>
-                                        </div>
-                                    `).join('');
-                                } else {
-                                    documentsGrid.innerHTML = '<p>Aucun document</p>';
-                                }
+                                    </div>
+                                `).join('');
+                            } else {
+                                documentsGrid.innerHTML = '<p>Aucun document</p>';
+                            }
                             }
                         }
                     });
@@ -5723,6 +5826,25 @@
 
                 async editAppointment(appointment) {
                     this.editingAppointment = { ...appointment };
+                    this.editMode = 'appointment'; // Commencer par le mode RDV
+                    
+                    // Si le RDV n'est pas temporaire, charger les infos du client
+                    if (!appointment.isTemporary && appointment.userId) {
+                        const clientDoc = await db.collection('users').doc(appointment.userId).get();
+                        if (clientDoc.exists) {
+                            const clientData = clientDoc.data();
+                            this.editingClientInfo = {
+                                id: appointment.userId,
+                                firstName: clientData.firstName || '',
+                                lastName: clientData.lastName || '',
+                                email: clientData.email || '',
+                                phone: clientData.phone || '',
+                                address: clientData.address || '',
+                                travelTime: clientData.travelTime || ''
+                            };
+                        }
+                    }
+                    
                     await this.loadUnavailableSlots();
                     this.showEditAppointmentModal = true;
                 },
@@ -5735,13 +5857,31 @@
                             return;
                         }
 
-                        await db.collection('appointments').doc(this.editingAppointment.id).update({
+                        const updateData = {
                             date: this.editingAppointment.date,
                             time: this.editingAppointment.time,
                             phone: this.editingAppointment.phone,
                             notes: this.editingAppointment.notes,
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                        });
+                        };
+
+                        // Si c'est un RDV temporaire, mettre à jour aussi les infos client
+                        if (this.editingAppointment.isTemporary) {
+                            updateData.tempClientInfo = {
+                                firstName: this.editingAppointment.tempClientInfo.firstName,
+                                lastName: this.editingAppointment.tempClientInfo.lastName,
+                                email: this.editingAppointment.tempClientInfo.email || '',
+                                phone: this.editingAppointment.phone,
+                                address: this.editingAppointment.tempClientInfo.address || ''
+                            };
+                            updateData.tempAnimalInfo = {
+                                name: this.editingAppointment.tempAnimalInfo.name,
+                                species: this.editingAppointment.tempAnimalInfo.species
+                            };
+                            updateData.animalName = this.editingAppointment.tempAnimalInfo.name;
+                        }
+
+                        await db.collection('appointments').doc(this.editingAppointment.id).update(updateData);
 
                         // Mettre à jour la liste locale
                         const index = this.allAppointments.findIndex(a => a.id === this.editingAppointment.id);
@@ -5755,6 +5895,161 @@
                     } catch (error) {
                         console.error('Error updating appointment:', error);
                         alert('Erreur lors de la modification: ' + error.message);
+                    }
+                },
+                async updateClientInfo() {
+                    try {
+                        if (!this.editingClientInfo.id) {
+                            alert('Erreur: ID du client introuvable');
+                            return;
+                        }
+
+                        await db.collection('users').doc(this.editingClientInfo.id).update({
+                            firstName: this.editingClientInfo.firstName,
+                            lastName: this.editingClientInfo.lastName,
+                            email: this.editingClientInfo.email,
+                            phone: this.editingClientInfo.phone || '',
+                            address: this.editingClientInfo.address || '',
+                            travelTime: this.editingClientInfo.travelTime || '',
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        alert('Informations du client mises à jour avec succès');
+                        this.showEditAppointmentModal = false;
+                        this.editingAppointment = null;
+                        this.editingClientInfo = {};
+                    } catch (error) {
+                        console.error('Error updating client info:', error);
+                        alert('Erreur lors de la mise à jour: ' + error.message);
+                    }
+                },
+                cancelEditAppointment() {
+                    this.showEditAppointmentModal = false;
+                    this.editingAppointment = null;
+                    this.editingClientInfo = {};
+                    this.editMode = 'appointment';
+                },
+                async createClientFromTemporaryAppointment() {
+                    if (!confirm('Créer un compte client à partir de ce rendez-vous temporaire ?\n\n⚠️ IMPORTANT : Vous devrez saisir un mot de passe temporaire pour le client.')) {
+                        return;
+                    }
+
+                    // Demander le mot de passe temporaire à l'admin
+                    const tempPassword = prompt('Entrez un mot de passe temporaire pour le client (min. 6 caractères, avec majuscule, minuscule et chiffre) :', 'TempPass123!');
+                    if (!tempPassword || tempPassword.length < 6) {
+                        alert('Mot de passe invalide. La création du compte a été annulée.');
+                        return;
+                    }
+
+                    try {
+                        const clientEmail = this.editingAppointment.tempClientInfo.email || `temp_${Date.now()}@temporaire.com`;
+                        
+                        console.log('Début de la création du compte client...');
+                        
+                        // Sauvegarder l'admin email avant toute opération
+                        const currentAdminUser = firebase.auth().currentUser;
+                        const adminEmail = currentAdminUser ? currentAdminUser.email : null;
+                        console.log('Admin email sauvegardé:', adminEmail);
+
+                        // IMPORTANT : Nettoyer tous les listeners AVANT de créer le compte Firebase Auth
+                        console.log('Nettoyage des listeners avant création du compte...');
+                        await this.cleanupAllListeners();
+
+                        // Créer le compte Firebase Auth pour obtenir l'UID
+                        console.log('Création du compte Firebase Auth...');
+                        const userCredential = await firebase.auth().createUserWithEmailAndPassword(clientEmail, tempPassword);
+                        const firebaseUid = userCredential.user.uid;
+                        console.log('Compte Firebase Auth créé avec UID:', firebaseUid);
+
+                        // Maintenant utiliser cet UID pour TOUT
+                        // Firebase Auth vient de déconnecter l'admin, mais on peut encore écrire si les règles le permettent
+                        
+                        // Créer le document utilisateur avec l'UID Firebase Auth comme ID
+                        const userData = {
+                            firstName: this.editingAppointment.tempClientInfo.firstName || 'Prénom',
+                            lastName: this.editingAppointment.tempClientInfo.lastName || 'Nom',
+                            email: clientEmail,
+                            phone: this.editingAppointment.phone || '',
+                            address: this.editingAppointment.tempClientInfo.address || '',
+                            travelTime: '',
+                            role: 'client',
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        await db.collection('users').doc(firebaseUid).set(userData);
+                        console.log('Document utilisateur créé dans Firestore avec UID:', firebaseUid);
+
+                        // Créer l'animal avec le bon userId
+                        const animalData = {
+                            userId: firebaseUid,
+                            name: this.editingAppointment.tempAnimalInfo.name || 'Animal',
+                            species: this.editingAppointment.tempAnimalInfo.species || 'Non renseigné',
+                            race: '',
+                            birthdate: '',
+                            birthdateType: 'unknown',
+                            birthdateApprox: '',
+                            sterilization: false,
+                            sterilizationDetails: '',
+                            diet: '',
+                            activity: '',
+                            activityDetails: '',
+                            medicalHistory: '',
+                            treatment: '',
+                            behavior: '',
+                            notes: '',
+                            photos: [],
+                            documents: [],
+                            appointments: [{
+                                date: this.editingAppointment.date,
+                                time: this.editingAppointment.time,
+                                notes: this.editingAppointment.notes || '',
+                                travelTime: ''
+                            }],
+                            travelTime: '',
+                            reminderDelay: null,
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                        };
+
+                        const animalRef = await db.collection('animals').add(animalData);
+                        console.log('Animal créé dans Firestore:', animalRef.id);
+
+                        // Mettre à jour le rendez-vous
+                        await db.collection('appointments').doc(this.editingAppointment.id).update({
+                            userId: firebaseUid,
+                            selectedAnimalId: animalRef.id,
+                            isTemporary: false,
+                            phone: this.editingAppointment.phone,
+                            notes: this.editingAppointment.notes,
+                            tempClientInfo: firebase.firestore.FieldValue.delete(),
+                            tempAnimalInfo: firebase.firestore.FieldValue.delete(),
+                            animalName: firebase.firestore.FieldValue.delete(),
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        console.log('Rendez-vous mis à jour');
+
+                        // Afficher le message de succès
+                        alert(`✅ Compte client créé avec succès !\n\nEmail: ${clientEmail}\nMot de passe temporaire: ${tempPassword}\n\n⚠️ Vous allez être déconnecté. Veuillez vous reconnecter avec vos identifiants admin:\n${adminEmail}`);
+
+                        // Fermer la modal
+                        this.showEditAppointmentModal = false;
+                        this.editingAppointment = null;
+
+                        // Déconnecter complètement
+                        await firebase.auth().signOut();
+
+                        // Afficher le formulaire de connexion
+                        this.showAuth = true;
+                        this.isLogin = true;
+
+                    } catch (error) {
+                        console.error('Error creating client from temporary appointment:', error);
+                        alert('Erreur lors de la création du compte client: ' + error.message + '\n\nVeuillez vous reconnecter en tant qu\'admin pour vérifier.');
+                        
+                        // En cas d'erreur, nettoyer et déconnecter
+                        await this.cleanupAllListeners();
+                        await firebase.auth().signOut();
+                        this.showAuth = true;
+                        this.isLogin = true;
                     }
                 },
                 async deleteAnimal(animal) {
@@ -8175,19 +8470,27 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                 },
                 async getLastAppointmentForAnimal(animalId) {
                     try {
+                        // Récupérer tous les rendez-vous de l'animal (sans orderBy pour éviter l'index composite)
                         const appointmentsSnapshot = await db.collection('appointments')
                             .where('selectedAnimalId', '==', animalId)
-                            .orderBy('date', 'desc')
-                            .limit(1)
                             .get();
 
                         if (appointmentsSnapshot.empty) return null;
 
-                        const appointment = appointmentsSnapshot.docs[0].data();
-                        return {
-                            id: appointmentsSnapshot.docs[0].id,
-                            ...appointment
-                        };
+                        // Trier côté client par date décroissante
+                        const appointments = appointmentsSnapshot.docs
+                            .map(doc => ({
+                                id: doc.id,
+                                ...doc.data()
+                            }))
+                            .sort((a, b) => {
+                                const dateA = new Date(a.date);
+                                const dateB = new Date(b.date);
+                                return dateB - dateA; // Ordre décroissant (le plus récent en premier)
+                            });
+
+                        // Retourner le premier (le plus récent)
+                        return appointments[0] || null;
                     } catch (error) {
                         console.error('Error getting last appointment:', error);
                         return null;

@@ -31,8 +31,8 @@ service cloud.firestore {
     match /animals/{animalId} {
       // Lecture : admin peut tout lire, utilisateur peut lire ses propres animaux
       allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
-      // Création : seul l'admin peut créer
-      allow create: if isAdmin();
+      // Création : admin OU utilisateur qui crée pour lui-même
+      allow create: if isAuthenticated() && (isAdmin() || request.resource.data.userId == request.auth.uid);
       // Modification : admin ou propriétaire de l'animal (pour ajouter des rendez-vous)
       allow update: if isAuthenticated() && (
         resource.data.userId == request.auth.uid || 
@@ -52,14 +52,25 @@ service cloud.firestore {
       allow create: if isAuthenticated() && 
         request.resource.data.userId == request.auth.uid;
       
-      // Seuls les admins peuvent modifier les rendez-vous
-      allow update: if isAdmin();
+      // Modification : admins PEUVENT modifier, OU utilisateur peut modifier un RDV temporaire pour le lier à son compte
+      allow update: if isAdmin() || (
+        isAuthenticated() && 
+        (resource.data.isTemporary == true || request.resource.data.userId == request.auth.uid)
+      );
       
       // Les admins peuvent créer des rendez-vous pour les clients
       allow create: if isAdmin();
       
       // Seuls les admins peuvent supprimer les rendez-vous
       allow delete: if isAdmin();
+    }
+
+    // Règles pour la collection reminders
+    match /reminders/{reminderId} {
+      // Lecture : seuls les admins peuvent lire les relances
+      allow read: if isAdmin();
+      // Création, modification, suppression : seuls les admins
+      allow write: if isAdmin();
     }
 
     // Règles pour la collection timeSlots
