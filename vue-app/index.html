@@ -1573,8 +1573,11 @@
                                     v-model="clientsSearch" 
                                 placeholder="Rechercher un client...">
                             </div>
+                            <button class="btn secondary" @click="showTransferDataModal = true" style="margin-right: 0.5rem;">
+                                Transférer des données
+                            </button>
                             <button class="btn primary" @click="showAddClientModal = true">
-                                Nouveau client
+Nouveau client
                             </button>
                         </div>
 
@@ -2828,6 +2831,115 @@
             </div>
         </div>
 
+        <!-- Modal de transfert de données entre clients -->
+        <div v-if="showTransferDataModal" class="edit-modal">
+            <div class="edit-modal-content" style="max-width: 700px;">
+                <h2>🔄 Transférer les données d'un client vers un autre</h2>
+                
+                <div style="background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <strong>⚠️ Attention :</strong> Cette opération va transférer TOUS les animaux et rendez-vous du client source vers le client destination.
+                    Cette action est <strong>irréversible</strong>.
+                </div>
+
+                <form @submit.prevent="confirmTransferData">
+                    <!-- Étape 1: Sélection des clients -->
+                    <div v-if="transferStep === 1">
+                        <div class="edit-form-group">
+                            <label for="sourceClient">Client source (dont les données seront transférées)</label>
+                            <select id="sourceClient" v-model="transferData.sourceClientId" required @change="loadSourceClientPreview">
+                                <option value="">-- Sélectionnez le client source --</option>
+                                <option v-for="client in allClients" :key="client.id" :value="client.id">
+                                    {{ client.firstName }} {{ client.lastName }} ({{ client.email }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <div class="edit-form-group">
+                            <label for="destinationClient">Client destination (qui recevra les données)</label>
+                            <select id="destinationClient" v-model="transferData.destinationClientId" required @change="validateTransfer">
+                                <option value="">-- Sélectionnez le client destination --</option>
+                                <option v-for="client in allClients" :key="client.id" :value="client.id" :disabled="client.id === transferData.sourceClientId">
+                                    {{ client.firstName }} {{ client.lastName }} ({{ client.email }})
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Aperçu des données à transférer -->
+                        <div v-if="transferData.sourceClientId && transferPreview" style="background: #f8f9fa; border-radius: 8px; padding: 1rem; margin-top: 1rem;">
+                            <h3 style="margin-top: 0; font-size: 1.1rem;">📊 Aperçu des données à transférer</h3>
+                            <p><strong>Animaux :</strong> {{ transferPreview.animalsCount }} dossier(s)</p>
+                            <ul v-if="transferPreview.animals.length > 0" style="margin: 0.5rem 0;">
+                                <li v-for="animal in transferPreview.animals" :key="animal.id">
+                                    {{ animal.name }} ({{ animal.species }})
+                                </li>
+                            </ul>
+                            <p><strong>Rendez-vous :</strong> {{ transferPreview.appointmentsCount }} RDV</p>
+                        </div>
+
+                        <!-- Option de suppression du compte source -->
+                        <div class="edit-form-group" style="margin-top: 1.5rem;">
+                            <label style="display: flex; align-items: center; cursor: pointer;">
+                                <input type="checkbox" v-model="transferData.deleteSourceAccount" style="margin-right: 0.5rem;">
+                                Supprimer le compte source après le transfert
+                            </label>
+                            <small style="color: var(--text-color); font-size: 0.85rem; margin-top: 0.25rem; display: block;">
+                                Si coché, le compte source sera définitivement supprimé après le transfert des données.
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Étape 2: Confirmation -->
+                    <div v-if="transferStep === 2">
+                        <div style="background: #dc3545; color: white; border-radius: 8px; padding: 1.5rem; margin-bottom: 1.5rem;">
+                            <h3 style="margin-top: 0; color: white;">⚠️ CONFIRMATION FINALE</h3>
+                            <p style="margin: 0.5rem 0;"><strong>Vous êtes sur le point de :</strong></p>
+                            <ul style="margin: 0.5rem 0 0 1.5rem;">
+                                <li>Transférer <strong>{{ transferPreview.animalsCount }}</strong> animal(aux)</li>
+                                <li>Transférer <strong>{{ transferPreview.appointmentsCount }}</strong> rendez-vous</li>
+                                <li>DE: <strong>{{ getClientName(transferData.sourceClientId) }}</strong></li>
+                                <li>VERS: <strong>{{ getClientName(transferData.destinationClientId) }}</strong></li>
+                                <li v-if="transferData.deleteSourceAccount" style="color: #ffeb3b;">❌ SUPPRIMER le compte source après le transfert</li>
+                            </ul>
+                        </div>
+
+                        <div class="edit-form-group">
+                            <label for="confirmationText">
+                                Pour confirmer, tapez <strong>"TRANSFERER"</strong> dans le champ ci-dessous :
+                            </label>
+                            <input 
+                                type="text" 
+                                id="confirmationText" 
+                                v-model="transferData.confirmationText" 
+                                placeholder="Tapez TRANSFERER"
+                                style="font-weight: bold; text-transform: uppercase;">
+                        </div>
+                    </div>
+
+                    <div class="edit-modal-actions">
+                        <button type="button" class="btn secondary" @click="cancelTransferData">
+                            {{ transferStep === 2 ? 'Retour' : 'Annuler' }}
+                        </button>
+                        <button 
+                            v-if="transferStep === 1" 
+                            type="button" 
+                            class="btn primary" 
+                            @click="goToConfirmation"
+                            :disabled="!canProceedToConfirmation">
+                            Continuer vers la confirmation
+                        </button>
+                        <button 
+                            v-if="transferStep === 2" 
+                            type="submit" 
+                            class="btn" 
+                            style="background: #dc3545;"
+                            :disabled="transferData.confirmationText !== 'TRANSFERER'">
+                            🔄 TRANSFÉRER LES DONNÉES
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
         <!-- Modal pour voir les dossiers d'animaux d'un client -->
         <div v-if="showClientAnimalsModal" class="modal">
             <div class="modal-content" style="max-width: 900px;">
@@ -3137,6 +3249,16 @@
                     showClientAnimalsModal: false,
                     selectedClient: null,
                     clientAnimals: [],
+                    // Transfert de données entre clients
+                    showTransferDataModal: false,
+                    transferStep: 1, // 1 = Sélection, 2 = Confirmation
+                    transferData: {
+                        sourceClientId: '',
+                        destinationClientId: '',
+                        deleteSourceAccount: false,
+                        confirmationText: ''
+                    },
+                    transferPreview: null, // Aperçu des données à transférer
                     messages: [],
                     unreadMessagesCount: 0,
                     unsubscribeMessages: null,
@@ -3446,6 +3568,13 @@
                 // Page actuelle
                 currentReviewPage() {
                     return Math.floor(this.currentReviewIndex / this.reviewsPerPageComputed);
+                },
+                // Computed pour la validation du transfert de données
+                canProceedToConfirmation() {
+                    return this.transferData.sourceClientId && 
+                           this.transferData.destinationClientId && 
+                           this.transferData.sourceClientId !== this.transferData.destinationClientId &&
+                           this.transferPreview !== null;
                 },
                 filteredMessages() {
                     if (!this.messagesSearch) return this.messages;
@@ -6947,6 +7076,195 @@
                         }
                     }
                 },
+
+                // ===== MÉTHODES DE TRANSFERT DE DONNÉES ENTRE CLIENTS =====
+                async loadSourceClientPreview() {
+                    if (!this.transferData.sourceClientId) {
+                        this.transferPreview = null;
+                        return;
+                    }
+
+                    try {
+                        // Charger les animaux du client source
+                        const animalsSnapshot = await db.collection('animals')
+                            .where('userId', '==', this.transferData.sourceClientId)
+                            .get();
+                        
+                        const animals = animalsSnapshot.docs.map(doc => ({
+                            id: doc.id,
+                            ...doc.data()
+                        }));
+
+                        // Charger les rendez-vous du client source
+                        const appointmentsSnapshot = await db.collection('appointments')
+                            .where('userId', '==', this.transferData.sourceClientId)
+                            .get();
+
+                        this.transferPreview = {
+                            animals: animals,
+                            animalsCount: animals.length,
+                            appointmentsCount: appointmentsSnapshot.docs.length
+                        };
+                    } catch (error) {
+                        console.error('Error loading source client preview:', error);
+                        alert('Erreur lors du chargement de l\'aperçu');
+                        this.transferPreview = null;
+                    }
+                },
+                
+                validateTransfer() {
+                    // Empêcher de sélectionner le même client comme source et destination
+                    if (this.transferData.sourceClientId && 
+                        this.transferData.sourceClientId === this.transferData.destinationClientId) {
+                        alert('Le client source et le client destination ne peuvent pas être identiques');
+                        this.transferData.destinationClientId = '';
+                    }
+                },
+                
+                goToConfirmation() {
+                    if (!this.canProceedToConfirmation) {
+                        alert('Veuillez sélectionner un client source et un client destination');
+                        return;
+                    }
+                    this.transferStep = 2;
+                },
+                
+                cancelTransferData() {
+                    if (this.transferStep === 2) {
+                        // Retour à l'étape 1
+                        this.transferStep = 1;
+                        this.transferData.confirmationText = '';
+                    } else {
+                        // Annuler complètement
+                        this.showTransferDataModal = false;
+                        this.transferStep = 1;
+                        this.transferData = {
+                            sourceClientId: '',
+                            destinationClientId: '',
+                            deleteSourceAccount: false,
+                            confirmationText: ''
+                        };
+                        this.transferPreview = null;
+                    }
+                },
+                
+                getClientName(clientId) {
+                    const client = this.allClients.find(c => c.id === clientId);
+                    if (!client) return 'Client non trouvé';
+                    return `${client.firstName} ${client.lastName} (${client.email})`;
+                },
+                
+                async confirmTransferData() {
+                    if (this.transferData.confirmationText !== 'TRANSFERER') {
+                        alert('Veuillez taper "TRANSFERER" pour confirmer');
+                        return;
+                    }
+
+                    try {
+                        console.log('🔄 Début du transfert de données...');
+                        console.log('Source:', this.transferData.sourceClientId);
+                        console.log('Destination:', this.transferData.destinationClientId);
+
+                        // Récupérer les informations du client destination pour l'email
+                        const destClientDoc = await db.collection('users').doc(this.transferData.destinationClientId).get();
+                        const destClientData = destClientDoc.data();
+                        const destClientEmail = destClientData.email;
+
+                        // 1. Transférer tous les animaux
+                        const animalsSnapshot = await db.collection('animals')
+                            .where('userId', '==', this.transferData.sourceClientId)
+                            .get();
+                        
+                        console.log(`📦 ${animalsSnapshot.docs.length} animaux à transférer`);
+                        
+                        const animalIds = [];
+                        for (const doc of animalsSnapshot.docs) {
+                            await db.collection('animals').doc(doc.id).update({
+                                userId: this.transferData.destinationClientId,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            animalIds.push(doc.id);
+                            console.log(`✅ Animal ${doc.data().name} transféré`);
+                        }
+
+                        // 2. Transférer tous les rendez-vous
+                        const appointmentsSnapshot = await db.collection('appointments')
+                            .where('userId', '==', this.transferData.sourceClientId)
+                            .get();
+                        
+                        console.log(`📅 ${appointmentsSnapshot.docs.length} rendez-vous à transférer`);
+                        
+                        for (const doc of appointmentsSnapshot.docs) {
+                            const appointmentData = doc.data();
+                            const updateData = {
+                                userId: this.transferData.destinationClientId,
+                                userEmail: destClientEmail,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            };
+                            
+                            // Si le rendez-vous a un selectedAnimalId qui fait partie des animaux transférés
+                            // on le garde, sinon on le met à jour aussi
+                            if (appointmentData.selectedAnimalId && animalIds.includes(appointmentData.selectedAnimalId)) {
+                                // L'animal existe toujours, on garde juste l'ID
+                                console.log(`✅ RDV ${doc.id} transféré (animal ID conservé)`);
+                            }
+                            
+                            await db.collection('appointments').doc(doc.id).update(updateData);
+                            console.log(`✅ Rendez-vous transféré`);
+                        }
+
+                        // 3. Optionnel : Supprimer le compte source
+                        if (this.transferData.deleteSourceAccount) {
+                            console.log('🗑️ Suppression du compte source...');
+                            
+                            // Vérifier qu'il ne reste plus d'animaux ou de rendez-vous
+                            const checkAnimals = await db.collection('animals')
+                                .where('userId', '==', this.transferData.sourceClientId)
+                                .get();
+                            const checkAppointments = await db.collection('appointments')
+                                .where('userId', '==', this.transferData.sourceClientId)
+                                .get();
+                            
+                            if (checkAnimals.empty && checkAppointments.empty) {
+                                // Supprimer le document utilisateur
+                                await db.collection('users').doc(this.transferData.sourceClientId).delete();
+                                console.log('✅ Compte source supprimé de Firestore');
+                                
+                                // Note: La suppression du compte Firebase Auth doit être faite manuellement
+                                // car elle nécessite que l'utilisateur soit connecté ou l'utilisation d'Admin SDK
+                                alert(`✅ Transfert terminé avec succès !\n\n` +
+                                      `${this.transferPreview.animalsCount} animal(aux) et ${this.transferPreview.appointmentsCount} rendez-vous transférés.\n\n` +
+                                      `Le compte Firestore du client source a été supprimé.\n\n` +
+                                      `⚠️ IMPORTANT: Le compte Firebase Auth doit être supprimé manuellement dans la console Firebase.`);
+                            } else {
+                                throw new Error('Des données restent attachées au compte source');
+                            }
+                        } else {
+                            alert(`✅ Transfert terminé avec succès !\n\n` +
+                                  `${this.transferPreview.animalsCount} animal(aux) et ${this.transferPreview.appointmentsCount} rendez-vous transférés.\n\n` +
+                                  `Le compte source est toujours actif mais ne contient plus de données.`);
+                        }
+
+                        // Fermer le modal et recharger les données
+                        this.showTransferDataModal = false;
+                        this.transferStep = 1;
+                        this.transferData = {
+                            sourceClientId: '',
+                            destinationClientId: '',
+                            deleteSourceAccount: false,
+                            confirmationText: ''
+                        };
+                        this.transferPreview = null;
+                        
+                        // Recharger toutes les données
+                        await this.loadAllData();
+                        
+                    } catch (error) {
+                        console.error('❌ Error during data transfer:', error);
+                        alert('Erreur lors du transfert de données: ' + error.message + '\n\nLes données peuvent être partiellement transférées. Veuillez vérifier.');
+                    }
+                },
+                // ===== FIN DES MÉTHODES DE TRANSFERT =====
 
                 async deleteClient(client) {
                     if (!confirm(`Êtes-vous sûr de vouloir supprimer le client ${client.firstName} ${client.lastName} ? Cette action supprimera également tous ses animaux, rendez-vous ET son compte de connexion.`)) return;
