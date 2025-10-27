@@ -13,7 +13,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=21.7">
+    <link rel="stylesheet" href="styles.css?v=22.4">
     
     <!-- OneSignal -->
     <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
@@ -292,11 +292,15 @@
                         </div>
                         
                         <div class="reviews-carousel-container">
-                            <button class="carousel-nav-btn prev" @click="prevReview" :disabled="currentReviewIndex === 0">
+                            <!-- Boutons de navigation pour desktop seulement -->
+                            <button class="carousel-nav-btn prev desktop-only" @click="prevReview" :disabled="currentReviewIndex === 0">
                                 ‹
                             </button>
                             
-                            <div class="reviews-carousel">
+                            <div class="reviews-carousel" 
+                                 @touchstart="handleTouchStart" 
+                                 @touchmove="handleTouchMove" 
+                                 @touchend="handleTouchEnd">
                                 <div class="reviews-carousel-track" :style="{ transform: `translateX(-${currentReviewIndex * (100 / reviewsPerPageComputed)}%)` }">
                                     <div v-for="review in googleReviews" :key="review.id" class="review-card-carousel">
                                         <div class="review-header">
@@ -321,7 +325,7 @@
                                 </div>
                             </div>
                             
-                            <button class="carousel-nav-btn next" @click="nextReview" :disabled="currentReviewIndex >= googleReviews.length - reviewsPerPageComputed">
+                            <button class="carousel-nav-btn next desktop-only" @click="nextReview" :disabled="currentReviewIndex >= googleReviews.length - reviewsPerPageComputed">
                                 ›
                             </button>
                         </div>
@@ -3127,6 +3131,10 @@ Nouveau client
                     currentReviewIndex: 0, // Index actuel du carousel d'avis
                     reviewsPerPage: 3, // Nombre d'avis par page
                     reviewsAutoplayInterval: null, // Intervalle pour l'autoplay
+                    // Propriétés pour le scroll tactile
+                    touchStartX: null,
+                    touchStartY: null,
+                    isScrolling: false,
                     googleReviews: [
                         {
                             id: 1,
@@ -9012,6 +9020,55 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
                     if (this.currentReviewIndex > maxIndex) {
                         this.currentReviewIndex = 0;
                     }
+                },
+                // Méthodes pour le scroll tactile
+                handleTouchStart(e) {
+                    this.touchStartX = e.touches[0].clientX;
+                    this.touchStartY = e.touches[0].clientY;
+                    this.isScrolling = false;
+                },
+                handleTouchMove(e) {
+                    if (!this.touchStartX || !this.touchStartY) return;
+                    
+                    const touchCurrentX = e.touches[0].clientX;
+                    const touchCurrentY = e.touches[0].clientY;
+                    
+                    const diffX = this.touchStartX - touchCurrentX;
+                    const diffY = this.touchStartY - touchCurrentY;
+                    
+                    // Déterminer si c'est un scroll horizontal ou vertical
+                    if (!this.isScrolling) {
+                        this.isScrolling = Math.abs(diffX) > Math.abs(diffY);
+                    }
+                    
+                    // Si c'est un scroll horizontal, empêcher le scroll de la page
+                    if (this.isScrolling) {
+                        e.preventDefault();
+                    }
+                },
+                handleTouchEnd(e) {
+                    if (!this.touchStartX || !this.isScrolling) return;
+                    
+                    const touchEndX = e.changedTouches[0].clientX;
+                    const diffX = this.touchStartX - touchEndX;
+                    
+                    // Seuil minimum pour déclencher le changement
+                    const threshold = 50;
+                    
+                    if (Math.abs(diffX) > threshold) {
+                        if (diffX > 0) {
+                            // Swipe vers la gauche = avancer
+                            this.nextReview();
+                        } else {
+                            // Swipe vers la droite = reculer
+                            this.prevReview();
+                        }
+                    }
+                    
+                    // Reset
+                    this.touchStartX = null;
+                    this.touchStartY = null;
+                    this.isScrolling = false;
                 },
                 // Méthode pour charger les avis depuis l'API Google (future intégration)
                 async loadGoogleReviews() {
