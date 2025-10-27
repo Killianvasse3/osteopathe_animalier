@@ -6073,6 +6073,15 @@ Nouveau client
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
 
+                        // Mettre à jour aussi le temps de trajet dans le rendez-vous
+                        if (this.editingAppointment && this.editingAppointment.id) {
+                            await db.collection('appointments').doc(this.editingAppointment.id).update({
+                                travelTime: this.editingClientInfo.travelTime || '',
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                            console.log('Temps de trajet mis à jour dans le rendez-vous');
+                        }
+
                         alert('Informations du client mises à jour avec succès');
                         this.showEditAppointmentModal = false;
                         this.editingAppointment = null;
@@ -6179,6 +6188,7 @@ Nouveau client
                             isTemporary: false,
                             phone: this.editingAppointment.phone,
                             notes: this.editingAppointment.notes,
+                            travelTime: userData.travelTime || '', // Ajouter le temps de trajet du client
                             tempClientInfo: firebase.firestore.FieldValue.delete(),
                             tempAnimalInfo: firebase.firestore.FieldValue.delete(),
                             animalName: firebase.firestore.FieldValue.delete(),
@@ -7020,9 +7030,24 @@ Nouveau client
                             travelTime: this.editingClient.travelTime || '',
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         });
-                        
 
-                        
+                        // Mettre à jour le temps de trajet dans tous les rendez-vous de ce client
+                        const appointmentsSnapshot = await db.collection('appointments')
+                            .where('userId', '==', this.editingClient.id)
+                            .get();
+
+                        if (!appointmentsSnapshot.empty) {
+                            const batch = db.batch();
+                            appointmentsSnapshot.docs.forEach(doc => {
+                                batch.update(doc.ref, {
+                                    travelTime: this.editingClient.travelTime || '',
+                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                });
+                            });
+                            await batch.commit();
+                            console.log(`Temps de trajet mis à jour dans ${appointmentsSnapshot.size} rendez-vous`);
+                        }
+
                         this.showEditClientModal = false;
                         alert('Client modifié avec succès');
                     } catch (error) {
@@ -8007,6 +8032,10 @@ Nouveau client
                         const savedDate = this.adminAppointmentForm.date;
                         const savedTime = this.adminAppointmentForm.time;
 
+                        // Récupérer le temps de trajet du client
+                        const client = this.allClients.find(c => c.id === this.adminAppointmentForm.userId);
+                        const clientTravelTime = client ? client.travelTime : '';
+
                         const appointmentData = {
                             userId: this.adminAppointmentForm.userId,
                             selectedAnimalId: this.adminAppointmentForm.selectedAnimalId,
@@ -8015,6 +8044,7 @@ Nouveau client
                             date: this.adminAppointmentForm.date,
                             time: this.adminAppointmentForm.time,
                             notes: this.adminAppointmentForm.notes,
+                            travelTime: clientTravelTime, // Ajouter le temps de trajet du client
                             status: 'pending',
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
@@ -8261,6 +8291,7 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                             date: formData.date,
                             time: formData.time,
                             notes: formData.notes,
+                            travelTime: '', // Temps de trajet vide pour les RDV temporaires
                             status: 'pending',
                             isTemporary: true, // Marquer comme temporaire
                             createdAt: firebase.firestore.FieldValue.serverTimestamp()
@@ -8463,6 +8494,7 @@ Cliquez sur "OK" pour créer le client, ou "Annuler" pour garder le rendez-vous 
                                 userId: userCredential.user.uid,
                                 selectedAnimalId: animalRef.id,
                                 isTemporary: false,
+                                travelTime: userData.travelTime || '', // Ajouter le temps de trajet du client
                                 tempClientInfo: firebase.firestore.FieldValue.delete(),
                                 updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                             });
