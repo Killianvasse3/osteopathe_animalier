@@ -1255,40 +1255,18 @@
 
                                     <div class="form-group">
                                         <label for="adminAppointmentDate">Date du rendez-vous</label>
-                                        <div v-if="isLoadingDates" class="loading-message">
-                                            Chargement des dates disponibles...
-                                        </div>
-                                        <div v-else-if="adminDisplayedDates.length === 0" class="no-slots-message">
-                                            Aucune date disponible pour les 30 prochains jours.
-                                        </div>
-                                        <select v-else
-                                            id="adminAppointmentDate" 
-                                            v-model="adminAppointmentForm.date" 
-                                            required>
-                                            <option value="">Sélectionnez une date</option>
-                                            <option v-for="date in adminDisplayedDates" 
-                                                    :key="date" 
-                                                    :value="date">
-                                                {{ formatDateFr(date) }}
-                                            </option>
-                                        </select>
+                                        <input type="date" id="adminAppointmentDate" v-model="adminAppointmentForm.date" required>
+                                        <small style="color: var(--text-color); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                                            Vous pouvez sélectionner n'importe quelle date - les créneaux seront créés automatiquement si nécessaire
+                                        </small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Heure du rendez-vous</label>
-                                        <div v-if="displayedTimeSlots.length === 0" class="no-slots-message">
-                                            Aucun créneau disponible pour cette date.
-                                        </div>
-                                        <div v-else class="time-slots">
-                                            <button v-for="slot in displayedTimeSlots" 
-                                                 :key="slot"
-                                                 type="button"
-                                                 class="time-slot"
-                                                 :class="{ 'selected': adminAppointmentForm.time === slot }"
-                                                 @click="adminAppointmentForm.time = slot">
-                                                {{ slot }}
-                                            </button>
-                                        </div>
+                                        <label for="adminAppointmentTime">Heure du rendez-vous</label>
+                                        <input type="time" id="adminAppointmentTime" v-model="adminAppointmentForm.time" required>
+                                        <small style="color: var(--text-color); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                                            Vous pouvez saisir n'importe quelle heure - un créneau sera créé automatiquement si nécessaire
+                                        </small>
                                     </div>
 
                                     <div class="form-group">
@@ -1390,36 +1368,19 @@
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Date du rendez-vous</label>
-                                        <select 
-                                            id="newClientAppointmentDate" 
-                                            v-model="newClientAppointmentForm.date" 
-                                            @change="loadAdminNewClientAvailableDates"
-                                            required>
-                                            <option value="">Sélectionnez une date</option>
-                                            <option v-for="date in adminNewClientDisplayedDates" 
-                                                    :key="date" 
-                                                    :value="date">
-                                                {{ formatDateFr(date) }}
-                                            </option>
-                                        </select>
+                                        <label for="newClientAppointmentDate">Date du rendez-vous</label>
+                                        <input type="date" id="newClientAppointmentDate" v-model="newClientAppointmentForm.date" required>
+                                        <small style="color: var(--text-color); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                                            Vous pouvez sélectionner n'importe quelle date - les créneaux seront créés automatiquement si nécessaire
+                                        </small>
                                     </div>
 
                                     <div class="form-group">
-                                        <label>Heure du rendez-vous</label>
-                                        <div v-if="newClientDisplayedTimeSlots.length === 0" class="no-slots-message">
-                                            Aucun créneau disponible pour cette date.
-                                        </div>
-                                        <div v-else class="time-slots">
-                                            <button v-for="slot in newClientDisplayedTimeSlots" 
-                                                 :key="slot"
-                                                 type="button"
-                                                 class="time-slot"
-                                                 :class="{ 'selected': newClientAppointmentForm.time === slot }"
-                                                 @click="newClientAppointmentForm.time = slot">
-                                                {{ slot }}
-                                            </button>
-                                        </div>
+                                        <label for="newClientAppointmentTime">Heure du rendez-vous</label>
+                                        <input type="time" id="newClientAppointmentTime" v-model="newClientAppointmentForm.time" required>
+                                        <small style="color: var(--text-color); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                                            Vous pouvez saisir n'importe quelle heure - un créneau sera créé automatiquement si nécessaire
+                                        </small>
                                     </div>
 
                                     <div class="form-group">
@@ -2594,20 +2555,11 @@ Nouveau client
                         <input type="date" id="editAppointmentDate" v-model="editingAppointment.date" required>
                     </div>
                     <div class="edit-form-group">
-                        <label>Heure</label>
-                        <div class="time-slots">
-                            <button v-for="slot in timeSlots" 
-                                 :key="slot"
-                                 type="button"
-                                 class="time-slot"
-                                 :class="{ 
-                                     'selected': editingAppointment.time === slot,
-                                     'unavailable': isTimeSlotUnavailable(slot) && editingAppointment.time !== slot
-                                 }"
-                                 @click="!isTimeSlotUnavailable(slot) && (editingAppointment.time = slot)">
-                                {{ slot }}
-                            </button>
-                        </div>
+                        <label for="editAppointmentTime">Heure</label>
+                        <input type="time" id="editAppointmentTime" v-model="editingAppointment.time" required>
+                        <small style="color: var(--text-color); font-size: 0.8rem; margin-top: 0.25rem; display: block;">
+                            Vous pouvez saisir n'importe quelle heure disponible
+                        </small>
                     </div>
                     
                     <!-- Champs client (modifiables seulement pour RDV temporaires) -->
@@ -5955,6 +5907,11 @@ Nouveau client
 
                 async editAppointment(appointment) {
                     this.editingAppointment = { ...appointment };
+                    // Sauvegarder les valeurs originales pour la libération du créneau
+                    this.editingAppointment.originalDate = appointment.date;
+                    this.editingAppointment.originalTime = appointment.time;
+                    this.editingAppointment.originalTimeSlotId = appointment.timeSlotId;
+                    
                     this.editMode = 'appointment'; // Commencer par le mode RDV
                     
                     // Si le RDV n'est pas temporaire, charger les infos du client
@@ -5979,6 +5936,11 @@ Nouveau client
                 },
                 async updateAppointment() {
                     try {
+                        // Sauvegarder l'ancien créneau pour le libérer plus tard
+                        const oldTimeSlotId = this.editingAppointment.originalTimeSlotId;
+                        const oldDate = this.editingAppointment.originalDate;
+                        const oldTime = this.editingAppointment.originalTime;
+
                         // Vérifier si le créneau est toujours disponible
                         if (this.isTimeSlotUnavailable(this.editingAppointment.time) && 
                             this.editingAppointment.time !== this.editingAppointment.originalTime) {
@@ -5986,11 +5948,46 @@ Nouveau client
                             return;
                         }
 
+                        // Gérer la création automatique de créneau si nécessaire
+                        const startOfDay = new Date(this.editingAppointment.date);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(this.editingAppointment.date);
+                        endOfDay.setHours(23, 59, 59, 999);
+
+                        // Chercher le créneau correspondant
+                        const timeSlotSnapshot = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .where('time', '==', this.editingAppointment.time)
+                            .get();
+
+                        let timeSlotId = this.editingAppointment.timeSlotId; // Garder l'ID existant par défaut
+                        
+                        if (!timeSlotSnapshot.empty) {
+                            // Le créneau existe déjà
+                            timeSlotId = timeSlotSnapshot.docs[0].id;
+                            console.log('Créneau existant trouvé pour modification:', timeSlotId);
+                        } else {
+                            // Créer automatiquement le créneau
+                            console.log('Créneau non trouvé lors de la modification, création automatique...');
+                            const newTimeSlotRef = await db.collection('timeSlots').add({
+                                date: firebase.firestore.Timestamp.fromDate(new Date(this.editingAppointment.date)),
+                                time: this.editingAppointment.time,
+                                duration: 60, // Durée par défaut de 1 heure
+                                unavailable: true, // Marquer comme indisponible car réservé
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                createdBy: 'admin-edit' // Marquer comme créé par l'admin lors de modification
+                            });
+                            timeSlotId = newTimeSlotRef.id;
+                            console.log('Nouveau créneau créé automatiquement lors de la modification:', timeSlotId);
+                        }
+
                         const updateData = {
                             date: this.editingAppointment.date,
                             time: this.editingAppointment.time,
                             phone: this.editingAppointment.phone,
                             notes: this.editingAppointment.notes,
+                            timeSlotId: timeSlotId, // Ajouter l'ID du créneau
                             updatedAt: firebase.firestore.FieldValue.serverTimestamp()
                         };
 
@@ -6011,6 +6008,39 @@ Nouveau client
                         }
 
                         await db.collection('appointments').doc(this.editingAppointment.id).update(updateData);
+
+                        // Marquer le créneau comme indisponible (si ce n'est pas déjà fait)
+                        await db.collection('timeSlots')
+                            .doc(timeSlotId)
+                            .update({
+                                unavailable: true,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        console.log('Créneau marqué comme indisponible après modification');
+
+                        // Libérer l'ancien créneau si la date/heure a changé
+                        if (oldTimeSlotId && (oldDate !== this.editingAppointment.date || oldTime !== this.editingAppointment.time)) {
+                            console.log('Libération de l\'ancien créneau:', oldTimeSlotId);
+                            
+                            // Vérifier si d'autres rendez-vous utilisent ce créneau
+                            const appointmentsUsingOldSlot = await db.collection('appointments')
+                                .where('timeSlotId', '==', oldTimeSlotId)
+                                .where('id', '!=', this.editingAppointment.id)
+                                .get();
+                            
+                            if (appointmentsUsingOldSlot.empty) {
+                                // Aucun autre RDV n'utilise ce créneau, le libérer
+                                await db.collection('timeSlots')
+                                    .doc(oldTimeSlotId)
+                                    .update({
+                                        unavailable: false,
+                                        updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                                    });
+                                console.log('Ancien créneau libéré:', oldTimeSlotId);
+                            } else {
+                                console.log('Ancien créneau gardé car utilisé par d\'autres RDV:', oldTimeSlotId);
+                            }
+                        }
 
                         // Mettre à jour la liste locale
                         const index = this.allAppointments.findIndex(a => a.id === this.editingAppointment.id);
@@ -8005,23 +8035,38 @@ Nouveau client
                             .where('time', '==', this.adminAppointmentForm.time)
                             .get();
 
+                        let timeSlotId;
+                        
                         if (!timeSlotSnapshot.empty) {
-                            const timeSlotId = timeSlotSnapshot.docs[0].id;
-                            
-                            // Ajouter l'ID du créneau aux données du rendez-vous
-                            appointmentData.timeSlotId = timeSlotId;
-                            
-                            // Marquer le créneau comme indisponible
-                            await db.collection('timeSlots')
-                                .doc(timeSlotId)
-                                .update({
-                                    unavailable: true,
-                                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
-                                });
-                            console.log('Créneau marqué comme indisponible dans timeSlots');
+                            // Le créneau existe déjà
+                            timeSlotId = timeSlotSnapshot.docs[0].id;
+                            console.log('Créneau existant trouvé:', timeSlotId);
                         } else {
-                            console.log('Créneau timeSlots non trouvé pour la mise à jour');
+                            // Créer automatiquement le créneau
+                            console.log('Créneau non trouvé, création automatique...');
+                            const newTimeSlotRef = await db.collection('timeSlots').add({
+                                date: firebase.firestore.Timestamp.fromDate(new Date(this.adminAppointmentForm.date)),
+                                time: this.adminAppointmentForm.time,
+                                duration: 60, // Durée par défaut de 1 heure
+                                unavailable: true, // Marquer comme indisponible car réservé
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                createdBy: 'admin-appointment' // Marquer comme créé par l'admin
+                            });
+                            timeSlotId = newTimeSlotRef.id;
+                            console.log('Nouveau créneau créé automatiquement:', timeSlotId);
                         }
+                        
+                        // Ajouter l'ID du créneau aux données du rendez-vous
+                        appointmentData.timeSlotId = timeSlotId;
+                        
+                        // Marquer le créneau comme indisponible (si ce n'est pas déjà fait)
+                        await db.collection('timeSlots')
+                            .doc(timeSlotId)
+                            .update({
+                                unavailable: true,
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            });
+                        console.log('Créneau marqué comme indisponible dans timeSlots');
 
                         // Mettre à jour l'historique de l'animal
                         const animalRef = db.collection('animals').doc(this.adminAppointmentForm.selectedAnimalId);
@@ -8237,20 +8282,38 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                             .where('time', '==', formData.time)
                             .get();
 
+                        let timeSlotId;
+                        
                         if (!timeSlotSnapshot.empty) {
-                            const timeSlotId = timeSlotSnapshot.docs[0].id;
-                            
-                            // Ajouter l'ID du créneau aux données du rendez-vous
-                            await db.collection('appointments').doc(appointmentRef.id).update({
-                                timeSlotId: timeSlotId
+                            // Le créneau existe déjà
+                            timeSlotId = timeSlotSnapshot.docs[0].id;
+                            console.log('Créneau existant trouvé:', timeSlotId);
+                        } else {
+                            // Créer automatiquement le créneau
+                            console.log('Créneau non trouvé, création automatique...');
+                            const newTimeSlotRef = await db.collection('timeSlots').add({
+                                date: firebase.firestore.Timestamp.fromDate(new Date(formData.date)),
+                                time: formData.time,
+                                duration: 60, // Durée par défaut de 1 heure
+                                unavailable: true, // Marquer comme indisponible car réservé
+                                createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                                createdBy: 'admin-new-client' // Marquer comme créé par l'admin pour nouveau client
                             });
-
-                            // Marquer le créneau comme indisponible
-                            await db.collection('timeSlots').doc(timeSlotId).update({
-                                unavailable: true
-                            });
-                            console.log('Créneau marqué comme indisponible');
+                            timeSlotId = newTimeSlotRef.id;
+                            console.log('Nouveau créneau créé automatiquement:', timeSlotId);
                         }
+                        
+                        // Ajouter l'ID du créneau aux données du rendez-vous
+                        await db.collection('appointments').doc(appointmentRef.id).update({
+                            timeSlotId: timeSlotId
+                        });
+
+                        // Marquer le créneau comme indisponible (si ce n'est pas déjà fait)
+                        await db.collection('timeSlots').doc(timeSlotId).update({
+                            unavailable: true,
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+                        console.log('Créneau marqué comme indisponible');
 
                         // Message de confirmation du rendez-vous
                         alert(`Rendez-vous confirmé avec succès !

@@ -1,5 +1,6 @@
 {
   "hosting": {
+    "site": "osteopatheanimalier-50728",
     "public": "vue-app",
     "ignore": [
       "firebase.json",
@@ -10,6 +11,13 @@
       {
         "source": "**",
         "destination": "/index.html"
+      }
+    ],
+    "redirects": [
+      {
+        "source": "/",
+        "destination": "/index.html",
+        "type": 301
       }
     ]
   },
