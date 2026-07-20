@@ -1,0 +1,18 @@
+name = "emmy-vasse-notifications"
+main = "src/index.js"
+compatibility_date = "2026-07-20"
+workers_dev = true
+
+[vars]
+ALLOWED_ORIGIN = "https://emmyvasse.com"
+PUBLIC_SITE_URL = "https://emmyvasse.com"
+ONESIGNAL_APP_ID = "c1dcb08f-cad7-4f3e-be08-b45671fbde82"
+FIREBASE_API_KEY = "AIzaSyB9noXR2BudT0VMELFTvnjthCfTA4pxVgU"
+
+[[ratelimits]]
+name = "NOTIFICATION_RATE_LIMITER"
+namespace_id = "1001"
+
+[ratelimits.simple]
+limit = 5
+period = 60

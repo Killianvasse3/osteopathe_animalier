@@ -1,4 +1,4 @@
-const functions = require('firebase-functions');
+const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
 
 admin.initializeApp();
@@ -7,7 +7,6 @@ admin.initializeApp();
 exports.helloWorld = functions.https.onRequest((request, response) => {
   response.send("Hello from Firebase!");
 });
-
 // Fonction pour supprimer un compte d'authentification Firebase
 exports.deleteUserAccount = functions.https.onCall(async (data, context) => {
   // Vérifier que l'utilisateur est authentifié et est admin
@@ -183,56 +182,5 @@ exports.backupFirestore = functions.https.onCall(async (data, context) => {
   } catch (error) {
     console.error('[backupFirestore] Erreur lors de la sauvegarde:', error);
     throw new functions.https.HttpsError('internal', 'Erreur lors de la création de la sauvegarde');
-  }
-});
-
-// Fonction de sauvegarde programmée (quotidienne à 2h du matin)
-exports.scheduledBackup = functions.pubsub.schedule('0 2 * * *').onRun(async (context) => {
-  console.log('[scheduledBackup] Début de la sauvegarde programmée...');
-  
-  try {
-    // Même logique que backupFirestore mais sans vérification d'admin
-    const collections = [
-      'users',
-      'animals', 
-      'appointments',
-      'timeSlots',
-      'contact_messages',
-      'blog_posts',
-      'services',
-      'bodyAnnotations',
-      'admin_notifications'
-    ];
-    
-    const backupData = {
-      timestamp: new Date().toISOString(),
-      projectId: process.env.GCLOUD_PROJECT,
-      type: 'scheduled',
-      collections: {}
-    };
-    
-    for (const collectionName of collections) {
-      const snapshot = await admin.firestore().collection(collectionName).get();
-      const data = [];
-      
-      snapshot.forEach(doc => {
-        data.push({
-          id: doc.id,
-          ...doc.data()
-        });
-      });
-      
-      backupData.collections[collectionName] = data;
-    }
-    
-    // Ici vous pourriez sauvegarder dans Cloud Storage ou envoyer par email
-    // Pour l'instant, on log juste les métadonnées
-    const totalDocuments = Object.values(backupData.collections).reduce((sum, docs) => sum + docs.length, 0);
-    console.log(`[scheduledBackup] Sauvegarde programmée terminée: ${totalDocuments} documents`);
-    
-    return null;
-  } catch (error) {
-    console.error('[scheduledBackup] Erreur lors de la sauvegarde programmée:', error);
-    return null;
   }
 });

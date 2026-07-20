@@ -13,12 +13,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;500;600&display=swap" rel="stylesheet">
     
     <!-- Styles -->
-    <link rel="stylesheet" href="styles.css?v=22.4">
+    <link rel="stylesheet" href="styles.css?v=22.8">
     
     <!-- OneSignal -->
-    <script src="https://cdn.onesignal.com/sdks/OneSignalSDK.js" defer></script>
+    <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
     <script>
-        window.OneSignal = window.OneSignal || [];
+        window.OneSignalDeferred = window.OneSignalDeferred || [];
         // On n'initialise pas OneSignal immédiatement, on attend la vérification du statut admin
     </script>
 
@@ -448,8 +448,8 @@
                         </div>
                         <div class="step">
                             <div class="step-number">3</div>
-                            <h3>Confirmez votre rendez-vous</h3>
-                            <p>Votre rendez-vous est immédiatement enregistré et sera validé par SMS ou par email.</p>
+                            <h3>Envoyez votre demande</h3>
+                            <p>Le créneau sera définitivement réservé uniquement après réception d'un message de confirmation envoyé par Emmy Vasse.</p>
                         </div>
                     </div>
 
@@ -579,7 +579,16 @@
                                 <textarea id="notes" v-model="appointmentForm.notes" rows="3"></textarea>
                             </div>
 
-                            <button type="submit" class="btn primary">Confirmer le rendez-vous</button>
+                            <div class="appointment-confirmation-notice" role="note">
+                                <strong>Important : votre rendez-vous n'est pas encore confirmé.</strong>
+                                <p>Cette démarche envoie une demande à Emmy Vasse. Le rendez-vous sera valable uniquement lorsque vous aurez reçu un message de confirmation de sa part, par SMS ou par email.</p>
+                                <label class="appointment-confirmation-check">
+                                    <input type="checkbox" required>
+                                    <span>J'ai compris que ma demande doit être confirmée par Emmy Vasse.</span>
+                                </label>
+                            </div>
+
+                            <button type="submit" class="btn primary">Envoyer la demande de rendez-vous</button>
                                 </template>
                             </template>
                         </form>
@@ -1053,7 +1062,7 @@
                             <thead>
                                 <tr>
                                         <th class="sortable" @click="sortAppointments('date')">
-                                            Date
+                                            Rendez-vous / prise
                                             <span class="sort-icon" v-if="sortField === 'date'">
                                                 {{ sortOrder === 'asc' ? '↑' : '↓' }}
                                             </span>
@@ -1070,7 +1079,15 @@
                             <tbody>
                                     <tr v-for="appointment in sortedAppointments" :key="appointment.id" 
                                         :class="{ 'past-appointment': isPastAppointment(appointment.date) }">
-                                    <td>{{ formatDate(appointment.date) }}</td>
+                                    <td class="appointment-date-cell">
+                                        <div class="appointment-date-main">{{ formatDate(appointment.date) }}</div>
+                                        <div class="booking-meta-cell">
+                                            <span>Pris le {{ formatDateTime(appointment.bookedAt || appointment.createdAt) }}</span>
+                                            <span :class="['booking-origin-badge', appointment.bookedByType || 'unknown']">
+                                                {{ getAppointmentCreatorLabel(appointment) }}
+                                            </span>
+                                        </div>
+                                    </td>
                                     <td>{{ appointment.time }}</td>
                                     <td>
                                         {{ appointment.animalName }}
@@ -1161,6 +1178,12 @@
                                             <div class="appointment-contact">
                                                 <div>📞 {{ appointment.phone }}</div>
                                                 <div>🚗 {{ appointment.travelTime || 'Non renseigné' }}</div>
+                                            </div>
+                                            <div class="appointment-booking-meta">
+                                                <div>Pris le {{ formatDateTime(appointment.bookedAt || appointment.createdAt) }}</div>
+                                                <span :class="['booking-origin-badge', appointment.bookedByType || 'unknown']">
+                                                    {{ getAppointmentCreatorLabel(appointment) }}
+                                                </span>
                                             </div>
                                         </div>
                                         <div class="appointment-actions">
@@ -1457,7 +1480,7 @@
                         <div v-else>
                             <div class="slots-header">
                                 <h2>Gestion des créneaux horaires</h2>
-                                <button class="btn primary" @click="showAddSlotModal = true">
+                                <button class="btn primary" @click="openAddSlotModal()">
                                     Ajouter un créneau
                                 </button>
                             </div>
@@ -1494,7 +1517,7 @@
                         <div v-if="selectedDate">
                                 <h3>Créneaux du {{ formatDate(selectedDate) }}</h3>
                                 <div class="slots-actions">
-                                    <button class="btn primary" @click="showAddSlotModal = true">
+                                    <button class="btn primary" @click="openAddSlotModal(selectedDate)">
                                         Ajouter un créneau
                                     </button>
                                     <button class="btn secondary" @click="selectedDate = null">
@@ -1506,14 +1529,23 @@
                                          :key="slot.id"
                                          class="time-slot-card"
                                          :class="{ 'unavailable': slot.unavailable }">
-                                        <div class="slot-time">{{ slot.time }}</div>
-                                        <div class="slot-status">{{ slot.unavailable ? 'Indisponible' : 'Disponible' }}</div>
+                                        <div class="slot-summary">
+                                            <div class="slot-time">{{ slot.time }}</div>
+                                            <div class="slot-status">{{ slot.unavailable ? 'Indisponible' : 'Disponible' }}</div>
+                                        </div>
                                         <div class="slot-actions">
-                                            <button class="btn-edit" @click="toggleSlotAvailability(slot)">
-                                                {{ slot.unavailable ? 'Rendre disponible' : 'Rendre indisponible' }}
+                                            <button class="slot-action-button edit" @click="openEditSlotModal(slot)"
+                                                    title="Modifier ce créneau" aria-label="Modifier ce créneau">
+                                                ✎
                                             </button>
-                                            <button class="btn-delete" @click="deleteSlot(slot)">
-                                                Supprimer
+                                            <button class="slot-action-button availability" @click="toggleSlotAvailability(slot)"
+                                                    :title="slot.unavailable ? 'Rendre disponible' : 'Rendre indisponible'"
+                                                    :aria-label="slot.unavailable ? 'Rendre disponible' : 'Rendre indisponible'">
+                                                {{ slot.unavailable ? '✓' : '—' }}
+                                            </button>
+                                            <button class="slot-action-button delete" @click="deleteSlot(slot)"
+                                                    title="Supprimer ce créneau" aria-label="Supprimer ce créneau">
+                                                ×
                                             </button>
                                     </div>
                                     </div>
@@ -2658,11 +2690,11 @@ Nouveau client
             </div>
         </div>
 
-        <!-- Modal d'ajout de créneau -->
+        <!-- Modal d'ajout ou de modification de créneau -->
         <div v-if="showAddSlotModal" class="edit-modal">
             <div class="edit-modal-content">
-                <h2>{{ selectedDate ? 'Ajouter un créneau' : 'Ajouter des créneaux' }}</h2>
-                <form @submit.prevent="addSlots">
+                <h2>{{ editingSlot ? 'Modifier le créneau' : (selectedDate ? 'Ajouter un créneau' : 'Ajouter des créneaux') }}</h2>
+                <form @submit.prevent="saveSlot">
                     <div class="edit-form-group">
                         <label for="slotTime">Heure</label>
                         <input type="time" id="slotTime" v-model="newSlot.time" required>
@@ -2680,9 +2712,9 @@ Nouveau client
                     <div class="edit-form-group">
                         <label for="slotDate">Date de début</label>
                         <input type="date" id="slotDate" v-model="newSlot.date" required 
-                               :min="minDate">
+                               :min="editingSlot ? null : minDate">
                     </div>
-                    <div class="edit-form-group">
+                    <div class="edit-form-group" v-if="!editingSlot">
                         <label for="slotRecurrence">Récurrence</label>
                         <select id="slotRecurrence" v-model="newSlot.recurrence">
                             <option value="none">Aucune</option>
@@ -2691,14 +2723,14 @@ Nouveau client
                             <option value="monthly">Tous les mois</option>
                         </select>
                     </div>
-                    <div class="edit-form-group" v-if="newSlot.recurrence !== 'none'">
+                    <div class="edit-form-group" v-if="!editingSlot && newSlot.recurrence !== 'none'">
                         <label for="slotEndDate">Date de fin</label>
                         <input type="date" id="slotEndDate" v-model="newSlot.endDate" required
                                :min="newSlot.date">
                     </div>
                     <div class="edit-modal-actions">
-                        <button type="button" class="btn secondary" @click="showAddSlotModal = false">Annuler</button>
-                        <button type="submit" class="btn primary">Enregistrer</button>
+                        <button type="button" class="btn secondary" @click="closeSlotModal">Annuler</button>
+                        <button type="submit" class="btn primary">{{ editingSlot ? 'Enregistrer les modifications' : 'Enregistrer' }}</button>
                     </div>
                 </form>
             </div>
@@ -2982,6 +3014,9 @@ Nouveau client
             measurementId: "G-79QK6LZGNC"
         };
 
+        // À remplacer par l'URL fournie après le déploiement du Worker Cloudflare.
+        const NOTIFICATION_WORKER_URL = 'https://emmy-vasse-notifications.etoile-vasse.workers.dev';
+
         // Initialisation de Firebase
         const app = firebase.initializeApp(firebaseConfig);
         
@@ -3104,6 +3139,7 @@ Nouveau client
                     currentYear: new Date().getFullYear(),
                     selectedDate: null,
                     showAddSlotModal: false,
+                    editingSlot: null,
                     isLoadingAdminData: false,
                     newSlot: {
                         time: '',
@@ -3718,6 +3754,31 @@ Nouveau client
                 },
             },
             methods: {
+                    async sendPushNotification(payload) {
+                        if (!NOTIFICATION_WORKER_URL) {
+                            console.warn('Worker de notifications non configuré');
+                            return false;
+                        }
+
+                        const headers = { 'Content-Type': 'application/json' };
+                        const currentUser = firebase.auth().currentUser;
+                        if (currentUser) {
+                            headers.Authorization = `Bearer ${await currentUser.getIdToken()}`;
+                        }
+
+                        const response = await fetch(NOTIFICATION_WORKER_URL, {
+                            method: 'POST',
+                            headers,
+                            body: JSON.stringify(payload)
+                        });
+
+                        if (!response.ok) {
+                            const details = await response.text();
+                            throw new Error(`Worker de notifications (${response.status}): ${details}`);
+                        }
+
+                        return true;
+                    },
                     // Fonction pour traduire les erreurs Firebase
                     translateFirebaseError(error) {
                         const errorCode = error.code;
@@ -4081,7 +4142,8 @@ Nouveau client
                         // Sauvegarder le message dans Firebase
                         const messageRef = await db.collection('contact_messages').add(messageData);
 
-                        // Envoyer une notification aux administrateurs via OneSignal
+                        /* La notification est envoyée côté serveur par la Cloud Function
+                           déclenchée lors de la création du message. */
                         const notificationData = {
                             app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
                             contents: {
@@ -4112,26 +4174,13 @@ Nouveau client
                         };
 
                         try {
-                        // Envoyer la notification via l'API REST de OneSignal
-                            const response = await fetch('https://onesignal.com/api/v1/notifications', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                    'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
-                            },
-                            body: JSON.stringify(notificationData)
-                        });
-
-                            if (!response.ok) {
-                                console.error('OneSignal API error:', response.status, response.statusText);
-                                const errorText = await response.text();
-                                console.error('OneSignal error details:', errorText);
-                            } else {
-                                console.log('Notification de contact envoyée avec succès');
-                            }
+                            await this.sendPushNotification({
+                                type: 'contact_message',
+                                messageId: messageRef.id,
+                                senderName: this.contactForm.name
+                            });
                         } catch (notificationError) {
-                            console.error('Erreur lors de l\'envoi de la notification:', notificationError);
-                            // Ne pas bloquer l'envoi du message si la notification échoue
+                            console.error('Le message est enregistré, mais la notification a échoué:', notificationError);
                         }
 
                         alert('Message envoyé ! Nous vous contacterons bientôt.');
@@ -4411,6 +4460,10 @@ Nouveau client
                             userEmail: firebase.auth().currentUser.email,
                             timeSlotId: timeSlotId,
                             createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            bookedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            bookedByType: 'client',
+                            bookedByUserId: firebase.auth().currentUser.uid,
+                            bookedByEmail: firebase.auth().currentUser.email,
                             status: 'confirmed'
                         };
 
@@ -4483,27 +4536,19 @@ Nouveau client
                             }
                         };
 
+                        // La notification est envoyée côté serveur par la Cloud Function
+                        // déclenchée lors de la création du rendez-vous.
                         try {
-                        // Envoyer la notification
-                            const response = await fetch('https://onesignal.com/api/v1/notifications', {
-                            method: 'POST',
-                            headers: {
-                                'Content-Type': 'application/json',
-                                'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
-                            },
-                            body: JSON.stringify(notificationData)
-                        });
-
-                            if (!response.ok) {
-                                console.error('OneSignal API error:', response.status, response.statusText);
-                                const errorText = await response.text();
-                                console.error('OneSignal error details:', errorText);
-                            } else {
-                                console.log('Notification de rendez-vous envoyée avec succès');
-                            }
+                            await this.sendPushNotification({
+                                type: 'new_appointment',
+                                appointmentId: appointmentRef.id,
+                                animalName: this.appointmentForm.animalName,
+                                animalType: this.appointmentForm.animalType,
+                                date: this.appointmentForm.date,
+                                time: this.appointmentForm.time
+                            });
                         } catch (notificationError) {
-                            console.error('Erreur lors de l\'envoi de la notification:', notificationError);
-                            // Ne pas bloquer la création du rendez-vous si la notification échoue
+                            console.error('Le rendez-vous est enregistré, mais la notification a échoué:', notificationError);
                         }
 
                         // Réinitialiser le formulaire
@@ -4716,6 +4761,35 @@ Nouveau client
                     }
                     const options = { year: 'numeric', month: 'long', day: 'numeric' };
                     return new Date(date).toLocaleDateString('fr-FR', options);
+                },
+                formatDateTime(date) {
+                    if (!date) return 'Date non renseignée';
+                    if (date instanceof firebase.firestore.Timestamp) {
+                        date = date.toDate();
+                    } else if (date && typeof date.toDate === 'function') {
+                        date = date.toDate();
+                    }
+                    const parsedDate = new Date(date);
+                    if (Number.isNaN(parsedDate.getTime())) return 'Enregistrement en cours';
+                    return parsedDate.toLocaleString('fr-FR', {
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric',
+                        hour: '2-digit',
+                        minute: '2-digit'
+                    });
+                },
+                getAppointmentCreatorLabel(appointment) {
+                    if (appointment.bookedByType === 'admin' || appointment.isTemporary) {
+                        return 'Administrateur';
+                    }
+                    if (appointment.bookedByType === 'client') {
+                        const clientName = this.getUserFullName(appointment.bookedByUserId || appointment.userId);
+                        return clientName && clientName !== 'Client non trouvé'
+                            ? `Client · ${clientName}`
+                            : 'Client';
+                    }
+                    return 'Auteur non renseigné';
                 },
                 formatDateFr(dateString) {
                     const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
@@ -5604,16 +5678,15 @@ Nouveau client
                         
                         // Initialiser OneSignal uniquement si ce n'est pas déjà fait
                         if (this.isAdmin) {
-                            if (!window.OneSignal.initialized) {
-                                window.OneSignal.push(function() {
-                                    OneSignal.init({
+                            if (!window.oneSignalInitialized) {
+                                const firebaseUserId = firebase.auth().currentUser.uid;
+                                window.OneSignalDeferred.push(async function(OneSignal) {
+                                    await OneSignal.init({
                                         appId: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
-                                        safari_web_id: "web.onesignal.auto.xxx",
                                         // Configuration améliorée pour la compatibilité
                                         allowLocalhostAsSecureOrigin: true,
-                                        autoRegister: true,
-                                        autoResubscribe: true,
-                                        persistNotification: true,
+                                        serviceWorkerPath: "/OneSignalSDKWorker.js",
+                                        serviceWorkerParam: { scope: "/" },
                                         // Utiliser le service worker par défaut d'OneSignal
                                         // Configuration des notifications
                                         notifyButton: {
@@ -5641,130 +5714,30 @@ Nouveau client
                                                 'dialog.blocked.title': 'Débloquer les notifications',
                                                 'dialog.blocked.message': 'Suivez ces instructions pour autoriser les notifications:'
                                             }
-                                        },
-                                        // Configuration des prompts
-                                        promptOptions: {
-                                            slidedown: {
-                                                prompts: [
-                                                    {
-                                                        type: "push",
-                                                        autoPrompt: true,
-                                                        text: {
-                                                            actionMessage: "Voulez-vous recevoir les notifications administrateur ?",
-                                                            acceptButton: "Autoriser",
-                                                            cancelButton: "Plus tard"
-                                                        }
-                                                    }
-                                                ]
-                                            }
-                                        },
-                                        // Configuration pour les anciens navigateurs
-                                        welcomeNotification: {
-                                            disable: false,
-                                            title: "Notifications activées !",
-                                            message: "Vous recevrez maintenant les notifications administrateur"
-                                        },
-                                        // Configuration des permissions
-                                        permissionDialog: {
-                                            enable: true,
-                                            title: "Notifications Emmy Vasse",
-                                            message: "Recevez les notifications importantes de votre activité d'ostéopathe animalier",
-                                            acceptButtonText: "Autoriser",
-                                            cancelButtonText: "Plus tard"
                                         }
                                     });
                                     
                                     // Attendre que OneSignal soit prêt
-                                    OneSignal.on('subscriptionChange', function(isSubscribed) {
-                                        console.log('OneSignal subscription changed:', isSubscribed);
+                                    OneSignal.User.PushSubscription.addEventListener('change', function(event) {
+                                        console.log('OneSignal subscription changed:', event.current);
                                     });
                                     
-                                    OneSignal.on('notificationPermissionChange', function(permission) {
+                                    OneSignal.Notifications.addEventListener('permissionChange', function(permission) {
                                         console.log('OneSignal permission changed:', permission);
                                     });
                                     
                                     // Afficher le prompt après un délai
                                     setTimeout(() => {
-                                        OneSignal.showSlidedownPrompt();
+                                        OneSignal.Slidedown.promptPush();
                                     }, 2000);
                                     
-                                    // Tagger l'utilisateur si c'est un admin
-                                    if (this.isAdmin) {
-                                        OneSignal.push(function() {
-                                            OneSignal.sendTag('role', 'admin');
-                                            console.log('Utilisateur tagué comme admin');
-                                            
-                                            // Vérifier les tags après 2 secondes
-                                            setTimeout(() => {
-                                                OneSignal.getTags().then(tags => {
-                                                    console.log('Tags actuels:', tags);
-                                                });
-                                            }, 2000);
-                                        });
-                                    } else {
-                                        // Tagger les utilisateurs non-admin avec 'user'
-                                        OneSignal.push(function() {
-                                            OneSignal.sendTag('role', 'user');
-                                            console.log('Utilisateur tagué comme user');
-                                            
-                                            // Vérifier les tags après 2 secondes
-                                            setTimeout(() => {
-                                                OneSignal.getTags().then(tags => {
-                                                    console.log('Tags actuels:', tags);
-                                                });
-                                            }, 2000);
-                                        });
-                                    }
-                                    
-                                    window.OneSignal.initialized = true;
+                                    await OneSignal.login(firebaseUserId);
+                                    await OneSignal.User.addTag('role', 'admin');
                                 });
+                                window.oneSignalInitialized = true;
                                 
 
                                 
-                                // Fonction pour envoyer une notification à des appareils spécifiques
-                                window.sendNotificationToSpecificDevices = async function(deviceIds, title, message, url = null) {
-                                    const notificationData = {
-                                        app_id: "c1dcb08f-cad7-4f3e-be08-b45671fbde82",
-                                        contents: {
-                                            en: message,
-                                            fr: message
-                                        },
-                                        headings: {
-                                            en: title,
-                                            fr: title
-                                        },
-                                        include_player_ids: deviceIds,
-                                        data: {
-                                            type: "custom_notification",
-                                            customUrl: url
-                                        }
-                                    };
-
-                                    if (url) {
-                                        notificationData.url = url;
-                                    }
-
-                                    try {
-                                        const response = await fetch('https://onesignal.com/api/v1/notifications', {
-                                            method: 'POST',
-                                            headers: {
-                                                'Content-Type': 'application/json',
-                                                'Authorization': 'Basic os_v2_app_yholbd6k25ht5pqiwrlhd666qi2l732wdaqepxupxqcpzmldkhlya27onu2hglbn2jqpeyjshfkn4g2nj6zks2o3skyegtdpvs7e3da'
-                                            },
-                                            body: JSON.stringify(notificationData)
-                                        });
-
-                                        if (!response.ok) {
-                                            console.error('OneSignal API error:', response.status, response.statusText);
-                                            const errorText = await response.text();
-                                            console.error('OneSignal error details:', errorText);
-                                        } else {
-                                            console.log('Notification envoyée aux appareils spécifiés');
-                                        }
-                                    } catch (error) {
-                                        console.error('Erreur lors de l\'envoi de la notification:', error);
-                                    }
-                                };
                             }
                             // Afficher le bouton de notification
                             setTimeout(() => {
@@ -6377,6 +6350,108 @@ Nouveau client
                     return this.slots.filter(slot => 
                         slot.date.toDateString() === date.toDateString()
                     );
+                },
+                formatDateForInput(date) {
+                    if (!date) return '';
+                    const localDate = new Date(date);
+                    const year = localDate.getFullYear();
+                    const month = String(localDate.getMonth() + 1).padStart(2, '0');
+                    const day = String(localDate.getDate()).padStart(2, '0');
+                    return `${year}-${month}-${day}`;
+                },
+                openAddSlotModal(date = null) {
+                    this.editingSlot = null;
+                    this.newSlot = {
+                        time: '',
+                        date: this.formatDateForInput(date || this.selectedDate),
+                        duration: '60',
+                        recurrence: 'none',
+                        endDate: ''
+                    };
+                    this.showAddSlotModal = true;
+                },
+                openEditSlotModal(slot) {
+                    this.editingSlot = slot;
+                    this.newSlot = {
+                        time: slot.time,
+                        date: this.formatDateForInput(slot.date),
+                        duration: String(slot.duration || 60),
+                        recurrence: 'none',
+                        endDate: ''
+                    };
+                    this.showAddSlotModal = true;
+                },
+                closeSlotModal() {
+                    this.showAddSlotModal = false;
+                    this.editingSlot = null;
+                    this.newSlot = {
+                        time: '',
+                        date: '',
+                        duration: '60',
+                        recurrence: 'none',
+                        endDate: ''
+                    };
+                },
+                async saveSlot() {
+                    if (this.editingSlot) {
+                        await this.updateSlot();
+                    } else {
+                        await this.addSlots();
+                    }
+                },
+                async updateSlot() {
+                    try {
+                        if (!this.newSlot.time || !this.newSlot.date) {
+                            throw new Error('La date et l\'heure sont requises');
+                        }
+
+                        const slotDate = new Date(this.newSlot.date);
+                        const [hours, minutes] = this.newSlot.time.split(':');
+                        slotDate.setHours(parseInt(hours), parseInt(minutes), 0, 0);
+
+                        const startOfDay = new Date(slotDate);
+                        startOfDay.setHours(0, 0, 0, 0);
+                        const endOfDay = new Date(slotDate);
+                        endOfDay.setHours(23, 59, 59, 999);
+
+                        const existingSlots = await db.collection('timeSlots')
+                            .where('date', '>=', firebase.firestore.Timestamp.fromDate(startOfDay))
+                            .where('date', '<=', firebase.firestore.Timestamp.fromDate(endOfDay))
+                            .get();
+                        const hasConflict = existingSlots.docs.some(doc =>
+                            doc.id !== this.editingSlot.id && doc.data().time === this.newSlot.time
+                        );
+                        if (hasConflict) {
+                            throw new Error('Un créneau existe déjà à cette date et cette heure');
+                        }
+
+                        const dateOrTimeChanged =
+                            this.formatDateForInput(this.editingSlot.date) !== this.newSlot.date ||
+                            this.editingSlot.time !== this.newSlot.time;
+                        if (dateOrTimeChanged) {
+                            const linkedAppointments = await db.collection('appointments')
+                                .where('timeSlotId', '==', this.editingSlot.id)
+                                .limit(1)
+                                .get();
+                            if (!linkedAppointments.empty) {
+                                throw new Error('Ce créneau est lié à un rendez-vous. Modifiez d’abord le rendez-vous concerné.');
+                            }
+                        }
+
+                        await db.collection('timeSlots').doc(this.editingSlot.id).update({
+                            date: firebase.firestore.Timestamp.fromDate(slotDate),
+                            time: this.newSlot.time,
+                            duration: parseInt(this.newSlot.duration),
+                            updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                        });
+
+                        this.selectedDate = new Date(slotDate);
+                        this.closeSlotModal();
+                        alert('Créneau modifié avec succès');
+                    } catch (error) {
+                        console.error('Error updating slot:', error);
+                        alert(error.message || 'Erreur lors de la modification du créneau');
+                    }
                 },
                 async addSlots() {
                     try {
@@ -8054,7 +8129,11 @@ Nouveau client
                             notes: this.adminAppointmentForm.notes,
                             travelTime: clientTravelTime, // Ajouter le temps de trajet du client
                             status: 'pending',
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            bookedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            bookedByType: 'admin',
+                            bookedByUserId: firebase.auth().currentUser.uid,
+                            bookedByEmail: firebase.auth().currentUser.email
                         };
 
                         const appointmentRef = await db.collection('appointments').add(appointmentData);
@@ -8302,7 +8381,11 @@ Le rendez-vous apparaîtra automatiquement dans le tableau d'administration.`;
                             travelTime: '', // Temps de trajet vide pour les RDV temporaires
                             status: 'pending',
                             isTemporary: true, // Marquer comme temporaire
-                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            bookedAt: firebase.firestore.FieldValue.serverTimestamp(),
+                            bookedByType: 'admin',
+                            bookedByUserId: firebase.auth().currentUser.uid,
+                            bookedByEmail: firebase.auth().currentUser.email
                         };
 
                         const appointmentRef = await db.collection('appointments').add(appointmentData);
@@ -9388,4 +9471,4 @@ Vous devez maintenant vous reconnecter en tant qu'administrateur.`);
         }
     </script>
 </body>
-</html> 
+</html>
